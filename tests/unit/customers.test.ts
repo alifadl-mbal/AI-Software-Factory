@@ -29,7 +29,7 @@ import {
   searchText,
 } from "@/lib/server/queries/customers";
 import { kpiQuery, salesBreakdown, salesKpis, salesMonthly, salesReturns } from "@/lib/server/queries/sales";
-import { openBookKpis, openByCustomer, openLines } from "@/lib/server/queries/sales-orders";
+import { openBookKpis, openByCustomer, openKpiQuery, openLines } from "@/lib/server/queries/sales-orders";
 import { ALL_OTHER, UNASSIGNED } from "@/lib/server/sql";
 
 import { Q1_2025, useFixtureSource } from "./fixture";
@@ -231,18 +231,27 @@ describe("AR of one customer", () => {
 
 describe("open orders of one customer", () => {
   it("open value adds up from its lines and matches the Sales orders breakdown", async () => {
-    const kpis = await openBookKpis(ALL, TODAY, "CA");
+    const kpis = await openBookKpis(ALL, TODAY, "all", "CA");
     expect(kpis.openValue).toBeCloseTo(1300);
     expect(kpis.openAedLines).toBe(2);
-    const lines = await openLines(ALL, TODAY, 1000, "CA");
+    const lines = await openLines(ALL, TODAY, "all", 1000, "CA");
     expect(lines.map((line) => [line.orderNumber, line.pendingValue, line.customerCode])).toEqual([
       ["SO5-1001", 1000, "CA"],
       ["SO5-1001", 300, "CA"],
     ]);
     // "Customer A" on the dashboard is CA and CA2 together: a shared name, so it stays unlinked.
-    const byName = (await openByCustomer(ALL, TODAY)).find((row) => row.label === "Customer A");
-    const ca2 = await openBookKpis(ALL, TODAY, "CA2");
+    const byName = (await openByCustomer(ALL, TODAY, "all")).find((row) => row.label === "Customer A");
+    const ca2 = await openBookKpis(ALL, TODAY, "all", "CA2");
     expect(kpis.openValue + ca2.openValue).toBeCloseTo(byName!.value);
-    expect((await openBookKpis(ALL, TODAY, "NOPE")).openValue).toBe(0);
+    expect((await openBookKpis(ALL, TODAY, "all", "NOPE")).openValue).toBe(0);
+  });
+
+  it("narrows by customer and order age together", async () => {
+    const { sql, binds } = openKpiQuery(ALL, TODAY, "2y", "CA");
+    expect(sql).toContain("H_CUST_CODE = :cust_code");
+    expect(binds).toMatchObject({ cust_code: "CA", since_date: expect.any(String) });
+    const all = await openBookKpis(ALL, TODAY, "all", "CA");
+    const recent = await openBookKpis(ALL, TODAY, "2y", "CA");
+    expect(recent.openValue + recent.hiddenValue).toBeCloseTo(all.openValue);
   });
 });

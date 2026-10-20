@@ -14,6 +14,8 @@ import {
   type DeadStock,
   type MonthEnd,
 } from "./queries/inventory";
+import { DEFAULT_ORDER_AGE } from "@/lib/order-age";
+
 import { pendingKpis, type PendingKpis } from "./queries/purchasing";
 import { salesKpis, type SalesKpis } from "./queries/sales";
 import { openBookKpis, openByCurrency, type CurrencyBook, type OpenBookKpis } from "./queries/sales-orders";
@@ -24,7 +26,8 @@ import { openBookKpis, openByCurrency, type CurrencyBook, type OpenBookKpis } fr
  * Every figure comes from the dashboards' own loaders with the same arguments, so the email, the
  * Overview and each dashboard agree for the same day (and share the 15-minute cache entries).
  * Period figures follow `Filters`; stock, pending POs, AR/AP and the order book are as of today
- * and follow only the companies.
+ * and follow only the companies. Pending POs and the order book use the default order age (orders
+ * placed in the last 2 years, `lib/order-age.ts`), as the dashboards do unless told otherwise.
  */
 
 export interface VsLastYear<T> {
@@ -83,8 +86,8 @@ export interface OrderBook {
 
 export async function orderBook(companies: string[], today: string): Promise<OrderBook> {
   const [book, otherCurrencies] = await Promise.all([
-    openBookKpis(companies, today),
-    openByCurrency(companies, today),
+    openBookKpis(companies, today, DEFAULT_ORDER_AGE),
+    openByCurrency(companies, today, DEFAULT_ORDER_AGE),
   ]);
   return { book, otherCurrencies };
 }
@@ -149,7 +152,7 @@ export async function overviewFigures(today: string = todayIso()): Promise<Overv
       }),
       load(() => financeVsLastYear(ytdFilters)),
       load(() => stockPosition(companies, today)),
-      load(() => pendingKpis(companies, today)),
+      load(() => pendingKpis(companies, today, DEFAULT_ORDER_AGE)),
       load(() => arSummary(today, companies)),
       load(async () => {
         const split = await apSplit(today, companies);

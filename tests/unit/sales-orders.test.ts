@@ -74,9 +74,86 @@ describe("pending value", () => {
   });
 });
 
+/**
+ * Order age as of 2025-06-30. Last 2 years (from 2023-06-30) leaves out SO5-1004 (2023-03-01, 150,
+ * overdue). Last 12 months (from 2024-06-30) also leaves out SO5-1005 (2024-05-01, 300 pending and
+ * 300 delivered not invoiced).
+ */
+describe("order age", () => {
+  it("binds the cut-off as a date on H_DT, and nothing for all", () => {
+    for (const query of [
+      openByAgeQuery(ALL, TODAY, "2y"),
+      openBySalespersonQuery(ALL, TODAY, "2y"),
+      openByCustomerQuery(ALL, TODAY, "2y"),
+      openByCurrencyQuery(ALL, TODAY, "2y"),
+      openLinesQuery(ALL, TODAY, "2y"),
+    ]) {
+      expect(query.binds.since_date).toBe("2023-06-30");
+      expect(query.sql).toContain("AND H_DT >= TO_DATE(:since_date, 'YYYY-MM-DD')");
+    }
+    expect(openByAgeQuery(ALL, TODAY, "12m").binds.since_date).toBe("2024-06-30");
+    expect(openByAgeQuery(ALL, TODAY, "all").binds).not.toHaveProperty("since_date");
+    expect(openByAgeQuery(ALL, TODAY, "all").sql).not.toContain("since_date");
+  });
+
+  it("the KPI query keeps older lines and counts them separately, in one round trip", async () => {
+    const { sql, binds } = openKpiQuery(ALL, TODAY, "2y");
+    expect(binds.since_date).toBe("2023-06-30");
+    // A flag, not a WHERE: the hidden lines are summed in the same query.
+    expect(sql).not.toMatch(/AND H_DT >= /);
+    expect(await openBookKpis(ALL, TODAY, "2y")).toEqual({
+      openValue: 4200,
+      openOrders: 6,
+      openLines: 7,
+      openAedLines: 6,
+      uninvoicedValue: 600,
+      uninvoicedLines: 2,
+      overdueValue: 2600,
+      overdueLines: 3,
+      hiddenLines: 1,
+      hiddenValue: 150,
+    });
+    expect(await openBookKpis(ALL, TODAY, "12m")).toEqual({
+      openValue: 3900,
+      openOrders: 5,
+      openLines: 6,
+      openAedLines: 5,
+      uninvoicedValue: 300,
+      uninvoicedLines: 1,
+      overdueValue: 2600,
+      overdueLines: 3,
+      hiddenLines: 2,
+      hiddenValue: 450,
+    });
+  });
+
+  it("every breakdown follows it and adds up to the KPI", async () => {
+    const all = await openBookKpis(ALL, TODAY, "all");
+    const sum = (values: number[]) => values.reduce((total, value) => total + value, 0);
+    for (const age of ["2y", "12m", "all"] as const) {
+      const kpis = await openBookKpis(ALL, TODAY, age);
+      expect(sum(await openByAge(ALL, TODAY, age))).toBeCloseTo(kpis.openValue);
+      expect(sum((await openBySalesperson(ALL, TODAY, age)).map((row) => row.value))).toBeCloseTo(
+        kpis.openValue,
+      );
+      expect(sum((await openByCustomer(ALL, TODAY, age)).map((row) => row.value))).toBeCloseTo(
+        kpis.openValue,
+      );
+      const lines = await openLines(ALL, TODAY, age);
+      expect(lines).toHaveLength(kpis.openAedLines);
+      expect(sum(lines.map((line) => line.pendingValue))).toBeCloseTo(kpis.openValue);
+      // What is shown plus what is left out is the whole book.
+      expect(kpis.openValue + kpis.hiddenValue).toBeCloseTo(all.openValue);
+      expect(kpis.openLines + kpis.hiddenLines).toBe(all.openLines);
+    }
+    expect((await openLines(ALL, TODAY, "2y")).map((line) => line.orderNumber)).not.toContain("SO5-1004");
+    expect((await openByAge(ALL, TODAY, "2y")).at(-1)).toBe(0);
+  });
+});
+
 describe("open book KPIs", () => {
   it("adds up open, not-invoiced and overdue lines", async () => {
-    expect(await openBookKpis(ALL, TODAY)).toEqual({
+    expect(await openBookKpis(ALL, TODAY, "all")).toEqual({
       openValue: 4350,
       openOrders: 7,
       openLines: 8,
@@ -85,68 +162,70 @@ describe("open book KPIs", () => {
       uninvoicedLines: 2,
       overdueValue: 2750,
       overdueLines: 4,
+      hiddenLines: 0,
+      hiddenValue: 0,
     });
   });
 
   it("follows the company filter, and not the date filter", async () => {
-    expect((await openBookKpis(["101"], TODAY)).openValue).toBeCloseTo(2350);
-    expect((await openBookKpis(["102"], TODAY)).openValue).toBeCloseTo(2000);
-    const { binds } = openKpiQuery(["101"], TODAY);
+    expect((await openBookKpis(["101"], TODAY, "all")).openValue).toBeCloseTo(2350);
+    expect((await openBookKpis(["102"], TODAY, "all")).openValue).toBeCloseTo(2000);
+    const { binds } = openKpiQuery(["101"], TODAY, "all");
     expect(binds).toMatchObject({ company_0: "101", today: TODAY });
     expect(Object.keys(binds)).not.toContain("start_date");
   });
 
   it("nothing open gives zeros", async () => {
-    const kpis = await openBookKpis(["999"], TODAY);
+    const kpis = await openBookKpis(["999"], TODAY, "all");
     expect(Object.values(kpis).every((value) => value === 0)).toBe(true);
   });
 
   it("leaves out Closed orders, fully delivered and over-delivered lines", async () => {
-    const lines = await openLines(ALL, TODAY);
+    const lines = await openLines(ALL, TODAY, "all");
     const orders = lines.map((line) => line.orderNumber);
     for (const order of ["SO5-1002", "SOU-2003", "SOU-2004", "SO5-1008", "SO5-1009"]) {
       expect(orders).not.toContain(order);
     }
-    const { sql } = openKpiQuery(ALL, TODAY);
+    const { sql } = openKpiQuery(ALL, TODAY, "all");
     expect(sql).toContain("<> 'Closed'");
     // The documented 'C' status doesn't exist in Orion.
     expect(sql).not.toMatch(/STATUS[^,]*'C'/);
   });
 
   it("keeps non-AED orders out of the AED totals and lists them per currency", async () => {
-    expect(await openByCurrency(ALL, TODAY)).toEqual([{ currency: "USD", lines: 1, openValue: 1000 }]);
-    expect(await openByCurrency(["101"], TODAY)).toEqual([]);
+    expect(await openByCurrency(ALL, TODAY, "all")).toEqual([{ currency: "USD", lines: 1, openValue: 1000 }]);
+    expect(await openByCurrency(["101"], TODAY, "all")).toEqual([]);
   });
 });
 
 describe("breakdowns add up to the open value", () => {
   it("by order age, in ladder order", async () => {
-    const buckets = await openByAge(ALL, TODAY);
+    const buckets = await openByAge(ALL, TODAY, "all");
     expect(buckets).toEqual([1300, 0, 600, 2000, 0, 300, 150]);
     expect(buckets).toHaveLength(AGING_BUCKETS.length);
     expect(buckets.reduce((sum, value) => sum + value, 0)).toBeCloseTo(4350);
   });
 
   it("by salesperson, blank as Unassigned", async () => {
-    expect(await openBySalesperson(ALL, TODAY)).toEqual([
+    expect(await openBySalesperson(ALL, TODAY, "all")).toEqual([
       { label: UNASSIGNED, value: 2000 },
       { label: "Sales One", value: 1450 },
       { label: "Sales Two", value: 900 },
     ]);
-    expect(await openBySalesperson(ALL, TODAY, 1)).toEqual([
+    expect(await openBySalesperson(ALL, TODAY, "all", 1)).toEqual([
       { label: UNASSIGNED, value: 2000 },
       { label: ALL_OTHER, value: 2350 },
     ]);
   });
 
   it("by customer, the tail folded into All other", async () => {
-    expect(await openByCustomer(ALL, TODAY)).toEqual([
+    expect(await openByCustomer(ALL, TODAY, "all")).toEqual([
       { label: "Customer C", value: 2000 },
       { label: "Customer A", value: 1450 },
       { label: "Customer B", value: 600 },
       { label: "Customer E", value: 300 },
     ]);
-    const top2 = await openByCustomer(ALL, TODAY, 2);
+    const top2 = await openByCustomer(ALL, TODAY, "all", 2);
     expect(top2.at(-1)).toEqual({ label: ALL_OTHER, value: 900 });
     expect(top2.reduce((sum, row) => sum + row.value, 0)).toBeCloseTo(4350);
   });
@@ -154,7 +233,7 @@ describe("breakdowns add up to the open value", () => {
   // Live Orion: H_CUST_NAME is a lookup Orion runs per row, and grouping the open book by it took
   // 9-38 s. Grouping by code and naming the codes from ZF_CUSTOMER takes about a second.
   it("groups by customer code and names the codes from the customer master", () => {
-    const { sql } = openByCustomerQuery(ALL, TODAY);
+    const { sql } = openByCustomerQuery(ALL, TODAY, "all");
     expect(sql).not.toContain("H_CUST_NAME");
     expect(sql).toContain("GROUP BY cust_code");
     expect(sql).toContain("LEFT JOIN MBALI.ZF_CUSTOMER c ON c.CUST_CODE = by_code.cust_code");
@@ -164,11 +243,11 @@ describe("breakdowns add up to the open value", () => {
   // new query text pick a 5 s plan for the view; summing conditionally keeps it under a second.
   it("never filters the open book on its computed columns in a WHERE", () => {
     const queries = [
-      openByAgeQuery(ALL, TODAY),
-      openBySalespersonQuery(ALL, TODAY),
-      openByCustomerQuery(ALL, TODAY),
-      openByCurrencyQuery(ALL, TODAY),
-      openLinesQuery(ALL, TODAY),
+      openByAgeQuery(ALL, TODAY, "all"),
+      openBySalespersonQuery(ALL, TODAY, "all"),
+      openByCustomerQuery(ALL, TODAY, "all"),
+      openByCurrencyQuery(ALL, TODAY, "all"),
+      openLinesQuery(ALL, TODAY, "all"),
     ];
     for (const { sql } of queries) {
       expect(sql).not.toMatch(/WHERE\s+pend_qty/);
@@ -178,14 +257,14 @@ describe("breakdowns add up to the open value", () => {
 
   it("adds up two codes that share a customer name, as grouping by name did", async () => {
     // Customer A is CA (SO5-1001, 1300) and CA2 (SO5-1004, 150) in the fixture.
-    const rows = await openByCustomer(ALL, TODAY);
+    const rows = await openByCustomer(ALL, TODAY, "all");
     expect(rows.filter((row) => row.label === "Customer A")).toEqual([{ label: "Customer A", value: 1450 }]);
   });
 });
 
 describe("open lines table", () => {
   it("lists AED open lines, largest first, with expected date and days overdue", async () => {
-    const lines = await openLines(ALL, TODAY);
+    const lines = await openLines(ALL, TODAY, "all");
     expect(lines.map((line) => [line.orderNumber, line.pendingValue])).toEqual([
       ["SOU-2001", 2000],
       ["SO5-1001", 1000],
@@ -224,7 +303,7 @@ describe("open lines table", () => {
   });
 
   it("is capped at the row limit", async () => {
-    expect(await openLines(ALL, TODAY, 2)).toHaveLength(2);
+    expect(await openLines(ALL, TODAY, "all", 2)).toHaveLength(2);
   });
 });
 

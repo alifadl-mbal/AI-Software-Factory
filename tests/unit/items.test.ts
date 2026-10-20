@@ -288,7 +288,7 @@ describe("stock of one item", () => {
 
 describe("POs and open orders of one item", () => {
   it("pending PO lines with the expected date (PO date + 84), adding up to the KPI", async () => {
-    const pending = await itemPending(ALL, TODAY, "I1");
+    const pending = await itemPending(ALL, TODAY, "all", "I1");
     expect(pending).toEqual({
       lines: 1,
       pendingQty: 10,
@@ -307,19 +307,25 @@ describe("POs and open orders of one item", () => {
       ],
     });
     // LPO-5002 (I2) is due today: overdue by 0 days.
-    expect((await itemPending(ALL, TODAY, "I2")).rows[0]).toMatchObject({ daysOverdue: 0, pendingQty: 5 });
-    expect(itemPendingQuery(ALL, TODAY, "I1").binds).toMatchObject({ item_code: "I1", row_limit: 200 });
+    expect((await itemPending(ALL, TODAY, "all", "I2")).rows[0]).toMatchObject({
+      daysOverdue: 0,
+      pendingQty: 5,
+    });
+    expect(itemPendingQuery(ALL, TODAY, "all", "I1").binds).toMatchObject({
+      item_code: "I1",
+      row_limit: 200,
+    });
   });
 
   it("each item's pending value is its share of the Purchasing KPI", async () => {
     const codes = ["I1", "I2", "I3", "I4", "I5", "I6", "I7", "I8"];
-    const values = await Promise.all(codes.map((code) => itemPending(ALL, TODAY, code)));
-    const kpis = await pendingKpis(ALL, TODAY);
+    const values = await Promise.all(codes.map((code) => itemPending(ALL, TODAY, "all", code)));
+    const kpis = await pendingKpis(ALL, TODAY, "all");
     expect(values.reduce((sum, entry) => sum + entry.pendingValue, 0)).toBeCloseTo(kpis.pendingValue);
   });
 
   it("open order lines still to deliver, largest first, without Closed orders", async () => {
-    const book = await itemOpenBook(ALL, TODAY, "I1");
+    const book = await itemOpenBook(ALL, TODAY, "all", "I1");
     expect(book.lines).toBe(2);
     expect(book.pendingQty).toBe(13);
     expect(
@@ -329,13 +335,24 @@ describe("POs and open orders of one item", () => {
       ["SO5-1005", "SC0003", 3, "2025-07-10"],
     ]);
     // I6 is only on a Closed order; I5's order is in USD and still counts by quantity.
-    expect((await itemOpenBook(ALL, TODAY, "I6")).lines).toBe(0);
-    expect(await itemOpenBook(ALL, TODAY, "I5")).toMatchObject({ lines: 1, pendingQty: 10 });
-    expect((await itemOpenBook(ALL, TODAY, "I5")).rows[0]).toMatchObject({
+    expect((await itemOpenBook(ALL, TODAY, "all", "I6")).lines).toBe(0);
+    expect(await itemOpenBook(ALL, TODAY, "all", "I5")).toMatchObject({ lines: 1, pendingQty: 10 });
+    expect((await itemOpenBook(ALL, TODAY, "all", "I5")).rows[0]).toMatchObject({
       currency: "USD",
       daysOverdue: 288,
     });
     // The book's other filters still apply.
-    expect((await openBookKpis(ALL, TODAY, { item: "I1" })).openLines).toBe(book.lines);
+    expect((await openBookKpis(ALL, TODAY, "all", { item: "I1" })).openLines).toBe(book.lines);
+  });
+
+  it("follow the order-age choice, as on Purchasing and Sales orders", async () => {
+    // 12 months to 2025-06-30 starts 2024-06-30: SO5-1005 (2024-05-01) and LPO-6003 (2024-04-08) drop out.
+    const book = await itemOpenBook(ALL, TODAY, "12m", "I1");
+    expect(book.rows.map((line) => line.orderNumber)).toEqual(["SO5-1001"]);
+    expect(book.pendingQty).toBe(10);
+    expect((await openBookKpis(ALL, TODAY, "12m", { item: "I1" })).openLines).toBe(book.lines);
+    expect((await itemPending(ALL, TODAY, "12m", "I7")).lines).toBe(0);
+    expect((await itemPending(ALL, TODAY, "all", "I7")).lines).toBe(1);
+    expect(itemPendingQuery(ALL, TODAY, "12m", "I7").binds).toMatchObject({ since_date: "2024-06-30" });
   });
 });

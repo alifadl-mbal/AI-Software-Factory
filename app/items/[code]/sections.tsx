@@ -15,6 +15,7 @@ import { customerHref } from "@/lib/customers";
 import { previousYear, type Filters } from "@/lib/filters";
 import { formatAed, formatInt, formatMonth, formatQty } from "@/lib/format";
 import { COVER_MONTHS } from "@/lib/items";
+import { orderAgeScope, type OrderAge } from "@/lib/order-age";
 import { dataAsOf } from "@/lib/server/db";
 import { load } from "@/lib/server/errors";
 import { companies as loadCompanies } from "@/lib/server/queries/common";
@@ -29,12 +30,14 @@ import { salesBreakdown, salesKpis, salesMonthly } from "@/lib/server/queries/sa
 /**
  * The item page's sections. Sales follow the filters; stock, POs and open orders are as of `today`
  * and follow only the companies, as on their dashboards. Every figure comes from the dashboards'
- * own queries narrowed to one item code, so they agree with the dashboards' rows.
+ * own queries narrowed to one item code, so they agree with the dashboards' rows. Pending POs and
+ * open orders follow the order-age choice (`?since=`), as on Purchasing and Sales orders.
  */
 export interface ItemProps {
   code: string;
   filters: Filters;
   today: string;
+  age: OrderAge;
 }
 
 /** Customers in the top-customers table; the rest are one "All other" row. */
@@ -190,12 +193,12 @@ export async function ItemSalesKpis(props: ItemProps) {
 }
 
 /** Five cards as of today: stock on hand, available, reserved, on order, still to deliver. */
-export async function ItemStockKpis({ code, filters, today }: ItemProps) {
+export async function ItemStockKpis({ code, filters, today, age }: ItemProps) {
   const result = await load(() =>
     Promise.all([
       stockByLocation(filters.companies, code),
-      itemPending(filters.companies, today, code),
-      itemOpenBook(filters.companies, today, code),
+      itemPending(filters.companies, today, age, code),
+      itemOpenBook(filters.companies, today, age, code),
     ]),
   );
   if (!result.ok) return <RowError message={result.message} />;
@@ -228,7 +231,7 @@ export async function ItemStockKpis({ code, filters, today }: ItemProps) {
         format="qty"
         hint={
           pending.lines === 0
-            ? "No pending PO lines"
+            ? `No pending PO lines, ${orderAgeScope(age)}`
             : `${formatInt(pending.lines)} pending ${pending.lines === 1 ? "line" : "lines"}, ${formatAed(pending.pendingValue)}`
         }
       />
@@ -405,12 +408,14 @@ const PO_COLUMNS: ColumnSpec[] = [
   { key: "pendingValue", header: "Pending value", format: "aed", sum: true },
 ];
 
-export async function ItemPurchaseOrders({ code, filters, today }: ItemProps) {
+export async function ItemPurchaseOrders({ code, filters, today, age }: ItemProps) {
   const title = "Pending PO lines";
-  const result = await load(() => Promise.all([itemPending(filters.companies, today, code), companyNames()]));
-  let description = `${AS_OF_TODAY}. Expected = PO date + ${PO_LEAD_DAYS} days, as on Purchasing.`;
+  const result = await load(() =>
+    Promise.all([itemPending(filters.companies, today, age, code), companyNames()]),
+  );
+  let description = `${AS_OF_TODAY}; ${orderAgeScope(age)}. Expected = PO date + ${PO_LEAD_DAYS} days, as on Purchasing.`;
   if (result.ok && result.data[0].lines > result.data[0].rows.length) {
-    description = `As of today: the ${formatInt(result.data[0].rows.length)} largest of ${formatInt(result.data[0].lines)} pending lines by quantity. Expected = PO date + ${PO_LEAD_DAYS} days.`;
+    description = `As of today, ${orderAgeScope(age)}: the ${formatInt(result.data[0].rows.length)} largest of ${formatInt(result.data[0].lines)} pending lines by quantity. Expected = PO date + ${PO_LEAD_DAYS} days.`;
   }
   return (
     <ChartCard
@@ -467,14 +472,14 @@ const ORDER_COLUMNS: ColumnSpec[] = [
   { key: "daysOverdue", header: "Days overdue", format: "int" },
 ];
 
-export async function ItemOpenOrders({ code, filters, today }: ItemProps) {
+export async function ItemOpenOrders({ code, filters, today, age }: ItemProps) {
   const title = "Open sales-order lines";
   const result = await load(() =>
-    Promise.all([itemOpenBook(filters.companies, today, code), companyNames()]),
+    Promise.all([itemOpenBook(filters.companies, today, age, code), companyNames()]),
   );
-  let description = `${AS_OF_TODAY}. Lines still to deliver in any currency; values are in the order's currency.`;
+  let description = `${AS_OF_TODAY}; ${orderAgeScope(age)}. Lines still to deliver in any currency; values are in the order's currency.`;
   if (result.ok && result.data[0].lines > result.data[0].rows.length) {
-    description = `As of today: the ${formatInt(result.data[0].rows.length)} largest of ${formatInt(result.data[0].lines)} open lines by quantity to deliver. Values are in the order's currency.`;
+    description = `As of today, ${orderAgeScope(age)}: the ${formatInt(result.data[0].rows.length)} largest of ${formatInt(result.data[0].lines)} open lines by quantity to deliver. Values are in the order's currency.`;
   }
   return (
     <ChartCard

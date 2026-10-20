@@ -5,7 +5,9 @@ import { ErrorCard } from "@/components/dashboard/error-card";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { ChartCardSkeleton, KPI_GRID, KpiRowSkeleton } from "@/components/dashboard/skeletons";
 import { filtersToSearch, parseFilters, todayIso } from "@/lib/filters";
+import { OrderAgeToggle } from "@/components/dashboard/order-age-toggle";
 import { formatDate } from "@/lib/format";
+import { orderAgeScope, parseOrderAge } from "@/lib/order-age";
 import { load } from "@/lib/server/errors";
 import { itemByRouteParam as loadItem, type Item } from "@/lib/server/queries/items";
 
@@ -55,6 +57,7 @@ export default async function ItemPage({ params, searchParams }: PageProps<"/ite
   const [{ code }, search] = await Promise.all([params, searchParams]);
   const today = todayIso();
   const filters = parseFilters(search, today);
+  const age = parseOrderAge(search);
   const result = await load(() => loadItem(code));
   if (!result.ok) {
     return (
@@ -66,11 +69,13 @@ export default async function ItemPage({ params, searchParams }: PageProps<"/ite
   }
   if (!result.data) return <ItemNotFound />;
   const item = result.data;
-  const props = { code: item.code, filters, today };
+  const props = { code: item.code, filters, today, age };
   // A new key per filter set, so each section shows its skeleton while new figures stream in.
   // Stock, POs and the open book only depend on the companies.
   const key = `${item.code}${filtersToSearch(filters) || "default"}`;
   const asOfKey = `${item.code}|${today}|${filters.companies.join(",") || "all"}`;
+  // Pending POs and open orders also follow the order age.
+  const bookKey = `${asOfKey}|${age}`;
 
   return (
     <>
@@ -78,7 +83,7 @@ export default async function ItemPage({ params, searchParams }: PageProps<"/ite
         title={item.name}
         description={masterLine(item)}
         filters={filters}
-        note={`Stock, POs and open orders are as of today, ${formatDate(today)}, and follow only the company filter; sales follow the period. Months of cover uses the last 12 months of sales.`}
+        note={`Stock, POs and open orders are as of today, ${formatDate(today)}, and follow only the company filter (POs and orders: ${orderAgeScope(age)}); sales follow the period. Months of cover uses the last 12 months of sales.`}
       />
       <div className="-mt-4 mb-6 flex flex-col items-start gap-2 md:-mt-6 md:mb-8">
         <Suspense fallback={null}>
@@ -96,7 +101,7 @@ export default async function ItemPage({ params, searchParams }: PageProps<"/ite
             </Suspense>
           </div>
           <div className={KPI_GRID}>
-            <Suspense key={`stock-kpis${asOfKey}`} fallback={<KpiRowSkeleton count={5} grid="contents" />}>
+            <Suspense key={`stock-kpis${bookKey}`} fallback={<KpiRowSkeleton count={5} grid="contents" />}>
               <ItemStockKpis {...props} />
             </Suspense>
           </div>
@@ -115,11 +120,15 @@ export default async function ItemPage({ params, searchParams }: PageProps<"/ite
           </Suspense>
         </div>
 
-        <Suspense key={`pos${asOfKey}`} fallback={<ChartCardSkeleton height={300} />}>
+        <div className="flex scroll-mt-20 flex-wrap items-center gap-x-4 gap-y-2" id="order-age">
+          <OrderAgeToggle value={age} />
+        </div>
+
+        <Suspense key={`pos${bookKey}`} fallback={<ChartCardSkeleton height={300} />}>
           <ItemPurchaseOrders {...props} />
         </Suspense>
 
-        <Suspense key={`orders${asOfKey}`} fallback={<ChartCardSkeleton height={300} />}>
+        <Suspense key={`orders${bookKey}`} fallback={<ChartCardSkeleton height={300} />}>
           <ItemOpenOrders {...props} />
         </Suspense>
 

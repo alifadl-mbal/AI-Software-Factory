@@ -12,6 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ReportAsOf } from "@/components/shell/shell-context";
 import { todayIso, type Filters } from "@/lib/filters";
 import { formatAed, formatAedCompact, formatDeltaPct, formatInt, formatMonth, pctChange } from "@/lib/format";
+import { DEFAULT_ORDER_AGE, orderAgeScope } from "@/lib/order-age";
 import { cn } from "@/lib/utils";
 import { dataAsOf } from "@/lib/server/db";
 import { load } from "@/lib/server/errors";
@@ -120,15 +121,22 @@ export async function InventoryTiles({ companies, today }: AsOfScope) {
   );
 }
 
-/** Pending PO value and the overdue share, as of today. */
+/** The order age the overview's pending-PO figures use: the dashboards' default. */
+export const OVERVIEW_ORDER_SCOPE = orderAgeScope(DEFAULT_ORDER_AGE);
+
+/** Pending PO value and the overdue share, as of today, on orders from the last 2 years. */
 export async function PurchasingTiles({ companies, today }: AsOfScope) {
-  const result = await load(() => pendingKpis(companies, today));
+  const result = await load(() => pendingKpis(companies, today, DEFAULT_ORDER_AGE));
   if (!result.ok) return <ErrorCard message={result.message} />;
   const pending = result.data;
   return (
     <div className={TILE_GRID} data-testid="overview-purchasing">
       <DataAsOf />
-      <KpiCard label="Pending PO value" value={pending.pendingValue} hint="Open PO lines, as of today" />
+      <KpiCard
+        label="Pending PO value"
+        value={pending.pendingValue}
+        hint={`Open PO lines on ${OVERVIEW_ORDER_SCOPE}`}
+      />
       <KpiCard
         label="Overdue %"
         value={pending.overduePct}
@@ -275,7 +283,7 @@ export function AttentionSkeleton() {
 }
 
 export async function OverduePoAttention({ companies, today, href }: AsOfScope & { href: string }) {
-  const result = await load(() => pendingKpis(companies, today));
+  const result = await load(() => pendingKpis(companies, today, DEFAULT_ORDER_AGE));
   if (!result.ok) return <ErrorCard message={result.message} />;
   const { overdueValue, overdueLines } = result.data;
   return (
@@ -284,7 +292,7 @@ export async function OverduePoAttention({ companies, today, href }: AsOfScope &
       label="Overdue PO value"
       value={formatAedCompact(overdueValue)}
       title={formatAed(overdueValue)}
-      caption={`${formatInt(overdueLines)} ${overdueLines === 1 ? "line" : "lines"} past PO date + 84 days`}
+      caption={`${formatInt(overdueLines)} ${overdueLines === 1 ? "line" : "lines"} past PO date + 84 days, ${OVERVIEW_ORDER_SCOPE}`}
       testId="attention-overdue-po"
     />
   );

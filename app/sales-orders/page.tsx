@@ -6,10 +6,12 @@ import { ChartCardSkeleton, KpiRowSkeleton } from "@/components/dashboard/skelet
 import { DASHBOARDS } from "@/lib/dashboards";
 import { filtersToSearch, parseFilters, todayIso } from "@/lib/filters";
 import { formatDate } from "@/lib/format";
+import { orderAgeScope, parseOrderAge } from "@/lib/order-age";
 
 import {
   BookedTrend,
   CurrencyNote,
+  OrderAgeBar,
   OpenByAge,
   OpenByCustomer,
   OpenBySalesperson,
@@ -24,11 +26,14 @@ export const metadata: Metadata = { title: dashboard.title };
 
 export default async function SalesOrdersPage({ searchParams }: PageProps<"/sales-orders">) {
   const today = todayIso();
-  const filters = parseFilters(await searchParams, today);
+  const params = await searchParams;
+  const filters = parseFilters(params, today);
+  const age = parseOrderAge(params);
   // A new key per filter set, so each section shows its skeleton while the new figures stream in.
-  // The open book only depends on the companies.
+  // The open book only depends on the companies and the order age.
   const key = filtersToSearch(filters) || "default";
-  const bookKey = `${today}|${filters.companies.join(",") || "all"}`;
+  const bookKey = `${today}|${filters.companies.join(",") || "all"}|${age}`;
+  const scope = { filters, today, age };
 
   return (
     <>
@@ -36,29 +41,34 @@ export default async function SalesOrdersPage({ searchParams }: PageProps<"/sale
         title={dashboard.title}
         description={dashboard.description}
         filters={filters}
-        note={`The open book is as of today, ${formatDate(today)}, and follows only the company filter; orders booked follow the period.`}
+        note={`The open book is as of today, ${formatDate(today)}, on ${orderAgeScope(age)}, and follows only the company filter; orders booked follow the period.`}
       />
       <div className="flex flex-col gap-6">
-        <Suspense key={`kpis${key}`} fallback={<KpiRowSkeleton count={6} grid={SALES_ORDER_KPI_GRID} />}>
-          <SalesOrderKpis filters={filters} today={today} />
+        <Suspense
+          key={`kpis${key}|${age}`}
+          fallback={<KpiRowSkeleton count={6} grid={SALES_ORDER_KPI_GRID} />}
+        >
+          <SalesOrderKpis {...scope} />
         </Suspense>
 
+        <OrderAgeBar {...scope} bookKey={bookKey} />
+
         <Suspense key={`currency${bookKey}`} fallback={null}>
-          <CurrencyNote filters={filters} today={today} />
+          <CurrencyNote {...scope} />
         </Suspense>
 
         <div className="grid gap-6 lg:grid-cols-2">
           <Suspense key={`age${bookKey}`} fallback={<ChartCardSkeleton />}>
-            <OpenByAge filters={filters} today={today} />
+            <OpenByAge {...scope} />
           </Suspense>
           <Suspense key={`salesperson${bookKey}`} fallback={<ChartCardSkeleton />}>
-            <OpenBySalesperson filters={filters} today={today} />
+            <OpenBySalesperson {...scope} />
           </Suspense>
         </div>
 
         <div className="grid gap-6 2xl:grid-cols-2">
           <Suspense key={`customers${bookKey}`} fallback={<ChartCardSkeleton height={420} />}>
-            <OpenByCustomer filters={filters} today={today} />
+            <OpenByCustomer {...scope} />
           </Suspense>
           <Suspense key={`trend${key}`} fallback={<ChartCardSkeleton height={300} />}>
             <BookedTrend filters={filters} />
@@ -66,7 +76,7 @@ export default async function SalesOrdersPage({ searchParams }: PageProps<"/sale
         </div>
 
         <Suspense key={`lines${bookKey}`} fallback={<ChartCardSkeleton height={420} />}>
-          <OpenLinesTable filters={filters} today={today} />
+          <OpenLinesTable {...scope} />
         </Suspense>
       </div>
     </>

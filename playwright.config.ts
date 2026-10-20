@@ -1,6 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
 import { E2E_AUTH } from "./tests/e2e/auth-env";
+import { SNAPSHOT_DIR, SNAPSHOT_SECRET } from "./tests/e2e/snapshot-env";
 
 /**
  * End-to-end tests against the production build (`npm run build` first).
@@ -42,7 +43,16 @@ const server = (port: number, env: Record<string, string>) => ({
   timeout: 120_000,
 });
 
-const sampleServer = server(PORT, { MBAL_DATA_SOURCE: "sample", ...NO_AUTH });
+const sampleServer = server(PORT, {
+  MBAL_DATA_SOURCE: "sample",
+  ...NO_AUTH,
+  // The daily snapshot endpoint writes its email to files that snapshot.spec.ts reads back.
+  CRON_SECRET: SNAPSHOT_SECRET,
+  SNAPSHOT_TRANSPORT: "file",
+  SNAPSHOT_DIR,
+  SNAPSHOT_TO: "manager@mbal.example",
+  APP_URL: "https://bi.example.test",
+});
 const oracleServer = server(ORACLE_PORT, {
   ...DEAD_ORACLE,
   ...E2E_AUTH,

@@ -11,7 +11,8 @@ import { TrendChart } from "@/components/dashboard/trend-chart";
 import { ReportAsOf } from "@/components/shell/shell-context";
 import { AGING_BUCKETS } from "@/lib/aging";
 import { previousYear, type Filters } from "@/lib/filters";
-import { formatAed, formatAedCompact, formatInt, formatNumber, formatPct } from "@/lib/format";
+import { formatAed, formatAedCompact, formatInt, formatPct } from "@/lib/format";
+import { salesOrderCurrencyNote } from "@/lib/notes";
 import { dataAsOf } from "@/lib/server/db";
 import { load } from "@/lib/server/errors";
 import { companies } from "@/lib/server/queries/common";
@@ -104,18 +105,11 @@ export async function SalesOrderKpis({ filters, today }: SectionProps) {
 export async function CurrencyNote({ filters, today }: SectionProps) {
   const result = await load(() => openByCurrency(filters.companies, today));
   if (!result.ok) return <ErrorCard message={result.message} />;
-  if (result.data.length === 0) return null;
+  const note = salesOrderCurrencyNote(result.data);
+  if (note === null) return null;
   return (
     <p className="text-xs text-muted-foreground" data-testid="so-currency-note">
-      Orion&rsquo;s sales-order view has no AED value or exchange rate, so the AED figures cover AED orders
-      only. Open orders in other currencies, still to deliver:{" "}
-      {result.data
-        .map(
-          (row) =>
-            `${row.currency} ${formatNumber(row.openValue)} (${formatInt(row.lines)} ${row.lines === 1 ? "line" : "lines"})`,
-        )
-        .join(", ")}
-      . They are counted in open orders and lines.
+      {note}
     </p>
   );
 }

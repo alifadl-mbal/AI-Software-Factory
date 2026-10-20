@@ -14,6 +14,7 @@ Stack: Next.js 16 (App Router) · React 19 · TypeScript (strict) · Tailwind CS
 | Inventory    | `/inventory`    | `ZF_CURR_STK_BI`, `ZF_STK_MTH_SUMM_BI`, `ZF_ITEM` | Stock value, available and reserved value, stocked items and change vs last month-end, as of today; month-end trend (24 periods); stock value by company, item group, location and grade; dead stock (3/6/12 months, `?dead=`); reorder alerts                                                                                                                                                                                                                                                              |
 | Finance      | `/finance`      | `ZF_F_T_DETAIL_BI`                                | Revenue, cost of sales, gross profit and GP %, G&A, net profit and net margin % (vs last year); monthly P&L; P&L statement by level_1 that expands to GL accounts; costs by account, division and department; journal-line drill-down; unmapped-account total                                                                                                                                                                                                                                               |
 | Sales orders | `/sales-orders` | `ZF_SO_BI`                                        | Open order value, open orders and lines, delivered-not-invoiced and overdue value (as of today); orders booked vs last year; open value by order age, salesperson and top 20 customers; monthly orders booked vs last year; open order lines (top 1,000, CSV); non-AED currency note                                                                                                                                                                                                                        |
+| Snapshot     | `/snapshot`     | all of the above                                  | Preview of today's daily snapshot email, exactly as it would be sent (HTML and plain text); not in the sidebar. See [Daily snapshot email](#daily-snapshot-email)                                                                                                                                                                                                                                                                                                                                           |
 | Purchasing   | `/purchasing`   | `ZF_PO_PENDING_BI`, `ZF_CPR_BI`                   | Pending PO value, open lines, overdue value and % (as of today); receipts spend vs last year; pending value by aging bucket, top 20 suppliers and company; overdue PO lines (top 1,000, CSV); monthly receipts spend vs last year; top 20 suppliers by spend; zero-exchange-rate warning                                                                                                                                                                                                                    |
 
 ## Setup
@@ -84,9 +85,124 @@ exactly as before (no sign-in), `next dev` in oracle mode shows a warning banner
 in oracle mode serves **no data**: every page shows "Sign-in is not configured" and the APIs
 answer 503. Live figures are never served without sign-in.
 
+The daily snapshot email adds these (see [Daily snapshot email](#daily-snapshot-email)):
+
+| Variable                 | Required      | Meaning                                                                         |
+| ------------------------ | ------------- | ------------------------------------------------------------------------------- |
+| `CRON_SECRET`            | for the email | Bearer token for `POST /api/cron/snapshot` (see above); without it, 401         |
+| `APP_URL`                | in production | Where the dashboards live, for the email's links (e.g. `https://bi.mbal.local`) |
+| `SNAPSHOT_TRANSPORT`     | no            | `file` (default) or `graph`                                                     |
+| `SNAPSHOT_DIR`           | no            | Folder the `file` transport writes to; default `./snapshots` (git-ignored)      |
+| `SNAPSHOT_TO`            | `graph`       | Comma-separated recipients                                                      |
+| `SNAPSHOT_FROM`          | `graph`       | Shared mailbox the email is sent as                                             |
+| `SNAPSHOT_TENANT_ID`     | `graph`       | Entra ID tenant (directory) id                                                  |
+| `SNAPSHOT_CLIENT_ID`     | `graph`       | App registration (client) id                                                    |
+| `SNAPSHOT_CLIENT_SECRET` | `graph`       | App registration client secret                                                  |
+
 There are no fallbacks for the Oracle settings: a missing one is reported on screen. They are read
 on the server only (`import "server-only"`) and never reach the browser bundle. See
 `.env.example`; never commit a real `.env`.
+
+## Daily snapshot email
+
+Every morning the manager gets MBAL's headline figures by email, without opening the app:
+
+- **Sales:** yesterday's net revenue; month-to-date and year-to-date net revenue and gross margin %,
+  vs the same period last year.
+- **Finance:** year-to-date net profit and net margin %, vs last year.
+- **As of today:** stock value and change vs last month-end, pending PO value and overdue %, AR
+  outstanding and the share over 90 days, AP outstanding, open sales-order value and open orders,
+  with the same currency notes as the pages.
+- **Needs attention:** the Overview's four items (overdue POs, AR over 90 days, 6-month dead stock,
+  reorder alerts), each linking to its section.
+- Every section links to its dashboard at `APP_URL`. The footer says when the data was read
+  (Asia/Dubai) and whether it is **Live Orion** or **Sample data**.
+
+All companies, dates in Asia/Dubai. The figures come from `overviewFigures()` in
+`lib/server/overview.ts`, which calls the dashboards' own loaders with the same arguments as the
+Overview (the Overview tiles use the same helpers), so the email equals the Overview's default
+(year-to-date) view and `?range=mtd` for the same day. If one area's loader fails, that section says
+**Not available today** (the reason goes to the server log) and the rest of the email still goes out.
+
+**Preview:** `/snapshot` shows today's email exactly as it would be sent, with a plain-text tab. It
+isn't in the sidebar; it is protected like every other page.
+
+**Email HTML** (`lib/server/snapshot/email.ts`): a table layout, fluid up to 600px for phones and
+Outlook on the web, with an Outlook-only (`<!--[if mso]>`) 600px table for Outlook desktop; inline
+styles only; no scripts, images, external resources or web fonts; explicit background colours on
+every coloured cell so Outlook's dark mode re-colours them legibly; a plain-text alternative built
+from the same sections. Money is full AED from `lib/format.ts`.
+
+### The endpoint
+
+```
+POST /api/cron/snapshot
+Authorization: Bearer <CRON_SECRET>
+```
+
+The token is compared in constant time. A wrong or missing token gets **401** (so does every call
+while `CRON_SECRET` is unset: the gate in `proxy.ts` refuses it before the route runs), `GET` gets
+**405**, and a failed send **502** (logged with the step and Graph's error code, never a secret or
+token). On success it answers `{ ok, date, subject, transport, recipients, files?, unavailable }`.
+The route checks the token itself as well, so it stays safe even without the gate.
+
+### Transports
+
+`SNAPSHOT_TRANSPORT=file` (default) writes `snapshot-<date>.html` and `.txt` to `SNAPSHOT_DIR`
+(`./snapshots`, git-ignored). CI, QA and the e2e tests use it.
+
+`SNAPSHOT_TRANSPORT=graph` sends with Microsoft Graph `sendMail` as the shared mailbox
+`SNAPSHOT_FROM`, to `SNAPSHOT_TO`. It gets an app-only token with the client-credentials flow and
+sends the message as MIME, so it carries both the HTML and the plain-text alternative. Plain
+`fetch`, no SDK. IT sets it up once:
+
+1. **Shared mailbox:** create one to send from, e.g. `bi-reports@mbal.ae`.
+2. **App registration** (Entra ID → App registrations → New): no redirect URI. Under _API
+   permissions_ add Microsoft Graph → **Application** permission **Mail.Send** and grant admin
+   consent. Under _Certificates & secrets_ create a client secret. Put the tenant id, client id and
+   secret in `SNAPSHOT_TENANT_ID`, `SNAPSHOT_CLIENT_ID` and `SNAPSHOT_CLIENT_SECRET` (the service
+   environment, never the repository).
+3. **Limit it to that one mailbox.** Mail.Send as an application permission can send as _any_
+   mailbox until it is restricted. In Exchange Online PowerShell:
+
+   ```powershell
+   # A mail-enabled security group holding only the shared mailbox
+   New-DistributionGroup -Name "MBAL BI senders" -Alias mbal-bi-senders -Type Security -Members bi-reports@mbal.ae
+   New-ApplicationAccessPolicy -AppId <SNAPSHOT_CLIENT_ID> -PolicyScopeGroupId mbal-bi-senders@mbal.ae `
+       -AccessRight RestrictAccess -Description "MBAL BI snapshot: send only as bi-reports"
+   # Check: the first says Granted, any other mailbox Denied (allow up to an hour to apply)
+   Test-ApplicationAccessPolicy -AppId <SNAPSHOT_CLIENT_ID> -Identity bi-reports@mbal.ae
+   Test-ApplicationAccessPolicy -AppId <SNAPSHOT_CLIENT_ID> -Identity someone.else@mbal.ae
+   ```
+
+   Exchange's newer RBAC for Applications (`New-ManagementRoleAssignment` with the
+   `Application Mail.Send` role and a management scope) does the same job if IT prefers it.
+
+4. Set `SNAPSHOT_TRANSPORT=graph`, `SNAPSHOT_FROM`, `SNAPSHOT_TO` and `APP_URL`, restart the app,
+   and run `.\deploy\snapshot-task.ps1 -Run` once to check.
+
+### Schedule
+
+`deploy/snapshot-task.ps1` registers a daily Windows Task Scheduler job that POSTs to the endpoint
+with the token. Run it in an elevated PowerShell on the server:
+
+```powershell
+.\deploy\snapshot-task.ps1 -WhatIf          # show what would be registered; changes nothing
+.\deploy\snapshot-task.ps1                  # daily at 07:30 Asia/Dubai, POST http://localhost:3000/api/cron/snapshot
+.\deploy\snapshot-task.ps1 -At 07:00 -Url https://bi.mbal.local/api/cron/snapshot
+.\deploy\snapshot-task.ps1 -Run             # send now (needs CRON_SECRET in this shell)
+.\deploy\snapshot-task.ps1 -Unregister      # remove the task
+```
+
+- The time is Asia/Dubai and is converted to the server's time zone when the task is registered. If
+  the server's zone has daylight saving time the script warns: re-run it after a clock change, or
+  set the server to Asia/Dubai.
+- The task runs as `NT AUTHORITY\NETWORK SERVICE` (`-UserId` to change). It reads the token when it
+  runs, from the machine-wide `CRON_SECRET` environment variable (the same value the app uses) or
+  from `-SecretFile` (a file holding only the token, readable by that account). The token is never
+  on the task's command line.
+- A run that doesn't get HTTP 200 exits 1, so Task Scheduler's history shows it as failed. The task
+  retries three times, ten minutes apart.
 
 ## Scripts
 
@@ -122,8 +238,10 @@ app/
   api/finance/journal-lines/route.ts   GET endpoint the drill-down panel reads (shared filters)
   api/health/route.ts   open health check: version, commit, data source, Orion ping (5 s)
   api/cron/             scheduled-job endpoints, Bearer CRON_SECRET instead of sign-in
+  api/cron/snapshot/route.ts   POST endpoint that builds and sends the daily snapshot email
   api/auth/             Auth.js (Microsoft Entra ID) sign-in and callback
   sign-in/, no-access/, not-configured/   the pages shown before the dashboards
+  snapshot/             preview of today's snapshot email (not in the sidebar)
   actions.ts            Refresh server action (clears the cache)
 proxy.ts                the gate in front of every page and API (Next 16 middleware)
 auth.ts                 Auth.js config: Entra ID, single tenant, group check, 10-hour sessions
@@ -137,6 +255,7 @@ lib/
   dashboards.ts         the dashboard registry (sidebar + Overview are built from it)
   filters.ts            filters <-> URL query string, date presets, previous-year period
   format.ts             AED, number, percent and delta formatting
+  notes.ts              currency notes shared by the pages and the snapshot email
   server/               server-only data layer
     access.ts           who may see what: sign-in on/off, locked mode, group and cron checks
     db.ts               runQuery(sql, binds): guard -> cache -> oracle or sample
@@ -146,9 +265,12 @@ lib/
     sample.ts           SQLite sample source with Oracle shims
     sql.ts              filterWhere (binds), labelOrUnassigned, UNASSIGNED/ALL_OTHER
     chart-of-accounts.ts  reads data/chart-of-accounts.csv; unknown accounts are 'Unmapped'
+    overview.ts         overviewFigures(): the Overview's figures, for the page and the snapshot email
+    snapshot/           snapshot email builder (email.ts), file and Graph transports, token check
     queries/            one module per Orion domain (common.ts, sales.ts, inventory.ts, finance.ts,
                         purchasing.ts, ar-ap.ts, sales-orders.ts)
 data/sample/            sample fixtures, one CSV per view
+deploy/snapshot-task.ps1  registers the daily snapshot as a Windows scheduled task
 data/chart-of-accounts.csv  GL main account -> level_0/1/2 (finance owns it)
 tests/unit, tests/e2e   Vitest and Playwright; tests/fixtures has the hand-checked CSV
 ```

@@ -25,3 +25,6 @@ next-env.d.ts
 *.pem
 *.log
 npm-debug.log*
+
+# daily snapshot emails written by the file transport
+/snapshots/

@@ -45,8 +45,8 @@ test("the emailed figures equal the Overview's for the same day", async ({ reque
     ["Net margin %, year to date", await kpiFull(page, "Net margin %")],
     ["Stock value", await kpiFull(page, "Stock value")],
     ["Change vs last month-end", await kpiFull(page, "Change vs last month-end")],
-    ["Pending PO value", await kpiFull(page, "Pending PO value")],
-    ["Overdue %", await kpiFull(page, "Overdue %")],
+    ["Pending PO value, orders from the last 2 years", await kpiFull(page, "Pending PO value")],
+    ["Overdue %, orders from the last 2 years", await kpiFull(page, "Overdue %")],
     ["AR outstanding", await kpiFull(page, "AR outstanding")],
     ["Share over 90 days", await kpiFull(page, "Share over 90 days")],
     ["AP outstanding", await kpiFull(page, "AP outstanding")],
@@ -63,7 +63,7 @@ test("the emailed figures equal the Overview's for the same day", async ({ reque
 
   await page.goto("/sales-orders");
   await waitForData(page);
-  expected.push(["Open order value", await kpiFull(page, "Open order value")]);
+  expected.push(["Open order value, orders from the last 2 years", await kpiFull(page, "Open order value")]);
 
   for (const [label, value] of expected) {
     expect(value, label).toMatch(/\d/);

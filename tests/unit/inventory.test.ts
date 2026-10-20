@@ -21,6 +21,10 @@
  *     101 L1 I9  0 throughout: nothing on hand, never dead
  *     102 L3 I4  7 from 202511 only: too new for even the 3-month check
  */
+import { mkdtempSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import path from "node:path";
+
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { setRunnerForTests } from "@/lib/server/db";
@@ -29,7 +33,9 @@ import {
   breakdownQuery,
   deadStock,
   deadStockQuery,
+  fromPeriod,
   inventoryKpis,
+  monthEndQuery,
   monthEndTrend,
   parseDeadStockMonths,
   periodToMonth,
@@ -40,6 +46,9 @@ import {
 import { ALL_OTHER, UNASSIGNED } from "@/lib/server/sql";
 
 import { FIXTURE_DIR, useFixtureSource } from "./fixture";
+
+/** A day in the fixture's newest period, 202601. */
+const TODAY = "2026-01-20";
 
 beforeAll(() => {
   useFixtureSource();
@@ -137,8 +146,8 @@ describe("stock value breakdowns", () => {
 
 describe("month-end trend", () => {
   it("returns the newest periods oldest first, as YYYY-MM", async () => {
-    const months = await monthEndTrend([], 3);
-    expect(months).toEqual([
+    const months = await monthEndTrend([], TODAY, 3);
+    expect(months.map(({ month, closeValue }) => ({ month, closeValue }))).toEqual([
       { month: "2025-11", closeValue: 410 },
       { month: "2025-12", closeValue: 420 },
       { month: "2026-01", closeValue: 430 },
@@ -146,21 +155,63 @@ describe("month-end trend", () => {
   });
 
   it("asks for 24 periods by default and gets every one the fixture has", async () => {
-    const months = await monthEndTrend([]);
+    const months = await monthEndTrend([], TODAY);
     expect(months).toHaveLength(13);
-    expect(months[0]).toEqual({ month: "2025-01", closeValue: 400 });
+    expect(months[0]).toEqual({ month: "2025-01", closeValue: 400, negativeValue: 0, negativeLines: 0 });
   });
 
   it("applies the company filter", async () => {
-    const [latest] = (await monthEndTrend(["101"], 1)).slice(-1);
+    const [latest] = (await monthEndTrend(["101"], TODAY, 1)).slice(-1);
     // I1 13 × 10 + I2 100 + I5 30 + I9 0.
-    expect(latest).toEqual({ month: "2026-01", closeValue: 260 });
+    expect(latest).toEqual({ month: "2026-01", closeValue: 260, negativeValue: 0, negativeLines: 0 });
+  });
+
+  // Live Orion: ranking every distinct period of the 8M-row view took 3.4 s; the trend needs 2 years.
+  it("reads only the months it needs, from a bound worked out from today", () => {
+    expect(fromPeriod("2026-10-20", 24)).toBe("202408");
+    expect(fromPeriod("2026-01-20", 3)).toBe("202508");
+    const { sql, binds } = monthEndQuery([], "2026-10-20");
+    expect(binds).toEqual({ from_period: "202408", period_count: 24 });
+    expect(sql).toContain("WHERE ZSL_PERIOD >= :from_period");
+    expect(sql).toContain("WHERE z.ZSL_PERIOD >= :from_period AND p.rn <= :period_count");
+  });
+
+  it("still finds the newest periods when the newest month-end run is late", async () => {
+    // The fixture ends at 202601; three months on it is still the newest period.
+    const months = await monthEndTrend([], "2026-04-05", 2);
+    expect(months.map((month) => month.month)).toEqual(["2025-12", "2026-01"]);
+  });
+
+  // Live Orion: the closing view had 392 lines below zero at the last close, worth a negative 3.6M
+  // inside the month-end value. They now come back separately so the page can say so.
+  it("reports lines with a negative closing quantity, which stay in the closing value", async () => {
+    const dir = mkdtempSync(path.join(tmpdir(), "mbal-negative-stock-"));
+    writeFileSync(
+      path.join(dir, "ZF_STK_MTH_SUMM_BI.csv"),
+      [
+        "ZSL_PERIOD,ZSL_COMP_CODE,ZSL_LOCN_CODE,ZSL_ITEM_CODE,ZSL_CLOSE_QTY,ZSL_CLOSE_VAL",
+        "202601,101,L1,I1,10,100",
+        "202601,101,L1,I2,-3,-30",
+        "202601,101,L2,I3,-1,-5",
+        "202601,101,L2,I4,0,-2",
+      ].join("\n"),
+    );
+    const source = new SampleSource({ fixtureDir: dir, rebaseToYear: null });
+    setRunnerForTests((sql, binds) => source.query(sql, binds));
+    try {
+      expect(await monthEndTrend([], TODAY, 1)).toEqual([
+        // A zero quantity with a leftover value is not negative stock.
+        { month: "2026-01", closeValue: 63, negativeValue: -35, negativeLines: 2 },
+      ]);
+    } finally {
+      useFixtureSource();
+    }
   });
 });
 
 describe("dead stock", () => {
   it("3 months: no movement over the newest 4 periods", async () => {
-    const result = await deadStock([], 3);
+    const result = await deadStock([], 3, TODAY);
     expect(result.rows.map((row) => row.itemCode)).toEqual(["I2", "I3", "I5"]);
     expect(result.count).toBe(3);
     expect(result.value).toBeCloseTo(230);
@@ -168,7 +219,7 @@ describe("dead stock", () => {
   });
 
   it("6 months: the item still since July 2025 is dead, the one still since October isn't", async () => {
-    const result = await deadStock([], 6);
+    const result = await deadStock([], 6, TODAY);
     expect(
       result.rows.map((row) => [row.itemCode, row.company, row.location, row.closeQty, row.closeValue]),
     ).toEqual([
@@ -180,14 +231,14 @@ describe("dead stock", () => {
   });
 
   it("12 months: only the item that never moved", async () => {
-    const result = await deadStock([], 12);
+    const result = await deadStock([], 12, TODAY);
     expect(result.rows.map((row) => row.itemCode)).toEqual(["I2"]);
     expect(result.value).toBeCloseTo(100);
   });
 
   it("never lists stock that moves, is empty, or is too new to judge", async () => {
     for (const months of [3, 6, 12] as const) {
-      const codes = (await deadStock([], months)).rows.map((row) => row.itemCode);
+      const codes = (await deadStock([], months, TODAY)).rows.map((row) => row.itemCode);
       expect(codes).not.toContain("I1");
       expect(codes).not.toContain("I9");
       expect(codes).not.toContain("I4");
@@ -195,24 +246,29 @@ describe("dead stock", () => {
   });
 
   it("totals cover every dead item even when the list is cut short", async () => {
-    const result = await deadStock([], 3, 1);
+    const result = await deadStock([], 3, TODAY, 1);
     expect(result.rows).toHaveLength(1);
     expect(result.count).toBe(3);
     expect(result.value).toBeCloseTo(230);
   });
 
   it("applies the company filter", async () => {
-    const result = await deadStock(["102"], 6);
+    const result = await deadStock(["102"], 6, TODAY);
     expect(result.rows.map((row) => row.itemCode)).toEqual(["I3"]);
     expect(result.value).toBeCloseTo(100);
   });
 
   it("checks months + 1 periods, bound as variables", () => {
-    expect(deadStockQuery(["101"], 6).binds).toEqual({ company_0: "101", period_count: 7, top_n: 100 });
+    expect(deadStockQuery(["101"], 6, TODAY).binds).toEqual({
+      company_0: "101",
+      from_period: "202504",
+      period_count: 7,
+      top_n: 100,
+    });
   });
 
   it("no closing data gives an empty result", async () => {
-    const result = await deadStock(["999"], 6);
+    const result = await deadStock(["999"], 6, TODAY);
     expect(result).toEqual({ months: 6, asOfMonth: null, count: 0, value: 0, rows: [] });
   });
 });

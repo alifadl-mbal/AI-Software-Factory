@@ -43,11 +43,30 @@ const STOCK_VALUE = "NVL(s.CS_VAL, 0)";
 const AVAILABLE_VALUE = `(${AVAILABLE_QTY} * NVL(s.CS_WAC, 0))`;
 const ITEM_JOIN = `LEFT JOIN ${ITEM} i ON i.IM_COMP_CODE = s.CS_COMP_CODE AND i.IM_ITEM_CODE = s.CS_ITEM_CODE`;
 
-/** Every distinct period, newest first, numbered from 1. Closing-stock queries join to it. */
+/**
+ * Every distinct period from `:from_period` on, newest first, numbered from 1. Closing-stock queries
+ * join to it and filter on the same bound, so Orion reads a few months instead of all 8M rows (the
+ * trend took 3.4 s and dead stock up to 5.5 s without it).
+ */
 const RANKED_PERIODS = `periods AS (
     SELECT period, ROW_NUMBER() OVER (ORDER BY period DESC) AS rn
-    FROM (SELECT DISTINCT ZSL_PERIOD AS period FROM ${CLOSING} WHERE ZSL_PERIOD IS NOT NULL) distinct_periods
+    FROM (
+        SELECT DISTINCT ZSL_PERIOD AS period FROM ${CLOSING}
+        WHERE ZSL_PERIOD >= :from_period
+    ) distinct_periods
 )`;
+
+/** Months of slack before the newest `count` periods, in case Orion's month-end run is late. */
+const PERIOD_SLACK = 3;
+
+/**
+ * The oldest period (`YYYYMM`) a query for the newest `count` periods reads, as of `today`: `count`
+ * months back plus some slack. The ranking still picks the newest periods from there on.
+ */
+export function fromPeriod(today: string, count: number): string {
+  const months = Number(today.slice(0, 4)) * 12 + Number(today.slice(5, 7)) - 1 - (count - 1) - PERIOD_SLACK;
+  return `${Math.floor(months / 12)}${String((months % 12) + 1).padStart(2, "0")}`;
+}
 
 /** Dimension → live-stock column, for the breakdowns. */
 export const DIMENSIONS = {
@@ -84,6 +103,9 @@ export interface MonthEnd {
   /** `YYYY-MM`. */
   month: string;
   closeValue: number;
+  /** Part of `closeValue` on lines with a negative closing quantity (so a negative amount). */
+  negativeValue: number;
+  negativeLines: number;
 }
 
 export interface StockBreakdownRow {
@@ -189,19 +211,24 @@ ORDER BY sort_order`,
   };
 }
 
-/** Closing stock value of the newest `periods` periods, oldest first. */
-export function monthEndQuery(companyCodes: string[], periods = TREND_PERIODS): Query {
+/**
+ * Closing stock value of the newest `periods` periods as of `today`, oldest first, with the part of
+ * it on lines with a negative closing quantity (month-end stock can go below zero; live stock can't).
+ */
+export function monthEndQuery(companyCodes: string[], today: string, periods = TREND_PERIODS): Query {
   const where = companyWhere(companyCodes, "z.ZSL_COMP_CODE");
   return {
     sql: `
 WITH ${RANKED_PERIODS}
-SELECT z.ZSL_PERIOD AS period, SUM(NVL(z.ZSL_CLOSE_VAL, 0)) AS close_value
+SELECT z.ZSL_PERIOD AS period, SUM(NVL(z.ZSL_CLOSE_VAL, 0)) AS close_value,
+    SUM(CASE WHEN z.ZSL_CLOSE_QTY < 0 THEN NVL(z.ZSL_CLOSE_VAL, 0) ELSE 0 END) AS negative_value,
+    SUM(CASE WHEN z.ZSL_CLOSE_QTY < 0 THEN 1 ELSE 0 END) AS negative_lines
 FROM ${CLOSING} z
 JOIN periods p ON p.period = z.ZSL_PERIOD
-WHERE p.rn <= :period_count AND ${where.sql}
+WHERE z.ZSL_PERIOD >= :from_period AND p.rn <= :period_count AND ${where.sql}
 GROUP BY z.ZSL_PERIOD
 ORDER BY z.ZSL_PERIOD`,
-    binds: { ...where.binds, period_count: periods },
+    binds: { ...where.binds, from_period: fromPeriod(today, periods), period_count: periods },
   };
 }
 
@@ -213,6 +240,7 @@ ORDER BY z.ZSL_PERIOD`,
 export function deadStockQuery(
   companyCodes: string[],
   months: DeadStockMonths,
+  today: string,
   topN = DEAD_STOCK_TOP_N,
 ): Query {
   const where = companyWhere(companyCodes, "z.ZSL_COMP_CODE");
@@ -225,7 +253,7 @@ keyed AS (
         SUM(NVL(z.ZSL_CLOSE_QTY, 0)) AS close_qty, SUM(NVL(z.ZSL_CLOSE_VAL, 0)) AS close_value
     FROM ${CLOSING} z
     JOIN periods p ON p.period = z.ZSL_PERIOD
-    WHERE p.rn <= :period_count AND ${where.sql}
+    WHERE z.ZSL_PERIOD >= :from_period AND p.rn <= :period_count AND ${where.sql}
     GROUP BY z.ZSL_COMP_CODE, z.ZSL_LOCN_CODE, z.ZSL_ITEM_CODE, p.rn
 ),
 dead AS (
@@ -249,7 +277,12 @@ FROM (
 ) ranked
 WHERE row_num <= :top_n
 ORDER BY row_num`,
-    binds: { ...where.binds, period_count: months + 1, top_n: topN },
+    binds: {
+      ...where.binds,
+      from_period: fromPeriod(today, months + 1),
+      period_count: months + 1,
+      top_n: topN,
+    },
   };
 }
 
@@ -308,18 +341,31 @@ export async function stockBreakdown(
   }));
 }
 
-/** Closing value of the newest periods, oldest first. */
-export async function monthEndTrend(companyCodes: string[], periods = TREND_PERIODS): Promise<MonthEnd[]> {
-  const rows = await run(monthEndQuery(companyCodes, periods));
-  return rows.map((row) => ({ month: periodToMonth(row.period), closeValue: num(row.close_value) }));
+/** Closing value of the newest periods as of `today`, oldest first. */
+export async function monthEndTrend(
+  companyCodes: string[],
+  today: string,
+  periods = TREND_PERIODS,
+): Promise<MonthEnd[]> {
+  const rows = await run(monthEndQuery(companyCodes, today, periods));
+  return rows.map((row) => ({
+    month: periodToMonth(row.period),
+    closeValue: num(row.close_value),
+    negativeValue: num(row.negative_value),
+    negativeLines: num(row.negative_lines),
+  }));
 }
 
 export async function deadStock(
   companyCodes: string[],
   months: DeadStockMonths,
+  today: string,
   topN = DEAD_STOCK_TOP_N,
 ): Promise<DeadStock> {
-  const [rows, names] = await Promise.all([run(deadStockQuery(companyCodes, months, topN)), companyNames()]);
+  const [rows, names] = await Promise.all([
+    run(deadStockQuery(companyCodes, months, today, topN)),
+    companyNames(),
+  ]);
   return {
     months,
     asOfMonth: rows[0] ? periodToMonth(rows[0].period) : null,

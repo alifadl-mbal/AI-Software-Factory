@@ -252,9 +252,8 @@ export async function ArCollection({ asOf, companies }: Scope) {
 export function ApCurrencyNote() {
   return (
     <p className="text-xs text-muted-foreground" data-testid="ap-currency-note">
-      Orion&rsquo;s payables view has no AED column, so each vendor&rsquo;s balance is in its account currency
-      as booked (AED for most vendors). Vendors are netted per company before splitting into what we owe and
-      what we have prepaid.
+      All amounts are in AED: Orion&rsquo;s payables view converts every line, whatever the currency of the
+      invoice. Vendors are netted per company before splitting into what we owe and what we have prepaid.
     </p>
   );
 }

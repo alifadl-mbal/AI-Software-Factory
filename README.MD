@@ -271,7 +271,8 @@ Balances as of today; the company filter applies, the date filter doesn't. Both 
   settled lines keep stray amounts and part-paid lines show the full amount.
 - Vendors are netted per company and sub-account. Vendors above zero make up AP outstanding and its
   aging; vendors below zero are **prepayments**, listed and totalled separately, never netted in.
-- The AP view has no AED column: vendor balances are in the account currency as booked.
+- AP amounts are AED: the view is built from the ledger's local-currency columns, whatever the line's
+  currency code (checked against the GL control accounts on live Orion).
 - **Aging** on the document date (`SDR_DOC_DT`, `SOAP_DOC_DT`), always in this order:
   `<30 D` · `1-2 M` · `2-3 M` · `3-6 M` · `6-12 M` · `1-2 Y` · `2+ Y`. Under 30 days by days since
   the document, then whole calendar months (`lib/aging.ts`). "Over 90 days" = more than 90 days old.

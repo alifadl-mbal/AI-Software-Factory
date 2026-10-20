@@ -6,10 +6,13 @@ export function PageHeader({
   title,
   description,
   filters,
+  note,
 }: {
   title: string;
   description: string;
   filters: Filters;
+  /** A second line for figures that don't follow the period, such as "as of today" ones. */
+  note?: string;
 }) {
   return (
     <div className="mb-6 flex flex-col gap-1 md:mb-8">
@@ -22,6 +25,11 @@ export function PageHeader({
           : " · All companies"}{" "}
         · compared with the same period last year
       </p>
+      {note && (
+        <p className="text-xs text-muted-foreground" data-testid="period-note">
+          {note}
+        </p>
+      )}
     </div>
   );
 }

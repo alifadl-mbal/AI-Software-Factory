@@ -12,7 +12,8 @@ import type { Binds, Row } from "./types";
  *
  * Each `<VIEW>.csv` in the fixture directory becomes the table `MBALI.<VIEW>`. SQLite gets shims
  * for the Oracle functions our queries use (`NVL`, `TO_CHAR` and `TO_DATE` on dates). Fixture dates
- * are `YYYY-MM-DD` text, which compares correctly against `TO_DATE(:bind, 'YYYY-MM-DD')`.
+ * are `YYYY-MM-DD` text, which compares correctly against `TO_DATE(:bind, 'YYYY-MM-DD')`. Period
+ * columns (`*_PERIOD`, `YYYYMM` like `ZSL_PERIOD`) load as numbers, as they compare in Oracle.
  * See "Portable SQL" in the README for the subset queries must stay within.
  */
 
@@ -20,6 +21,7 @@ export const SAMPLE_DIR = path.join(process.cwd(), "data", "sample");
 const SAMPLE_SCHEMA = "MBALI";
 const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const NUMBER_RE = /^-?\d+(\.\d+)?$/;
+const PERIOD_RE = /^\d{6}$/;
 const DATE_FORMATS: Record<string, (text: string) => string> = {
   "YYYY-MM-DD": (text) => text.slice(0, 10),
   "YYYY-MM": (text) => text.slice(0, 7),
@@ -33,16 +35,23 @@ export interface SampleOptions {
    * passes the current year so "year to date" always has data; tests pass `null` for fixed dates.
    */
   rebaseToYear?: number | null;
+  /**
+   * Shift every `*_PERIOD` (`YYYYMM`) value by whole months so the newest becomes this month
+   * (`YYYY-MM`), making it the current, provisional month-end. `null` leaves periods as they are.
+   */
+  rebaseToMonth?: string | null;
 }
 
 export class SampleSource {
   private readonly fixtureDir: string;
   private readonly rebaseToYear: number | null;
+  private readonly rebaseToMonth: string | null;
   private database: DatabaseSync | undefined;
 
-  constructor({ fixtureDir = SAMPLE_DIR, rebaseToYear = null }: SampleOptions = {}) {
+  constructor({ fixtureDir = SAMPLE_DIR, rebaseToYear = null, rebaseToMonth = null }: SampleOptions = {}) {
     this.fixtureDir = fixtureDir;
     this.rebaseToYear = rebaseToYear;
+    this.rebaseToMonth = rebaseToMonth;
   }
 
   async query<T extends Row = Row>(sql: string, binds: Binds = {}): Promise<T[]> {
@@ -69,6 +78,9 @@ export class SampleSource {
         const table = parseCsv(readFileSync(path.join(this.fixtureDir, file), "utf8"));
         if (this.rebaseToYear !== null) {
           rebaseDates(table, this.rebaseToYear);
+        }
+        if (this.rebaseToMonth !== null) {
+          rebasePeriods(table, this.rebaseToMonth);
         }
         loadTable(database, `${SAMPLE_SCHEMA}."${path.basename(file, ".csv").toUpperCase()}"`, table);
       }
@@ -145,6 +157,24 @@ function rebaseDates(table: Table, targetYear: number): void {
     for (const row of table.rows) {
       const value = row[column];
       if (value !== null) row[column] = shiftYear(value, offset);
+    }
+  });
+}
+
+function rebasePeriods(table: Table, targetMonth: string): void {
+  const target = Number(targetMonth.slice(0, 4)) * 12 + Number(targetMonth.slice(5, 7)) - 1;
+  const index = (period: string) => Number(period.slice(0, 4)) * 12 + Number(period.slice(4, 6)) - 1;
+  table.header.forEach((name, column) => {
+    if (!name.endsWith("_PERIOD")) return;
+    const values = table.rows.map((row) => row[column]).filter((value) => value !== null);
+    if (values.length === 0 || !values.every((value) => PERIOD_RE.test(value))) return;
+    const offset = target - Math.max(...values.map(index));
+    if (offset === 0) return;
+    for (const row of table.rows) {
+      const value = row[column];
+      if (value === null) continue;
+      const shifted = index(value) + offset;
+      row[column] = `${Math.floor(shifted / 12)}${String((shifted % 12) + 1).padStart(2, "0")}`;
     }
   });
 }

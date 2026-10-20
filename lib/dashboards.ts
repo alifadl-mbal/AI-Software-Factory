@@ -1,4 +1,4 @@
-import { Landmark, LayoutDashboard, ShoppingCart, TrendingUp, type LucideIcon } from "lucide-react";
+import { Boxes, Landmark, LayoutDashboard, ShoppingCart, TrendingUp, type LucideIcon } from "lucide-react";
 
 /**
  * The dashboard registry: the single list the sidebar and the Overview page are built from.
@@ -13,8 +13,10 @@ export interface Dashboard {
   /** One sentence for the Overview card and the page header. */
   description: string;
   icon: LucideIcon;
-  /** The Orion view the dashboard reads, shown on the Overview card. */
+  /** The Orion view(s) the dashboard reads, shown on the Overview card. */
   source: string;
+  /** False for dashboards that show "as of today" figures: the top bar then hides the date filter. */
+  dateFilter?: boolean;
 }
 
 export const DASHBOARDS: readonly Dashboard[] = [
@@ -25,6 +27,15 @@ export const DASHBOARDS: readonly Dashboard[] = [
       "Net revenue, gross margin, invoices and returns, with breakdowns by company, customer, item, salesperson and item group.",
     icon: TrendingUp,
     source: "ZF_CSL_BI",
+  },
+  {
+    slug: "inventory",
+    title: "Inventory",
+    description:
+      "Stock value as of today, the month-end trend, dead and slow stock, and items at or below their reorder level.",
+    icon: Boxes,
+    source: "ZF_CURR_STK_BI · ZF_STK_MTH_SUMM_BI · ZF_ITEM",
+    dateFilter: false,
   },
   {
     slug: "finance",

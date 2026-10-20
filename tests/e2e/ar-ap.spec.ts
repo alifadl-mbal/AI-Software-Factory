@@ -22,8 +22,8 @@ test("is on the Overview and in the navigation", async ({ page }) => {
 
 test("says balances are as of today and the date filter doesn't apply", async ({ page }) => {
   await page.goto(PATH);
-  await expect(page.getByTestId("period")).toContainText("Balances as of");
-  await expect(page.getByTestId("period")).toContainText("the date filter doesn’t apply");
+  await expect(page.getByTestId("period")).toContainText("As of today");
+  await expect(page.getByTestId("period")).toContainText("the date filter doesn't apply");
 });
 
 test("the tabs keep receivables and payables apart", async ({ page }) => {

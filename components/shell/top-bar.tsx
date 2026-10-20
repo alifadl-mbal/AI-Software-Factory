@@ -87,7 +87,8 @@ function RefreshButton() {
 /** The bar above every page: navigation toggle, page title, filters, refresh and theme. */
 export function TopBar({ companies, sample }: { companies: Promise<Company[]>; sample: boolean }) {
   const pathname = usePathname();
-  const title = dashboardForPath(pathname)?.title ?? OVERVIEW.title;
+  const dashboard = dashboardForPath(pathname);
+  const title = dashboard?.title ?? OVERVIEW.title;
 
   return (
     <header className="sticky top-0 z-20 border-b bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/70">
@@ -108,7 +109,7 @@ export function TopBar({ companies, sample }: { companies: Promise<Company[]>; s
           )}
         </div>
         <div className="order-last flex w-full min-w-0 flex-wrap items-center gap-2 md:order-none md:ml-auto md:w-auto md:justify-end">
-          <DateRangePicker />
+          {dashboard?.dateFilter !== false && <DateRangePicker />}
           <Suspense fallback={<CompanySelectFallback />}>
             <CompanySelect companies={companies} />
           </Suspense>

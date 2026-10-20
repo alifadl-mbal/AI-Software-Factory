@@ -33,12 +33,17 @@ function runner(mode: DataSourceMode): Runner {
     // Imported lazily so sample mode never loads the driver.
     return async (sql, binds) => (await import("./oracle")).queryOracle(sql, binds);
   }
-  // Rebuilt when the day changes: balance fixtures are anchored to today, the rest to this year.
+  // Sample dates move with the calendar, so it is rebuilt when the (business) day changes: balance
+  // fixtures are anchored to today, periods to this month and the rest to this year.
   const today = todayIso();
   if (sampleSource?.today !== today) {
     sampleSource = {
       today,
-      source: new SampleSource({ rebaseToYear: Number(today.slice(0, 4)), anchorToDate: today }),
+      source: new SampleSource({
+        rebaseToYear: Number(today.slice(0, 4)),
+        rebaseToMonth: today.slice(0, 7),
+        anchorToDate: today,
+      }),
     };
   }
   const source = sampleSource.source;

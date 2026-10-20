@@ -236,23 +236,68 @@ queries on the page run in parallel and the page still completes in ~12.5 s, so 
 each other much. Every other section on the page, and on the overview, streams in before them. A
 lasting fix is on the Orion side: a lighter AR view, or one refreshed on a schedule.
 
+## Order age: "last 2 years" by default (issue #28), 2026-10-20
+
+Pending POs and the open sales-order book now count orders placed since a cut-off (`?since=`): the
+last 2 years by default (`PO_DATE` / `H_DT` on or after 2024-10-20), 12 months, or all. Checked on
+live Orion the same day, for all companies and company 106, the same way as above.
+
+**Figures.**
+
+- **All** equals the code on `main` to the fils on every pending-PO and open-book KPI (all companies
+  and 106), so the hand queries above still match.
+- **Last 2 years** (and 12 months) matched a hand query with the cut-off written independently
+  (`TRUNC(PO_DATE) >= ADD_MONTHS(TRUNC(SYSDATE), -24)`, `H_SYS_ID` for orders, Oracle's own
+  `TO_DATE` on `H_DEL_DT`; below): pending PO value, open lines, overdue value; open order value,
+  open orders, open lines, delivered not invoiced, overdue value; and the lines and value the
+  default leaves out.
+- With every choice, each breakdown adds up to its KPI: pending POs by bucket / supplier / company,
+  open value by age / salesperson / customer. Shown plus left out equals **All** exactly, in value
+  and lines.
+- What the default leaves out, all companies: 74% of pending PO value (58% of the lines) and 75% of
+  open sales-order value (90% of the open lines). For company 106: 74% of pending PO value and 93%
+  of open order value. Overdue % on pending POs is still 92% with the default (98% with All): most
+  PO lines from the last 2 years are past PO date + 84 days too.
+
+**Section times (cold, seconds).** Each section's loaders as the page calls them, the app cache
+empty, every query text with a unique comment; "before" is the code on `main`.
+
+| Section                            | All before | All 2 years | All 12 months | All all | 106 before | 106 2 years | 106 12 months | 106 all |
+| ---------------------------------- | ---------- | ----------- | ------------- | ------- | ---------- | ----------- | ------------- | ------- |
+| Purchasing KPIs (and hidden note)  | 0.6        | 0.2         | 0.2           | 0.1     | 0.2        | 0.2         | 0.2           | 0.2     |
+| Pending by aging                   | 0.1        | 0.1         | 0.1           | 0.1     | 0.0        | 0.0         | 0.0           | 0.1     |
+| Pending by supplier                | 0.1        | 0.1         | 0.1           | 0.1     | 0.1        | 0.0         | 0.0           | 0.1     |
+| Pending by company                 | 0.1        | 0.1         | 0.1           | 0.1     | 0.0        | 0.0         | 0.0           | 0.0     |
+| Overdue PO lines                   | 0.2        | 0.1         | 0.1           | 0.2     | 0.1        | 0.0         | 0.0           | 0.1     |
+| Sales-order KPIs (and hidden note) | 1.2        | 1.0         | 0.9           | 1.2     | 1.1        | 0.9         | 0.9           | 1.1     |
+| Non-AED currency note              | 0.9        | 0.7         | 0.7           | 0.9     | 0.9        | 0.7         | 0.7           | 0.8     |
+| Open value by order age            | 0.9        | 0.8         | 0.7           | 0.9     | 0.8        | 0.7         | 0.7           | 0.8     |
+| Open value by salesperson          | 0.9        | 0.7         | 0.7           | 0.9     | 0.8        | 0.7         | 0.7           | 0.9     |
+| Open value by customer             | 1.0        | 0.8         | 0.8           | 1.0     | 0.9        | 0.8         | 0.7           | 0.9     |
+| Open order lines (top 1,000)       | 1.7        | 1.3         | 1.2           | 1.7     | 1.3        | 1.2         | 1.0           | 1.4     |
+
+The `H_DT` predicate is on the view's base column with a bound date, so Oracle's first plan stays
+good: no section is slower than before, and the default is a little faster. The hidden-lines note
+costs no extra round trip: the KPI query sums the older lines conditionally (`in_scope = 0`), and
+the note reads the same cached result.
+
 ## Data quality on live Orion
 
-| Finding                                                                                                                                                                                                                                                                                                                         | Effect on screen                                                  | Note on the page                                                                                    |
-| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| The company filter listed only companies with sales. Companies 121, 123, 126, 129 and 135 have GL postings, 123 has stock and 460 has a pending PO, but none could be picked, and stock by company showed company 123 as a bare code.                                                                                           | Company list and names                                            | Fixed: the list comes from `FM_COMPANY` (21 companies, including two with no data yet, 90 and 142). |
-| GL accounts missing from `data/chart-of-accounts.csv`                                                                                                                                                                                                                                                                           | None: every account with postings (446) is in the file            | no                                                                                                  |
-| Month-end stock below zero: 405 lines at the September close, a negative value inside the closing figure; another 13K lines with zero quantity carry small leftover values that almost cancel out. Live stock has no negative quantities.                                                                                       | Month-end trend and "Change vs last month-end"                    | yes, under the month-end trend                                                                      |
-| Live stock: 55 lines with more reserved than on hand, so a negative available quantity                                                                                                                                                                                                                                          | Available and reserved value                                      | no (small; available value is still exact by Orion's rule)                                          |
-| Pending POs back to 2000: 79.5% of pending value is more than a year overdue, and lines from before 2024 hold about two thirds of it. They are almost certainly received or cancelled lines never closed in Orion.                                                                                                              | Pending PO value, overdue value and %                             | yes, under pending value by aging                                                                   |
-| Open sales orders: 74.6% of open value is on orders over two years old; 47% of open lines have an expected delivery date equal to the order date (Orion's default), so 99.7% of open lines are overdue.                                                                                                                         | Open order value, overdue value                                   | yes, under open value by order age                                                                  |
-| Sales returns are about a quarter of gross invoicing year to date, and about a third of those returns look like cancel-and-rebill pairs (`IUP5` invoices against `SRUP` returns of the same quantities, `INP5` against `PPR1`). Net revenue is right; the Returns card and the invoice count include both halves.               | Returns, invoices                                                 | no; worth confirming with finance                                                                   |
-| AP: about 7% of open lines carry a foreign currency code (USD, EUR, legacy DEM and ITL, and odd codes `EL1`, `WT1`, `RAN`). Their amounts are AED: the view is built from the ledger's local-currency columns, and its totals tie to the AP control accounts in the GL. The page said balances were in each account's currency. | AP note                                                           | Fixed: the note now says amounts are AED.                                                           |
-| AR: 156 open lines in a foreign currency; amounts are AED (`SDR_*` is the ledger's local currency)                                                                                                                                                                                                                              | None                                                              | no                                                                                                  |
-| Sales orders in USD, OMR and SAR have no AED value in the view                                                                                                                                                                                                                                                                  | Open book in AED orders only                                      | already noted on the page                                                                           |
-| Finance: 2,274 unposted lines (`CYU`) since 2025                                                                                                                                                                                                                                                                                | Left out of every figure, by rule                                 | no                                                                                                  |
-| Future dates                                                                                                                                                                                                                                                                                                                    | None in sales, finance, receipts, sales orders, pending POs or AP | no                                                                                                  |
-| Zero exchange rates on non-AED receipts                                                                                                                                                                                                                                                                                         | None this year                                                    | (existing callout shows when there are)                                                             |
+| Finding                                                                                                                                                                                                                                                                                                                         | Effect on screen                                                  | Note on the page                                                                                             |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| The company filter listed only companies with sales. Companies 121, 123, 126, 129 and 135 have GL postings, 123 has stock and 460 has a pending PO, but none could be picked, and stock by company showed company 123 as a bare code.                                                                                           | Company list and names                                            | Fixed: the list comes from `FM_COMPANY` (21 companies, including two with no data yet, 90 and 142).          |
+| GL accounts missing from `data/chart-of-accounts.csv`                                                                                                                                                                                                                                                                           | None: every account with postings (446) is in the file            | no                                                                                                           |
+| Month-end stock below zero: 405 lines at the September close, a negative value inside the closing figure; another 13K lines with zero quantity carry small leftover values that almost cancel out. Live stock has no negative quantities.                                                                                       | Month-end trend and "Change vs last month-end"                    | yes, under the month-end trend                                                                               |
+| Live stock: 55 lines with more reserved than on hand, so a negative available quantity                                                                                                                                                                                                                                          | Available and reserved value                                      | no (small; available value is still exact by Orion's rule)                                                   |
+| Pending POs back to 2000: 79.5% of pending value is more than a year overdue, and lines from before 2024 hold about two thirds of it. They are almost certainly received or cancelled lines never closed in Orion.                                                                                                              | Pending PO value, overdue value and %                             | yes, under pending value by aging; hidden by default since #28 (`?since=`), with a note on what is left out  |
+| Open sales orders: 74.6% of open value is on orders over two years old; 47% of open lines have an expected delivery date equal to the order date (Orion's default), so 99.7% of open lines are overdue.                                                                                                                         | Open order value, overdue value                                   | yes, under open value by order age; hidden by default since #28 (`?since=`), with a note on what is left out |
+| Sales returns are about a quarter of gross invoicing year to date, and about a third of those returns look like cancel-and-rebill pairs (`IUP5` invoices against `SRUP` returns of the same quantities, `INP5` against `PPR1`). Net revenue is right; the Returns card and the invoice count include both halves.               | Returns, invoices                                                 | no; worth confirming with finance                                                                            |
+| AP: about 7% of open lines carry a foreign currency code (USD, EUR, legacy DEM and ITL, and odd codes `EL1`, `WT1`, `RAN`). Their amounts are AED: the view is built from the ledger's local-currency columns, and its totals tie to the AP control accounts in the GL. The page said balances were in each account's currency. | AP note                                                           | Fixed: the note now says amounts are AED.                                                                    |
+| AR: 156 open lines in a foreign currency; amounts are AED (`SDR_*` is the ledger's local currency)                                                                                                                                                                                                                              | None                                                              | no                                                                                                           |
+| Sales orders in USD, OMR and SAR have no AED value in the view                                                                                                                                                                                                                                                                  | Open book in AED orders only                                      | already noted on the page                                                                                    |
+| Finance: 2,274 unposted lines (`CYU`) since 2025                                                                                                                                                                                                                                                                                | Left out of every figure, by rule                                 | no                                                                                                           |
+| Future dates                                                                                                                                                                                                                                                                                                                    | None in sales, finance, receipts, sales orders, pending POs or AP | no                                                                                                           |
+| Zero exchange rates on non-AED receipts                                                                                                                                                                                                                                                                                         | None this year                                                    | (existing callout shows when there are)                                                                      |
 
 ## Hand queries
 
@@ -376,4 +421,33 @@ FROM MBALI.ZF_SO_BI
 WHERE D_QTY > 0 AND (NVL(H_DOC_STATUS, '-') <> 'Closed' OR D_DELIVERED_QTY > 0)
   AND TRUNC(H_DT) BETWEEN TO_DATE(:s, 'YYYY-MM-DD') AND TO_DATE(:e, 'YYYY-MM-DD')
   AND (:c IS NULL OR H_COMP_CODE = :c)
+```
+
+```sql
+-- Order age (issue #28): pending POs and the open book on orders placed in the last 2 years, and
+-- what the cut-off leaves out. :c as above ('ALL' for all companies here). For 12 months, -12.
+SELECT po.*, so.*
+FROM (SELECT SUM(CASE WHEN TRUNC(PO_DATE) >= ADD_MONTHS(TRUNC(SYSDATE), -24)
+                      THEN (NVL(PO_LC_VAL, 0) - NVL(PO_LC_DISC, 0)) / PO_QTY * PO_PEND_QTY END) AS po_pending_value,
+             COUNT(CASE WHEN TRUNC(PO_DATE) >= ADD_MONTHS(TRUNC(SYSDATE), -24) THEN 1 END) AS po_open_lines,
+             SUM(CASE WHEN TRUNC(PO_DATE) >= ADD_MONTHS(TRUNC(SYSDATE), -24) AND PO_DATE + 84 <= TRUNC(SYSDATE)
+                      THEN (NVL(PO_LC_VAL, 0) - NVL(PO_LC_DISC, 0)) / PO_QTY * PO_PEND_QTY END) AS po_overdue_value,
+             COUNT(CASE WHEN TRUNC(PO_DATE) < ADD_MONTHS(TRUNC(SYSDATE), -24) THEN 1 END) AS po_hidden_lines,
+             SUM(CASE WHEN TRUNC(PO_DATE) < ADD_MONTHS(TRUNC(SYSDATE), -24)
+                      THEN (NVL(PO_LC_VAL, 0) - NVL(PO_LC_DISC, 0)) / PO_QTY * PO_PEND_QTY END) AS po_hidden_value
+      FROM MBALI.ZF_PO_PENDING_BI
+      WHERE PO_CLO_STATUS = 0 AND PO_PEND_QTY > 0 AND (:c = 'ALL' OR PO_COMP_CODE = :c)) po,
+     (SELECT SUM(CASE WHEN recent = 1 AND H_CURR_CODE = 'AED' AND pend > 0 THEN D_FC_VAL * pend / D_QTY END) AS so_open_value,
+             COUNT(DISTINCT CASE WHEN recent = 1 AND pend > 0 THEN H_SYS_ID END) AS so_open_orders,
+             COUNT(CASE WHEN recent = 1 AND pend > 0 THEN 1 END) AS so_open_lines,
+             SUM(CASE WHEN recent = 1 AND H_CURR_CODE = 'AED' AND uninv > 0 THEN D_FC_VAL * uninv / D_QTY END) AS so_uninvoiced_value,
+             SUM(CASE WHEN recent = 1 AND H_CURR_CODE = 'AED' AND pend > 0
+                       AND TO_DATE(H_DEL_DT, 'DD-Mon-YYYY', 'NLS_DATE_LANGUAGE=ENGLISH') < TRUNC(SYSDATE)
+                      THEN D_FC_VAL * pend / D_QTY END) AS so_overdue_value,
+             COUNT(CASE WHEN recent = 0 AND pend > 0 THEN 1 END) AS so_hidden_lines,
+             SUM(CASE WHEN recent = 0 AND H_CURR_CODE = 'AED' AND pend > 0 THEN D_FC_VAL * pend / D_QTY END) AS so_hidden_value
+      FROM (SELECT s.*, D_QTY - NVL(D_DELIVERED_QTY, 0) pend, NVL(D_DELIVERED_QTY, 0) - NVL(D_INVOICED_QTY, 0) uninv,
+                   CASE WHEN TRUNC(H_DT) >= ADD_MONTHS(TRUNC(SYSDATE), -24) THEN 1 ELSE 0 END recent
+            FROM MBALI.ZF_SO_BI s
+            WHERE NVL(H_DOC_STATUS, '-') <> 'Closed' AND D_QTY > 0 AND (:c = 'ALL' OR H_COMP_CODE = :c))) so
 ```

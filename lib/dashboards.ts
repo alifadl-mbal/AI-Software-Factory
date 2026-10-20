@@ -1,5 +1,6 @@
 import {
   Boxes,
+  ClipboardList,
   Landmark,
   LayoutDashboard,
   Scale,
@@ -52,6 +53,14 @@ export const DASHBOARDS: readonly Dashboard[] = [
       "P&L from the posted general ledger: revenue, cost of sales, gross and net profit, the P&L statement, costs by account, division and department, and journal-line drill-down.",
     icon: Landmark,
     source: "ZF_F_T_DETAIL_BI",
+  },
+  {
+    slug: "sales-orders",
+    title: "Sales orders",
+    description:
+      "The order book as of today: what customers have ordered that isn't delivered or invoiced yet, how old it is and who owns it, and orders booked in the period.",
+    icon: ClipboardList,
+    source: "ZF_SO_BI",
   },
   {
     slug: "purchasing",

@@ -7,13 +7,14 @@ Stack: Next.js 16 (App Router) · React 19 · TypeScript (strict) · Tailwind CS
 (Radix) · lucide-react · Recharts · TanStack Table · node-oracledb (thin mode, no Instant Client)
 · Vitest + Testing Library · Playwright + axe · ESLint + Prettier · GitHub Actions.
 
-| Page       | Route         | View                                              | What it shows                                                                                                                                                                                                                                                                            |
-| ---------- | ------------- | ------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Overview   | `/`           |                                                   | Headline sales figures and a card for each dashboard                                                                                                                                                                                                                                     |
-| Sales      | `/sales`      | `ZF_CSL_BI`                                       | Net revenue, gross margin, margin %, invoices, returns (vs last year, with sparklines); monthly trend vs last year; revenue by company, item group, salesperson; top 20 customers and items                                                                                              |
-| Inventory  | `/inventory`  | `ZF_CURR_STK_BI`, `ZF_STK_MTH_SUMM_BI`, `ZF_ITEM` | Stock value, available and reserved value, stocked items and change vs last month-end, as of today; month-end trend (24 periods); stock value by company, item group, location and grade; dead stock (3/6/12 months, `?dead=`); reorder alerts                                           |
-| Finance    | `/finance`    | `ZF_F_T_DETAIL_BI`                                | Revenue, cost of sales, gross profit and GP %, G&A, net profit and net margin % (vs last year); monthly P&L; P&L statement by level_1 that expands to GL accounts; costs by account, division and department; journal-line drill-down; unmapped-account total                            |
-| Purchasing | `/purchasing` | `ZF_PO_PENDING_BI`, `ZF_CPR_BI`                   | Pending PO value, open lines, overdue value and % (as of today); receipts spend vs last year; pending value by aging bucket, top 20 suppliers and company; overdue PO lines (top 1,000, CSV); monthly receipts spend vs last year; top 20 suppliers by spend; zero-exchange-rate warning |
+| Page         | Route           | View                                              | What it shows                                                                                                                                                                                                                                                                            |
+| ------------ | --------------- | ------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Overview     | `/`             |                                                   | Headline sales figures and a card for each dashboard                                                                                                                                                                                                                                     |
+| Sales        | `/sales`        | `ZF_CSL_BI`                                       | Net revenue, gross margin, margin %, invoices, returns (vs last year, with sparklines); monthly trend vs last year; revenue by company, item group, salesperson; top 20 customers and items                                                                                              |
+| Inventory    | `/inventory`    | `ZF_CURR_STK_BI`, `ZF_STK_MTH_SUMM_BI`, `ZF_ITEM` | Stock value, available and reserved value, stocked items and change vs last month-end, as of today; month-end trend (24 periods); stock value by company, item group, location and grade; dead stock (3/6/12 months, `?dead=`); reorder alerts                                           |
+| Finance      | `/finance`      | `ZF_F_T_DETAIL_BI`                                | Revenue, cost of sales, gross profit and GP %, G&A, net profit and net margin % (vs last year); monthly P&L; P&L statement by level_1 that expands to GL accounts; costs by account, division and department; journal-line drill-down; unmapped-account total                            |
+| Sales orders | `/sales-orders` | `ZF_SO_BI`                                        | Open order value, open orders and lines, delivered-not-invoiced and overdue value (as of today); orders booked vs last year; open value by order age, salesperson and top 20 customers; monthly orders booked vs last year; open order lines (top 1,000, CSV); non-AED currency note     |
+| Purchasing   | `/purchasing`   | `ZF_PO_PENDING_BI`, `ZF_CPR_BI`                   | Pending PO value, open lines, overdue value and % (as of today); receipts spend vs last year; pending value by aging bucket, top 20 suppliers and company; overdue PO lines (top 1,000, CSV); monthly receipts spend vs last year; top 20 suppliers by spend; zero-exchange-rate warning |
 
 ## Setup
 
@@ -121,7 +122,7 @@ lib/
     sql.ts              filterWhere (binds), labelOrUnassigned, UNASSIGNED/ALL_OTHER
     chart-of-accounts.ts  reads data/chart-of-accounts.csv; unknown accounts are 'Unmapped'
     queries/            one module per Orion domain (common.ts, sales.ts, inventory.ts, finance.ts,
-                        purchasing.ts)
+                        purchasing.ts, ar-ap.ts, sales-orders.ts)
 data/sample/            sample fixtures, one CSV per view
 data/chart-of-accounts.csv  GL main account -> level_0/1/2 (finance owns it)
 tests/unit, tests/e2e   Vitest and Playwright; tests/fixtures has the hand-checked CSV
@@ -165,7 +166,7 @@ Queries are written once in Oracle SQL and must also run on SQLite in sample mod
 - `SELECT ... FROM MBALI.<VIEW> WHERE ... GROUP BY ... ORDER BY ...`, subqueries in `FROM` (give
   them an alias), `WITH`;
 - `SUM`, `COUNT`, `COUNT(DISTINCT ...)`, `MIN`, `MAX`, `AVG`; `CASE WHEN`; `COALESCE`, `NULLIF`,
-  `TRIM`, `ABS`, `SUBSTR(x, start, length)`; `||` for concatenation; `ROW_NUMBER() OVER (ORDER BY ...)` and other window functions;
+  `TRIM`, `UPPER`, `ABS`, `SUBSTR(x, start, length)`; `||` for concatenation; `ROW_NUMBER() OVER (ORDER BY ...)` and other window functions;
 - `NVL(x, y)`, `TO_CHAR(date, 'YYYY-MM-DD' | 'YYYY-MM' | 'YYYY')` and
   `TO_DATE(:bind, 'YYYY-MM-DD')` (shimmed in `lib/server/sample.ts`);
 - named binds (`:start_date`).
@@ -290,6 +291,35 @@ CS_RESV_QTY`; available value = available qty × `CS_WAC`; reserved value = the 
   current month is provisional.
 - Dead stock for N months = a company × location × item whose closing qty is the same, and above
   zero, in each of the newest N + 1 periods. Value at risk is their closing value.
+
+## Business rules (Sales orders)
+
+The open book (`ZF_SO_BI`) is **as of today**: the company filter applies, the date filter doesn't.
+"Orders booked" follows both filters, on the order date `H_DT`. Details and the live checks behind
+them (October 2026) are in the comment at the top of `lib/server/queries/sales-orders.ts`.
+
+- One row per order line, the `H_*` header columns repeated on each. The documented key
+  `(H_COMP_CODE, H_TXN_CODE, H_TXN_NO, D_ITEM_CODE)` is **not** unique (an item can be on two lines
+  of one order), so lines are never de-duplicated on it. An order is `(H_COMP_CODE, H_TXN_CODE,
+H_TXN_NO)`.
+- Statuses are words. **Closed** (`H_DOC_STATUS = 'Closed'`) is a cancelled or short-closed order;
+  there is no `'C'` status. Closed lines keep their quantities, so they are left out of the open
+  book, and only their delivered part counts as booked. Orders pending approval or submission are in
+  the book.
+- Pending delivery = `D_QTY − D_DELIVERED_QTY`, delivered not invoiced = `D_DELIVERED_QTY −
+D_INVOICED_QTY`, each only when above zero (lines with `D_QTY > 0`). The quantities decide, not
+  `H_DEL_STATUS`.
+- Value = `D_FC_VAL`, the net line value (after line discount, before VAT and before the rarely used
+  header discount). `D_TOT_VAL` includes VAT and isn't used. Pending value = `D_FC_VAL` × pending qty
+  / `D_QTY`, pro rata, like pending POs.
+- The view has no AED column or exchange rate: values are in the order currency `H_CURR_CODE`. AED
+  totals cover AED orders only (99% of open lines); other currencies are listed in a note under the
+  cards and still count in open orders and lines.
+- Expected delivery `H_DEL_DT` is `DD-Mon-YYYY` text. `lib/orion-date.ts` reads it in TypeScript
+  and builds the same conversion in portable SQL (`CASE` on the month name), so overdue (expected
+  date before today) is worked out in SQL. In sample mode those dates move with the anchored ones.
+- Order age uses the shared aging ladder on the order date. Blank salespeople and customers show as
+  **Unassigned**.
 
 ## Business rules (Purchasing)
 

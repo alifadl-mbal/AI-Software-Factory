@@ -276,6 +276,7 @@ describe("open lines table", () => {
     ]);
     expect(lines[0]).toEqual({
       companyCode: "102",
+      customerCode: "SC0001",
       orderNumber: "SOU-2001",
       orderDate: "2025-01-15",
       customer: "Customer C",

@@ -9,10 +9,12 @@ import { KpiCard } from "@/components/dashboard/kpi-card";
 import { KPI_GRID } from "@/components/dashboard/skeletons";
 import { TrendChart } from "@/components/dashboard/trend-chart";
 import { ReportAsOf } from "@/components/shell/shell-context";
+import { customerHref } from "@/lib/customers";
 import { previousYear, type Filters } from "@/lib/filters";
 import { formatAed } from "@/lib/format";
 import { dataAsOf } from "@/lib/server/db";
 import { load } from "@/lib/server/errors";
+import { customerCodesByName } from "@/lib/server/queries/customers";
 import {
   salesBreakdown,
   salesKpis,
@@ -144,7 +146,7 @@ export async function SalesBreakdownChart({
 }
 
 const TABLE_COLUMNS = (labelHeader: string): ColumnSpec[] => [
-  { key: "label", header: labelHeader },
+  { key: "label", header: labelHeader, linkKey: "href" },
   { key: "netRevenue", header: "Net revenue", format: "aed", sum: true },
   { key: "grossMargin", header: "Gross margin", format: "aed", sum: true },
   { key: "marginPct", header: "Margin %", format: "pct" },
@@ -165,6 +167,11 @@ export async function SalesTopTable({
 }) {
   const result = await load(() => salesBreakdown(filters, dimension, TOP_N));
   const total = result.ok ? totalOf(result.data) : 0;
+  // Customers are grouped by name (as reconciled); a name links to its page when one code has it.
+  const codes =
+    result.ok && dimension === "customer"
+      ? await customerCodesByName(result.data.map((row) => row.label)).catch(() => new Map<string, string>())
+      : new Map<string, string>();
   return (
     <ChartCard title={title} description={`Top ${TOP_N} by net revenue; the rest are grouped as "All other"`}>
       {!result.ok ? (
@@ -175,6 +182,7 @@ export async function SalesTopTable({
           columns={TABLE_COLUMNS(labelHeader)}
           rows={result.data.map((row) => ({
             label: row.label,
+            href: codes.has(row.label) ? customerHref(codes.get(row.label)!, filters) : null,
             netRevenue: row.netRevenue,
             grossMargin: row.grossMargin,
             marginPct: row.marginPct,

@@ -11,11 +11,13 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { isCustomerPath } from "@/lib/customers";
 import { OVERVIEW, SNAPSHOT, dashboardForPath } from "@/lib/dashboards";
 import type { Company } from "@/lib/server/queries/common";
 
 import { CompanySelect, CompanySelectFallback } from "./company-select";
 import { DateRangePicker } from "./date-range-picker";
+import { SearchCommand } from "./search-command";
 import { useShell } from "./shell-context";
 import { UserMenu, type SignedInUser } from "./user-menu";
 
@@ -100,7 +102,11 @@ export function TopBar({
   const dashboard = dashboardForPath(pathname);
   // The snapshot preview isn't a dashboard: it always covers all companies and fixed periods.
   const snapshot = pathname === SNAPSHOT.href;
-  const title = snapshot ? SNAPSHOT.title : (dashboard?.title ?? OVERVIEW.title);
+  const title = snapshot
+    ? SNAPSHOT.title
+    : isCustomerPath(pathname)
+      ? "Customer"
+      : (dashboard?.title ?? OVERVIEW.title);
 
   return (
     <header className="sticky top-0 z-20 border-b bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/70">
@@ -129,6 +135,7 @@ export function TopBar({
           )}
         </div>
         <div className="ml-auto flex items-center gap-1 md:ml-0">
+          <SearchCommand />
           <RefreshButton />
           <ThemeToggle />
           {user && <UserMenu user={user} />}

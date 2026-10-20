@@ -21,11 +21,15 @@ import type { Query } from "../types";
  * - Invoice count = distinct `comp-txn_code-no` documents of type `INV` with a non-zero net value;
  *   this leaves out the zero-value delivery notes.
  * - Blank dimension values show as 'Unassigned' and are never dropped.
+ *
+ * Every query takes an optional customer code (`CSL_CUST_CODE`, the code space of
+ * `ZF_CUSTOMER.CUST_CODE`) for the customer page. Without one the SQL is exactly the dashboard's.
  */
 
 const VIEW = "MBALI.ZF_CSL_BI";
 const DATE_COLUMN = "CSL_DATE";
 const COMPANY_COLUMN = "CSL_COMP_CODE";
+const CUSTOMER_COLUMN = "CSL_CUST_CODE";
 const REVENUE_TXN_TYPES = "CSL_TXN_TYPE IN ('INV', 'SARTN')";
 const NET_VALUE = "NVL(CSL_NET_SL_VALUE, 0)";
 const COST_VALUE = "NVL(CSL_WAC_VALUE, 0)";
@@ -75,9 +79,15 @@ export interface BreakdownRow {
   marginPct: number | null;
 }
 
-function where(filters: Filters): ReturnType<typeof filterWhere> {
+function where(filters: Filters, customer?: string): ReturnType<typeof filterWhere> {
   const fragment = filterWhere(filters, DATE_COLUMN, COMPANY_COLUMN);
-  return { sql: `${REVENUE_TXN_TYPES} AND ${fragment.sql}`, binds: fragment.binds };
+  if (customer === undefined) {
+    return { sql: `${REVENUE_TXN_TYPES} AND ${fragment.sql}`, binds: fragment.binds };
+  }
+  return {
+    sql: `${REVENUE_TXN_TYPES} AND ${fragment.sql} AND ${CUSTOMER_COLUMN} = :cust_code`,
+    binds: { ...fragment.binds, cust_code: customer },
+  };
 }
 
 function toKpis(row: Record<string, unknown> | undefined): SalesKpis {
@@ -94,13 +104,13 @@ function toKpis(row: Record<string, unknown> | undefined): SalesKpis {
   };
 }
 
-export function kpiQuery(filters: Filters): Query {
-  const { sql, binds } = where(filters);
+export function kpiQuery(filters: Filters, customer?: string): Query {
+  const { sql, binds } = where(filters, customer);
   return { sql: `SELECT${MEASURES}\nFROM ${VIEW}\nWHERE ${sql}`, binds };
 }
 
-export function monthlyQuery(filters: Filters): Query {
-  const { sql, binds } = where(filters);
+export function monthlyQuery(filters: Filters, customer?: string): Query {
+  const { sql, binds } = where(filters, customer);
   return {
     sql: `
 SELECT TO_CHAR(${DATE_COLUMN}, 'YYYY-MM') AS sales_month,${MEASURES}
@@ -113,9 +123,14 @@ ORDER BY sales_month`,
 }
 
 /** Net revenue and cost by one dimension. With `topN`, the rest is folded into 'All other'. */
-export function breakdownQuery(filters: Filters, dimension: Dimension, topN?: number): Query {
+export function breakdownQuery(
+  filters: Filters,
+  dimension: Dimension,
+  topN?: number,
+  customer?: string,
+): Query {
   const label = labelOrUnassigned(DIMENSIONS[dimension]);
-  const { sql, binds } = where(filters);
+  const { sql, binds } = where(filters, customer);
   const grouped = `
 SELECT ${label} AS label, SUM(${NET_VALUE}) AS net_revenue, SUM(${COST_VALUE}) AS cost
 FROM ${VIEW}
@@ -143,9 +158,9 @@ ORDER BY sort_order`,
   };
 }
 
-/** Headline figures for the period. */
-export async function salesKpis(filters: Filters): Promise<SalesKpis> {
-  const [row] = await run(kpiQuery(filters));
+/** Headline figures for the period, of one customer if `customer` is given. */
+export async function salesKpis(filters: Filters, customer?: string): Promise<SalesKpis> {
+  const [row] = await run(kpiQuery(filters, customer));
   return toKpis(row);
 }
 
@@ -153,10 +168,10 @@ export async function salesKpis(filters: Filters): Promise<SalesKpis> {
  * Every month of the period with its figures, and net revenue of the same month a year earlier.
  * Months without sales are zeros.
  */
-export async function salesMonthly(filters: Filters): Promise<SalesMonth[]> {
+export async function salesMonthly(filters: Filters, customer?: string): Promise<SalesMonth[]> {
   const [current, previous] = await Promise.all([
-    run(monthlyQuery(filters)),
-    run(monthlyQuery(previousYear(filters))),
+    run(monthlyQuery(filters, customer)),
+    run(monthlyQuery(previousYear(filters), customer)),
   ]);
   const byMonth = new Map(current.map((row) => [String(row.sales_month), row]));
   const lastYear = new Map(
@@ -174,8 +189,9 @@ export async function salesBreakdown(
   filters: Filters,
   dimension: Dimension,
   topN?: number,
+  customer?: string,
 ): Promise<BreakdownRow[]> {
-  const rows = await run(breakdownQuery(filters, dimension, topN));
+  const rows = await run(breakdownQuery(filters, dimension, topN, customer));
   return rows.map((row) => {
     const netRevenue = num(row.net_revenue);
     const grossMargin = netRevenue - num(row.cost);
@@ -186,4 +202,65 @@ export async function salesBreakdown(
       marginPct: netRevenue ? grossMargin / netRevenue : null,
     };
   });
+}
+
+/** The returns table shows at most this many lines (the largest first). */
+export const RETURN_ROW_LIMIT = 200;
+
+export interface ReturnLine {
+  /** YYYY-MM-DD. */
+  date: string;
+  companyCode: string;
+  /** `TXN_CODE-NO`, the credit note. */
+  document: string;
+  item: string;
+  /** Positive: the quantity taken back. */
+  quantity: number;
+  /** Negative, as in net revenue. */
+  value: number;
+}
+
+/**
+ * One customer's returns (`SARTN` lines) in the period, per credit note and item, largest first.
+ * They add up to `SalesKpis.returnsValue` for the same customer. Ranked in a subquery: Oracle
+ * rejects a GROUP BY on an expression with a bind (ORA-00979), and SQLite has no FETCH FIRST.
+ */
+export function returnsQuery(filters: Filters, customer: string, limit = RETURN_ROW_LIMIT): Query {
+  const { sql, binds } = where(filters, customer);
+  return {
+    sql: `
+SELECT return_date, company_code, txn_code, txn_no, item, quantity, net_value
+FROM (
+    SELECT return_date, company_code, txn_code, txn_no, item, quantity, net_value,
+        ROW_NUMBER() OVER (ORDER BY net_value, return_date, company_code, txn_code, txn_no, item) AS rn
+    FROM (
+        SELECT TO_CHAR(${DATE_COLUMN}, 'YYYY-MM-DD') AS return_date, CSL_COMP_CODE AS company_code,
+            CSL_TXN_CODE AS txn_code, CSL_NO AS txn_no, ${labelOrUnassigned(DIMENSIONS.item)} AS item,
+            -SUM(NVL(CSL_QTY, 0)) AS quantity, SUM(${NET_VALUE}) AS net_value
+        FROM ${VIEW}
+        WHERE ${sql} AND CSL_TXN_TYPE = 'SARTN'
+        GROUP BY TO_CHAR(${DATE_COLUMN}, 'YYYY-MM-DD'), CSL_COMP_CODE, CSL_TXN_CODE, CSL_NO, ${labelOrUnassigned(DIMENSIONS.item)}
+    ) grouped
+) ranked
+WHERE rn <= :row_limit
+ORDER BY rn`,
+    binds: { ...binds, row_limit: limit },
+  };
+}
+
+/** One customer's returns in the period, largest (most negative) first, at most `limit` lines. */
+export async function salesReturns(
+  filters: Filters,
+  customer: string,
+  limit = RETURN_ROW_LIMIT,
+): Promise<ReturnLine[]> {
+  const rows = await run(returnsQuery(filters, customer, limit));
+  return rows.map((row) => ({
+    date: String(row.return_date),
+    companyCode: String(row.company_code),
+    document: `${String(row.txn_code ?? "")}-${String(row.txn_no ?? "")}`,
+    item: String(row.item),
+    quantity: num(row.quantity),
+    value: num(row.net_value),
+  }));
 }

@@ -1,4 +1,4 @@
-import { LayoutDashboard, TrendingUp, type LucideIcon } from "lucide-react";
+import { LayoutDashboard, Scale, TrendingUp, type LucideIcon } from "lucide-react";
 
 /**
  * The dashboard registry: the single list the sidebar and the Overview page are built from.
@@ -25,6 +25,14 @@ export const DASHBOARDS: readonly Dashboard[] = [
       "Net revenue, gross margin, invoices and returns, with breakdowns by company, customer, item, salesperson and item group.",
     icon: TrendingUp,
     source: "ZF_CSL_BI",
+  },
+  {
+    slug: "receivables-payables",
+    title: "Receivables & payables",
+    description:
+      "Open customer and vendor balances as of today: aging, top customers and vendors, salesperson follow-up, PDCs and vendor prepayments.",
+    icon: Scale,
+    source: "ZF_SOA_DETL_CUST_INV_SM_BI · ZF_SOAP_DETL_BI",
   },
 ];
 

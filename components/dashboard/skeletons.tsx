@@ -9,10 +9,18 @@ import { cn } from "@/lib/utils";
 export const KPI_GRID =
   "grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-5 [&>*:last-child:nth-child(odd)]:col-span-2 xl:[&>*:last-child:nth-child(odd)]:col-span-1";
 
-/** Placeholder for a row of KPI cards while they stream in. */
-export function KpiRowSkeleton({ count = 4, className }: { count?: number; className?: string }) {
+/** Placeholder for a row of KPI cards while they stream in. `grid` replaces the default layout. */
+export function KpiRowSkeleton({
+  count = 4,
+  grid = KPI_GRID,
+  className,
+}: {
+  count?: number;
+  grid?: string;
+  className?: string;
+}) {
   return (
-    <div className={cn(KPI_GRID, className)} aria-busy="true" aria-label="Loading">
+    <div className={cn(grid, className)} aria-busy="true" aria-label="Loading">
       {Array.from({ length: count }, (_, index) => (
         <Card key={index} className="gap-0 py-0">
           <CardContent className="flex flex-col gap-3 p-5">

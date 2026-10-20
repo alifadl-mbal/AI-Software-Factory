@@ -82,8 +82,7 @@ test.describe("signed in", () => {
     await expect(page.getByRole("heading", { level: 1, name: "Sales" })).toBeVisible();
 
     const menu = page.getByTestId("user-menu");
-    await expect(menu).toHaveText("TU");
-    await expect(menu).toHaveAccessibleName("Account: Test User");
+    await expect(menu).toHaveAccessibleName("TU Account: Test User");
     await menu.click();
     await expect(page.getByRole("menu")).toContainText("test.user@mbal.example");
     await page.getByTestId("sign-out").click();
@@ -91,6 +90,30 @@ test.describe("signed in", () => {
     await expect(page).toHaveURL(/\/sign-in/, { timeout: 30_000 });
     await page.goto("/sales");
     await expect(page).toHaveURL(/\/sign-in/);
+  });
+
+  test("a signed-in dashboard has no serious or critical axe violations, menu closed or open", async ({
+    page,
+    context,
+    baseURL,
+  }) => {
+    await signIn(context, baseURL!, { name: "Test User" });
+    await page.goto("/sales");
+    await expect(page.getByRole("heading", { level: 1, name: "Sales" })).toBeVisible();
+    const seriousViolations = async () => {
+      const results = await new AxeBuilder({ page }).analyze();
+      return results.violations
+        .filter((violation) => violation.impact === "serious" || violation.impact === "critical")
+        .map(
+          (violation) =>
+            `${violation.id}: ${violation.nodes.map((node) => node.target.join(" ")).join(", ")}`,
+        );
+    };
+
+    expect(await seriousViolations(), "menu closed").toEqual([]);
+    await page.getByTestId("user-menu").click();
+    await expect(page.getByTestId("sign-out")).toBeVisible();
+    expect(await seriousViolations(), "menu open").toEqual([]);
   });
 
   test("a member's API calls get through the gate", async ({ context, baseURL, page }) => {

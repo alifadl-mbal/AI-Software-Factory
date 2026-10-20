@@ -33,15 +33,15 @@ export function UserMenu({ user }: { user: SignedInUser }) {
   const label = user.name || user.email || "Signed in";
 
   return (
-    <DropdownMenu>
+    // Non-modal: a modal menu aria-hides the page while focus can still sit on the trigger.
+    // The trigger's name starts with its visible initials (WCAG 2.5.3, label in name).
+    <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" aria-label={`Account: ${label}`} data-testid="user-menu">
-          <span
-            className="flex size-7 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground"
-            aria-hidden
-          >
+        <Button variant="ghost" size="icon" data-testid="user-menu">
+          <span className="flex size-7 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
             {initials(user)}
           </span>
+          <span className="sr-only">Account: {label}</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56 max-w-[calc(100vw-2rem)]">

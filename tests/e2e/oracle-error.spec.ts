@@ -11,3 +11,12 @@ test("an unreachable Orion shows a friendly ErrorCard, not a stack trace", async
   expect(text).not.toMatch(/at \w+ \(|node_modules|127\.0\.0\.1|nosuchservice/);
   await expect(page.getByTestId("sample-badge")).toHaveCount(0);
 });
+
+test("receivables & payables also fail friendly when Orion is unreachable", async ({ page }) => {
+  await page.goto("/receivables-payables");
+  const errors = page.getByTestId("error-card");
+  await expect(errors.first()).toBeVisible({ timeout: 30_000 });
+  await expect(errors.first()).toContainText("Couldn't connect to Orion");
+  const text = await page.locator("main").innerText();
+  expect(text).not.toMatch(/at \w+ \(|node_modules|127\.0\.0\.1|nosuchservice/);
+});

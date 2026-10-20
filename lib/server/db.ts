@@ -24,7 +24,7 @@ interface CacheEntry {
 type Runner = (sql: string, binds: Binds) => Promise<Row[]>;
 
 const cache = new Map<string, CacheEntry>();
-let sampleSource: { month: string; source: SampleSource } | undefined;
+let sampleSource: { today: string; source: SampleSource } | undefined;
 let runnerOverride: Runner | undefined;
 
 function runner(mode: DataSourceMode): Runner {
@@ -33,12 +33,17 @@ function runner(mode: DataSourceMode): Runner {
     // Imported lazily so sample mode never loads the driver.
     return async (sql, binds) => (await import("./oracle")).queryOracle(sql, binds);
   }
-  // Sample dates move with the calendar: rebuilt when the (business) month turns.
-  const month = todayIso().slice(0, 7);
-  if (sampleSource?.month !== month) {
+  // Sample dates move with the calendar, so it is rebuilt when the (business) day changes: balance
+  // fixtures are anchored to today, periods to this month and the rest to this year.
+  const today = todayIso();
+  if (sampleSource?.today !== today) {
     sampleSource = {
-      month,
-      source: new SampleSource({ rebaseToYear: Number(month.slice(0, 4)), rebaseToMonth: month }),
+      today,
+      source: new SampleSource({
+        rebaseToYear: Number(today.slice(0, 4)),
+        rebaseToMonth: today.slice(0, 7),
+        anchorToDate: today,
+      }),
     };
   }
   const source = sampleSource.source;

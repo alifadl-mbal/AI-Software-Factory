@@ -7,6 +7,12 @@ export const PAGES = [
   { path: "/inventory", heading: "Inventory", kpis: 5, headline: "Stock value" },
   { path: "/purchasing", heading: "Purchasing", kpis: 5, headline: "Pending PO value" },
   { path: "/finance", heading: "Finance", kpis: 7, headline: "Revenue" },
+  {
+    path: "/receivables-payables",
+    heading: "Receivables & payables",
+    kpis: 7,
+    headline: "AR outstanding",
+  },
 ] as const;
 
 /** Collect console errors and uncaught exceptions for the life of the page. */
@@ -24,8 +30,18 @@ export async function waitForData(page: Page) {
   await expect(page.locator('[aria-busy="true"]')).toHaveCount(0);
 }
 
+/** A full AED figure like "AED 1,234,567" or "-AED 1,234" as a number. */
+export function aedNumber(text: string): number {
+  const value = Number(text.replace(/[^\d.-]/g, ""));
+  return text.trim().startsWith("-") ? -Math.abs(value) : value;
+}
+
 /** The full (unrounded) value of a KPI card, from its title tooltip. */
 export async function kpiFull(page: Page, label: string): Promise<string> {
-  const card = page.getByTestId("kpi-card").filter({ hasText: label }).first();
+  // Match the label exactly: a hint on another card may mention it ("AR outstanding − AP outstanding").
+  const card = page
+    .getByTestId("kpi-card")
+    .filter({ has: page.getByText(label, { exact: true }) })
+    .first();
   return (await card.getByTestId("kpi-value").getAttribute("title")) ?? "";
 }

@@ -1,4 +1,12 @@
-import { Boxes, Landmark, LayoutDashboard, ShoppingCart, TrendingUp, type LucideIcon } from "lucide-react";
+import {
+  Boxes,
+  Landmark,
+  LayoutDashboard,
+  Scale,
+  ShoppingCart,
+  TrendingUp,
+  type LucideIcon,
+} from "lucide-react";
 
 /**
  * The dashboard registry: the single list the sidebar and the Overview page are built from.
@@ -52,6 +60,15 @@ export const DASHBOARDS: readonly Dashboard[] = [
       "Pending purchase orders with aging and overdue lines as of today, and receipts spend by month and supplier.",
     icon: ShoppingCart,
     source: "ZF_PO_PENDING_BI · ZF_CPR_BI",
+  },
+  {
+    slug: "receivables-payables",
+    title: "Receivables & payables",
+    description:
+      "Open customer and vendor balances as of today: aging, top customers and vendors, salesperson follow-up, PDCs and vendor prepayments.",
+    icon: Scale,
+    source: "ZF_SOA_DETL_CUST_INV_SM_BI · ZF_SOAP_DETL_BI",
+    dateFilter: false,
   },
 ];
 

@@ -38,8 +38,9 @@ every page shows a **Sample data** badge in the top bar. Every name in them is i
 The same Oracle SQL runs on an in-memory SQLite database (Node's built-in `node:sqlite`) loaded
 from the CSVs, so sample mode exercises the real queries. Sample dates are shifted by whole years
 so the newest fixture year is the current year, so "year to date" always has something to show.
-Month-end periods (`*_PERIOD`, `YYYYMM`) are shifted by whole months so the newest is the current
-month.
+The receivables and payables fixtures are balances aged against today, so they shift by whole days
+instead, until their newest document date is today. Month-end periods (`*_PERIOD`, `YYYYMM`) are
+shifted by whole months so the newest is the current month.
 
 ### Oracle mode (live Orion)
 
@@ -164,12 +165,15 @@ Queries are written once in Oracle SQL and must also run on SQLite in sample mod
 - `SELECT ... FROM MBALI.<VIEW> WHERE ... GROUP BY ... ORDER BY ...`, subqueries in `FROM` (give
   them an alias), `WITH`;
 - `SUM`, `COUNT`, `COUNT(DISTINCT ...)`, `MIN`, `MAX`, `AVG`; `CASE WHEN`; `COALESCE`, `NULLIF`,
-  `TRIM`, `SUBSTR(x, start, length)`; `||` for concatenation; `ROW_NUMBER() OVER (ORDER BY ...)` and other window functions;
+  `TRIM`, `ABS`, `SUBSTR(x, start, length)`; `||` for concatenation; `ROW_NUMBER() OVER (ORDER BY ...)` and other window functions;
 - `NVL(x, y)`, `TO_CHAR(date, 'YYYY-MM-DD' | 'YYYY-MM' | 'YYYY')` and
   `TO_DATE(:bind, 'YYYY-MM-DD')` (shimmed in `lib/server/sample.ts`);
 - named binds (`:start_date`).
 
-Avoid: `DECODE`, `TRUNC(date)`, `ADD_MONTHS`, `SYSDATE`, `ROWNUM`, `FETCH FIRST`, `DUAL`, and
+Date arithmetic doesn't port (Oracle subtracts `DATE`s, SQLite stores text): work out cut-off dates
+in TypeScript and compare against them, as the aging buckets in `lib/server/queries/ar-ap.ts` do.
+
+Avoid: `DECODE`, `TRUNC(date)`, `ADD_MONTHS`, `MONTHS_BETWEEN`, `SYSDATE`, `ROWNUM`, `FETCH FIRST`, `DUAL`, and
 `GROUP BY` on an expression that contains a bind (Oracle raises ORA-00979; compute it in a subquery
 and group by the alias). If a dashboard really needs another Oracle function, add a shim next to
 the existing ones and a unit test.
@@ -248,6 +252,28 @@ Say, Inventory on `ZF_CURR_STK_BI`:
 - `CSL_GROSS_SL_VALUE` (pre-discount) is never used as revenue.
 - Invoices = distinct `INV` documents with a non-zero net value (zero-value delivery notes excluded).
 - Blank customers, salespeople, item groups etc. show as **Unassigned**.
+
+## Business rules (Receivables & payables)
+
+Balances as of today; the company filter applies, the date filter doesn't. Both views hold open
+**and** settled lines. Details and the live checks behind them are in the comment at the top of
+`lib/server/queries/ar-ap.ts`.
+
+- **AR** (`ZF_SOA_DETL_CUST_INV_SM_BI`): outstanding = `SDR_TOT_BAL − SDR_TOT_PDC` over open lines
+  (|`SDR_TOT_BAL`| ≥ 1 AED). `SDR_TOT_BAL` is the open part of the AED amount (`SDR_ORG_LC_AMT`);
+  settled lines keep a zero or a few fils of FX rounding. PDCs in hand are reported separately.
+- Sales-attributed AR uses the customer's salesperson (`SDR_CUST_SM_CODE`); collection follow-up
+  uses the finance salesperson (`SDR_FIN_SM_CODE`). The invoicing salesperson (`SDR_INV_SM_CODE`)
+  is never used.
+- **AP** (`ZF_SOAP_DETL_BI`): owed = `−SOAP_TOT_BAL − SOAP_TOT_PDC` over open lines (credit − debit
+  on the open part; settled lines are exactly zero). Raw `SOAP_AMT_CR − SOAP_AMT_DR` is not used:
+  settled lines keep stray amounts and part-paid lines show the full amount.
+- Vendors are netted per company and sub-account. Vendors above zero make up AP outstanding and its
+  aging; vendors below zero are **prepayments**, listed and totalled separately, never netted in.
+- The AP view has no AED column: vendor balances are in the account currency as booked.
+- **Aging** on the document date (`SDR_DOC_DT`, `SOAP_DOC_DT`), always in this order:
+  `<30 D` · `1-2 M` · `2-3 M` · `3-6 M` · `6-12 M` · `1-2 Y` · `2+ Y`. Under 30 days by days since
+  the document, then whole calendar months (`lib/aging.ts`). "Over 90 days" = more than 90 days old.
 
 ## Business rules (Inventory)
 

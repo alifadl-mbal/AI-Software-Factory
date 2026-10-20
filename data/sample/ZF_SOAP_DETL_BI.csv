@@ -1,0 +1,490 @@
+SOAP_COMP_CODE,SOAP_COMP_NAME,SOAP_MAIN_ACNT_CODE,SOAP_MAIN_ACNT_NAME,SOAP_SUB_ACNT_CODE,SOAP_SUB_ACNT_NAME,SOAP_DOC_DT,SOAP_TRAN_CODE,SOAP_DOC_NO,SOAP_SEQ_NO,SOAP_DRCR,SOAP_CURR_CODE,SOAP_AMT,SOAP_ADJ_AMT,SOAP_UNADJ_AMT,SOAP_AMT_DR,SOAP_AMT_CR,SOAP_TOT_PDC,SOAP_TOT_BAL,SOAP_NET_BAL
+101,Sample Trading LLC,2101,Trade Account Payable,V0001,Gulf Packaging Industries,2023-11-18,PIN,500001,1,C,AED,657.15,657.15,0,0,0,0,0,0
+101,Sample Trading LLC,2101,Trade Account Payable,V0001,Gulf Packaging Industries,2024-01-16,BPV,500002,1,D,AED,657.15,657.15,0,0,0,0,0,0
+101,Sample Trading LLC,2101,Trade Account Payable,V0001,Gulf Packaging Industries,2026-04-19,PIN,500003,1,C,AED,28765.97,0,28765.97,0,28765.97,0,-28765.97,-28765.97
+101,Sample Trading LLC,2101,Trade Account Payable,V0001,Gulf Packaging Industries,2022-02-19,PIN,500004,1,C,AED,18556.86,9388.24,9168.62,0,18556.86,0,-9168.62,-9168.62
+101,Sample Trading LLC,2101,Trade Account Payable,V0001,Gulf Packaging Industries,2026-09-30,PIN,500005,1,C,AED,35682.91,35682.91,0,0,5575.26,0,0,0
+101,Sample Trading LLC,2101,Trade Account Payable,V0001,Gulf Packaging Industries,2026-10-15,BPV,500006,1,D,AED,35682.91,35682.91,0,5575.26,0,0,0,0
+101,Sample Trading LLC,2101,Trade Account Payable,V0001,Gulf Packaging Industries,2024-11-23,PIN,500007,1,C,AED,15475.57,15475.57,0,0,0,0,0,0
+101,Sample Trading LLC,2101,Trade Account Payable,V0001,Gulf Packaging Industries,2024-12-24,BPV,500008,1,D,AED,15475.57,15475.57,0,0,0,0,0,0
+101,Sample Trading LLC,2101,Trade Account Payable,V0001,Gulf Packaging Industries,2024-09-03,PIN,500009,1,C,AED,9364.17,9364.17,0,0,7569.12,0,0,0
+101,Sample Trading LLC,2101,Trade Account Payable,V0001,Gulf Packaging Industries,2024-11-18,BPV,500010,1,D,AED,9364.17,9364.17,0,7569.12,0,0,0,0
+101,Sample Trading LLC,2101,Trade Account Payable,V0001,Gulf Packaging Industries,2026-07-03,PIN,500011,1,C,AED,26659.22,0,26659.22,0,26659.22,0,-26659.22,-26659.22
+101,Sample Trading LLC,2101,Trade Account Payable,V0001,Gulf Packaging Industries,2026-08-25,PIN,500012,1,C,AED,6933.05,6933.05,0,0,0,0,0,0
+101,Sample Trading LLC,2101,Trade Account Payable,V0001,Gulf Packaging Industries,2026-10-03,BPV,500013,1,D,AED,6933.05,6933.05,0,0,0,0,0,0
+101,Sample Trading LLC,2101,Trade Account Payable,V0001,Gulf Packaging Industries,2026-09-07,BPV,500014,1,D,AED,3846.47,0,3846.47,3846.47,0,0,3846.47,3846.47
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0002,Northwind Electronics GmbH,2026-09-13,PIN,500015,1,C,USD,45110.61,0,45110.61,0,45110.61,0,-45110.61,-45110.61
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0002,Northwind Electronics GmbH,2025-01-09,PIN,500016,1,C,USD,37311.11,37311.11,0,0,8854.37,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0002,Northwind Electronics GmbH,2025-04-09,BPV,500017,1,D,AED,37311.11,37311.11,0,8854.37,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0002,Northwind Electronics GmbH,2025-12-11,PIN,500018,1,C,USD,47758.52,47758.52,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0002,Northwind Electronics GmbH,2026-02-11,BPV,500019,1,D,AED,47758.52,47758.52,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0002,Northwind Electronics GmbH,2026-05-08,PIN,500020,1,C,USD,8765.74,0,8765.74,0,8765.74,0,-8765.74,-8765.74
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0002,Northwind Electronics GmbH,2026-08-13,PIN,500021,1,C,USD,53518.67,53518.67,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0002,Northwind Electronics GmbH,2026-08-26,BPV,500022,1,D,AED,53518.67,53518.67,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0002,Northwind Electronics GmbH,2026-10-01,PIN,500023,1,C,USD,1182.52,705.57,476.95,0,1182.52,0,-476.95,-476.95
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0002,Northwind Electronics GmbH,2026-09-25,PIN,500024,1,C,USD,7360.66,2030.6,5330.06,0,7360.66,5330.06,-5330.06,-10660.12
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0002,Northwind Electronics GmbH,2025-04-12,PIN,500025,1,C,USD,13284.38,13284.38,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0002,Northwind Electronics GmbH,2025-06-03,BPV,500026,1,D,AED,13284.38,13284.38,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0002,Northwind Electronics GmbH,2025-04-02,PIN,500027,1,C,USD,18567.17,18567.17,0,0,875.15,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0002,Northwind Electronics GmbH,2025-05-04,BPV,500028,1,D,AED,18567.17,18567.17,0,875.15,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0002,Northwind Electronics GmbH,2026-09-29,PIN,500029,1,C,USD,6131.51,0,6131.51,0,6131.51,0,-6131.51,-6131.51
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0002,Northwind Electronics GmbH,2025-05-12,PIN,500030,1,C,USD,21077.84,21077.84,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0002,Northwind Electronics GmbH,2025-08-02,BPV,500031,1,D,AED,21077.84,21077.84,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0002,Northwind Electronics GmbH,2026-03-26,PIN,500032,1,C,USD,55270.52,0,55270.52,0,55270.52,0,-55270.52,-55270.52
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0002,Northwind Electronics GmbH,2026-06-08,PIN,500033,1,C,USD,59050.33,59050.33,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0002,Northwind Electronics GmbH,2026-07-03,BPV,500034,1,D,AED,59050.33,59050.33,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0002,Northwind Electronics GmbH,2026-09-06,PIN,500035,1,C,USD,33182.34,7190.19,25992.15,0,33182.34,0,-25992.15,-25992.15
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0002,Northwind Electronics GmbH,2026-10-15,PIN,500036,1,C,USD,40710.51,9294.04,31416.47,0,40710.51,0,-31416.47,-31416.47
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0002,Northwind Electronics GmbH,2026-09-23,BPV,500037,1,D,AED,2718.78,0,2718.78,2718.78,0,0,2718.78,2718.78
+103,Example Industrial Co,2101,Trade Account Payable,V0003,Al Safa Logistics,2026-09-23,PIN,500038,1,C,AED,11686.08,0,11686.08,0,11686.08,0,-11686.08,-11686.08
+103,Example Industrial Co,2101,Trade Account Payable,V0003,Al Safa Logistics,2026-05-25,PIN,500039,1,C,AED,3180.31,3180.31,0,0,0,0,0,0
+103,Example Industrial Co,2101,Trade Account Payable,V0003,Al Safa Logistics,2026-08-07,BPV,500040,1,D,AED,3180.31,3180.31,0,0,0,0,0,0
+103,Example Industrial Co,2101,Trade Account Payable,V0003,Al Safa Logistics,2023-03-10,PIN,500041,1,C,AED,3941.31,3941.31,0,0,793.16,0,0,0
+103,Example Industrial Co,2101,Trade Account Payable,V0003,Al Safa Logistics,2023-05-23,BPV,500042,1,D,AED,3941.31,3941.31,0,793.16,0,0,0,0
+103,Example Industrial Co,2101,Trade Account Payable,V0003,Al Safa Logistics,2026-09-08,PIN,500043,1,C,AED,18069.63,0,18069.63,0,18069.63,0,-18069.63,-18069.63
+103,Example Industrial Co,2101,Trade Account Payable,V0003,Al Safa Logistics,2026-10-07,PIN,500044,1,C,AED,6241.87,0,6241.87,0,6241.87,0,-6241.87,-6241.87
+103,Example Industrial Co,2101,Trade Account Payable,V0003,Al Safa Logistics,2024-11-29,PIN,500045,1,C,AED,12722.48,12722.48,0,0,0,0,0,0
+103,Example Industrial Co,2101,Trade Account Payable,V0003,Al Safa Logistics,2025-02-08,BPV,500046,1,D,AED,12722.48,12722.48,0,0,0,0,0,0
+103,Example Industrial Co,2101,Trade Account Payable,V0003,Al Safa Logistics,2026-03-18,PIN,500047,1,C,AED,2833.41,0,2833.41,0,2833.41,0,-2833.41,-2833.41
+103,Example Industrial Co,2101,Trade Account Payable,V0003,Al Safa Logistics,2022-11-27,PIN,500048,1,C,AED,20850.11,20850.11,0,0,2415.82,0,0,0
+103,Example Industrial Co,2101,Trade Account Payable,V0003,Al Safa Logistics,2023-02-04,BPV,500049,1,D,AED,20850.11,20850.11,0,2415.82,0,0,0,0
+103,Example Industrial Co,2101,Trade Account Payable,V0003,Al Safa Logistics,2026-02-13,PIN,500050,1,C,AED,17572.46,0,17572.46,0,17572.46,0,-17572.46,-17572.46
+103,Example Industrial Co,2101,Trade Account Payable,V0003,Al Safa Logistics,2026-09-05,PIN,500051,1,C,AED,11778.65,0,11778.65,0,11778.65,0,-11778.65,-11778.65
+103,Example Industrial Co,2101,Trade Account Payable,V0003,Al Safa Logistics,2024-12-01,PIN,500052,1,C,AED,17088,17088,0,0,0,0,0,0
+103,Example Industrial Co,2101,Trade Account Payable,V0003,Al Safa Logistics,2024-12-31,BPV,500053,1,D,AED,17088,17088,0,0,0,0,0,0
+103,Example Industrial Co,2101,Trade Account Payable,V0003,Al Safa Logistics,2026-07-31,PIN,500054,1,C,AED,17710.57,0,17710.57,0,17710.57,0,-17710.57,-17710.57
+103,Example Industrial Co,2101,Trade Account Payable,V0003,Al Safa Logistics,2022-11-28,PIN,500055,1,C,AED,7536.2,0,7536.2,0,7536.2,0,-7536.2,-7536.2
+103,Example Industrial Co,2101,Trade Account Payable,V0003,Al Safa Logistics,2026-03-03,PIN,500056,1,C,AED,9835.09,9835.09,0,0,0,0,0,0
+103,Example Industrial Co,2101,Trade Account Payable,V0003,Al Safa Logistics,2026-05-26,BPV,500057,1,D,AED,9835.09,9835.09,0,0,0,0,0,0
+103,Example Industrial Co,2101,Trade Account Payable,V0003,Al Safa Logistics,2026-09-11,BPV,500058,1,D,AED,2327.25,0,2327.25,2327.25,0,0,2327.25,2327.25
+103,Example Industrial Co,2101,Trade Account Payable,V0003,Al Safa Logistics,2026-08-20,BPV,500059,1,D,AED,240924.4,0,240924.4,240924.4,0,0,240924.4,240924.4
+104,Placeholder Foods FZE,2102,Other Creditors,V0004,Meridian Medical Devices,2026-01-09,PIN,500060,1,C,AED,32760.6,32760.6,0,0,0,0,0,0
+104,Placeholder Foods FZE,2102,Other Creditors,V0004,Meridian Medical Devices,2026-03-31,BPV,500061,1,D,AED,32760.6,32760.6,0,0,0,0,0,0
+104,Placeholder Foods FZE,2102,Other Creditors,V0004,Meridian Medical Devices,2026-09-07,PIN,500062,1,C,AED,1420.03,0,1420.03,0,1420.03,1420.03,-1420.03,-2840.06
+104,Placeholder Foods FZE,2102,Other Creditors,V0004,Meridian Medical Devices,2026-03-18,PIN,500063,1,C,AED,3442.09,0,3442.09,0,3442.09,0,-3442.09,-3442.09
+104,Placeholder Foods FZE,2102,Other Creditors,V0004,Meridian Medical Devices,2026-08-31,PIN,500064,1,C,AED,2208.43,2208.43,0,0,1260.67,0,0,0
+104,Placeholder Foods FZE,2102,Other Creditors,V0004,Meridian Medical Devices,2026-10-15,BPV,500065,1,D,AED,2208.43,2208.43,0,1260.67,0,0,0,0
+104,Placeholder Foods FZE,2102,Other Creditors,V0004,Meridian Medical Devices,2025-12-22,PIN,500066,1,C,AED,23431.27,0,23431.27,0,23431.27,0,-23431.27,-23431.27
+104,Placeholder Foods FZE,2102,Other Creditors,V0004,Meridian Medical Devices,2026-09-15,PIN,500067,1,C,AED,27378.33,0,27378.33,0,27378.33,0,-27378.33,-27378.33
+104,Placeholder Foods FZE,2102,Other Creditors,V0004,Meridian Medical Devices,2026-09-26,PIN,500068,1,C,AED,19191.15,9509.89,9681.26,0,19191.15,0,-9681.26,-9681.26
+104,Placeholder Foods FZE,2102,Other Creditors,V0004,Meridian Medical Devices,2026-08-22,BPV,500069,1,D,AED,2076.17,0,2076.17,2076.17,0,0,2076.17,2076.17
+105,Fictional Tech Distribution,2101,Trade Account Payable,V0005,Coastal Freight Services,2026-10-03,PIN,500070,1,C,AED,191147.47,0,191147.47,0,191147.47,0,-191147.47,-191147.47
+105,Fictional Tech Distribution,2101,Trade Account Payable,V0005,Coastal Freight Services,2025-11-27,PIN,500071,1,C,AED,88006.79,88006.79,0,0,0,0,0,0
+105,Fictional Tech Distribution,2101,Trade Account Payable,V0005,Coastal Freight Services,2026-02-04,BPV,500072,1,D,AED,88006.79,88006.79,0,0,0,0,0,0
+105,Fictional Tech Distribution,2101,Trade Account Payable,V0005,Coastal Freight Services,2024-11-29,PIN,500073,1,C,AED,176093.97,0,176093.97,0,176093.97,0,-176093.97,-176093.97
+105,Fictional Tech Distribution,2101,Trade Account Payable,V0005,Coastal Freight Services,2022-09-25,PIN,500074,1,C,AED,48848.25,48848.25,0,0,19499.36,0,0,0
+105,Fictional Tech Distribution,2101,Trade Account Payable,V0005,Coastal Freight Services,2022-11-22,BPV,500075,1,D,AED,48848.25,48848.25,0,19499.36,0,0,0,0
+105,Fictional Tech Distribution,2101,Trade Account Payable,V0005,Coastal Freight Services,2025-02-02,PIN,500076,1,C,AED,218175.07,218175.07,0,0,163970.2,0,0,0
+105,Fictional Tech Distribution,2101,Trade Account Payable,V0005,Coastal Freight Services,2025-03-20,BPV,500077,1,D,AED,218175.07,218175.07,0,163970.2,0,0,0,0
+105,Fictional Tech Distribution,2101,Trade Account Payable,V0005,Coastal Freight Services,2026-02-07,PIN,500078,1,C,AED,97692.36,97692.36,0,0,0,0,0,0
+105,Fictional Tech Distribution,2101,Trade Account Payable,V0005,Coastal Freight Services,2026-04-16,BPV,500079,1,D,AED,97692.36,97692.36,0,0,0,0,0,0
+105,Fictional Tech Distribution,2101,Trade Account Payable,V0005,Coastal Freight Services,2025-02-18,PIN,500080,1,C,AED,50736.41,50736.41,0,0,0,0,0,0
+105,Fictional Tech Distribution,2101,Trade Account Payable,V0005,Coastal Freight Services,2025-04-08,BPV,500081,1,D,AED,50736.41,50736.41,0,0,0,0,0,0
+105,Fictional Tech Distribution,2101,Trade Account Payable,V0005,Coastal Freight Services,2026-09-19,PIN,500082,1,C,AED,15694.25,0,15694.25,0,15694.25,0,-15694.25,-15694.25
+101,Sample Trading LLC,2101,Trade Account Payable,V0006,Sunrise Food Ingredients,2025-11-18,PIN,500083,1,C,AED,75314.28,75314.28,0,0,0,0,0,0
+101,Sample Trading LLC,2101,Trade Account Payable,V0006,Sunrise Food Ingredients,2026-02-11,BPV,500084,1,D,AED,75314.28,75314.28,0,0,0,0,0,0
+101,Sample Trading LLC,2101,Trade Account Payable,V0006,Sunrise Food Ingredients,2025-12-22,PIN,500085,1,C,AED,100117.28,0,100117.28,0,100117.28,0,-100117.28,-100117.28
+101,Sample Trading LLC,2101,Trade Account Payable,V0006,Sunrise Food Ingredients,2025-11-07,PIN,500086,1,C,AED,17471.54,17471.54,0,0,0,0,0,0
+101,Sample Trading LLC,2101,Trade Account Payable,V0006,Sunrise Food Ingredients,2026-01-20,BPV,500087,1,D,AED,17471.54,17471.54,0,0,0,0,0,0
+101,Sample Trading LLC,2101,Trade Account Payable,V0006,Sunrise Food Ingredients,2026-01-21,PIN,500088,1,C,AED,83640.47,83640.47,0,0,19838.91,0,0,0
+101,Sample Trading LLC,2101,Trade Account Payable,V0006,Sunrise Food Ingredients,2026-02-10,BPV,500089,1,D,AED,83640.47,83640.47,0,19838.91,0,0,0,0
+101,Sample Trading LLC,2101,Trade Account Payable,V0006,Sunrise Food Ingredients,2026-01-15,PIN,500090,1,C,AED,118172.58,118172.58,0,0,0,0,0,0
+101,Sample Trading LLC,2101,Trade Account Payable,V0006,Sunrise Food Ingredients,2026-02-08,BPV,500091,1,D,AED,118172.58,118172.58,0,0,0,0,0,0
+101,Sample Trading LLC,2101,Trade Account Payable,V0006,Sunrise Food Ingredients,2026-08-14,PIN,500092,1,C,AED,38765.36,0,38765.36,0,38765.36,0,-38765.36,-38765.36
+101,Sample Trading LLC,2101,Trade Account Payable,V0006,Sunrise Food Ingredients,2025-07-11,PIN,500093,1,C,AED,164419.89,164419.89,0,0,0,0,0,0
+101,Sample Trading LLC,2101,Trade Account Payable,V0006,Sunrise Food Ingredients,2025-09-22,BPV,500094,1,D,AED,164419.89,164419.89,0,0,0,0,0,0
+101,Sample Trading LLC,2101,Trade Account Payable,V0006,Sunrise Food Ingredients,2026-07-19,PIN,500095,1,C,AED,112075.59,0,112075.59,0,112075.59,0,-112075.59,-112075.59
+101,Sample Trading LLC,2101,Trade Account Payable,V0006,Sunrise Food Ingredients,2026-06-24,PIN,500096,1,C,AED,156901.06,156901.06,0,0,40267.84,0,0,0
+101,Sample Trading LLC,2101,Trade Account Payable,V0006,Sunrise Food Ingredients,2026-07-27,BPV,500097,1,D,AED,156901.06,156901.06,0,40267.84,0,0,0,0
+101,Sample Trading LLC,2101,Trade Account Payable,V0006,Sunrise Food Ingredients,2025-11-15,PIN,500098,1,C,AED,127042.39,127042.39,0,0,0,0,0,0
+101,Sample Trading LLC,2101,Trade Account Payable,V0006,Sunrise Food Ingredients,2026-01-06,BPV,500099,1,D,AED,127042.39,127042.39,0,0,0,0,0,0
+101,Sample Trading LLC,2101,Trade Account Payable,V0006,Sunrise Food Ingredients,2026-03-18,PIN,500100,1,C,AED,15210.53,0,15210.53,0,15210.53,0,-15210.53,-15210.53
+101,Sample Trading LLC,2101,Trade Account Payable,V0006,Sunrise Food Ingredients,2022-10-13,PIN,500101,1,C,AED,11191.94,11191.94,0,0,0,0,0,0
+101,Sample Trading LLC,2101,Trade Account Payable,V0006,Sunrise Food Ingredients,2022-12-09,BPV,500102,1,D,AED,11191.94,11191.94,0,0,0,0,0,0
+101,Sample Trading LLC,2101,Trade Account Payable,V0006,Sunrise Food Ingredients,2026-02-19,PIN,500103,1,C,AED,172748.28,0,172748.28,0,172748.28,0,-172748.28,-172748.28
+101,Sample Trading LLC,2101,Trade Account Payable,V0006,Sunrise Food Ingredients,2026-10-09,BPV,500104,1,D,AED,4411.85,0,4411.85,4411.85,0,0,4411.85,4411.85
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0007,Atlas Machinery Co,2026-09-24,PIN,500105,1,C,AED,73495.27,0,73495.27,0,73495.27,0,-73495.27,-73495.27
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0007,Atlas Machinery Co,2026-05-18,PIN,500106,1,C,AED,37155.19,37155.19,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0007,Atlas Machinery Co,2026-07-26,BPV,500107,1,D,AED,37155.19,37155.19,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0007,Atlas Machinery Co,2024-11-05,PIN,500108,1,C,AED,69748.31,69748.31,0,0,9465.98,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0007,Atlas Machinery Co,2024-12-24,BPV,500109,1,D,AED,69748.31,69748.31,0,9465.98,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0007,Atlas Machinery Co,2023-08-28,PIN,500110,1,C,AED,26108.39,26108.39,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0007,Atlas Machinery Co,2023-11-25,BPV,500111,1,D,AED,26108.39,26108.39,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0007,Atlas Machinery Co,2024-09-26,PIN,500112,1,C,AED,43466.55,43466.55,0,0,24211.97,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0007,Atlas Machinery Co,2024-10-10,BPV,500113,1,D,AED,43466.55,43466.55,0,24211.97,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0007,Atlas Machinery Co,2026-04-12,PIN,500114,1,C,AED,63105.78,0,63105.78,0,63105.78,0,-63105.78,-63105.78
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0007,Atlas Machinery Co,2026-08-27,PIN,500115,1,C,AED,46406.1,27547.45,18858.65,0,46406.1,0,-18858.65,-18858.65
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0007,Atlas Machinery Co,2026-10-04,PIN,500116,1,C,AED,32791.58,0,32791.58,0,32791.58,0,-32791.58,-32791.58
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0007,Atlas Machinery Co,2026-01-21,PIN,500117,1,C,AED,6159.38,0,6159.38,0,6159.38,0,-6159.38,-6159.38
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0007,Atlas Machinery Co,2025-11-28,PIN,500118,1,C,AED,3955.35,3955.35,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0007,Atlas Machinery Co,2026-02-19,BPV,500119,1,D,AED,3955.35,3955.35,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0007,Atlas Machinery Co,2026-02-17,PIN,500120,1,C,AED,64425.58,64425.58,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0007,Atlas Machinery Co,2026-05-15,BPV,500121,1,D,AED,64425.58,64425.58,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0007,Atlas Machinery Co,2026-02-01,PIN,500122,1,C,AED,78265.69,78265.69,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0007,Atlas Machinery Co,2026-04-23,BPV,500123,1,D,AED,78265.69,78265.69,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0007,Atlas Machinery Co,2026-05-19,PIN,500124,1,C,AED,5675.58,5675.58,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0007,Atlas Machinery Co,2026-06-12,BPV,500125,1,D,AED,5675.58,5675.58,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0007,Atlas Machinery Co,2026-09-19,PIN,500126,1,C,AED,46719.38,46719.38,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0007,Atlas Machinery Co,2026-10-15,BPV,500127,1,D,AED,46719.38,46719.38,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0007,Atlas Machinery Co,2024-12-23,PIN,500128,1,C,AED,79798.43,79798.43,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0007,Atlas Machinery Co,2025-02-13,BPV,500129,1,D,AED,79798.43,79798.43,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0007,Atlas Machinery Co,2026-06-03,PIN,500130,1,C,AED,42872.32,42872.32,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0007,Atlas Machinery Co,2026-08-26,BPV,500131,1,D,AED,42872.32,42872.32,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0007,Atlas Machinery Co,2026-05-27,PIN,500132,1,C,AED,10401.28,0,10401.28,0,10401.28,0,-10401.28,-10401.28
+103,Example Industrial Co,2102,Other Creditors,V0008,Blue Ocean Shipping,2022-12-21,PIN,500133,1,C,AED,183149.9,0,183149.9,0,183149.9,0,-183149.9,-183149.9
+103,Example Industrial Co,2102,Other Creditors,V0008,Blue Ocean Shipping,2026-02-10,PIN,500134,1,C,AED,6561.49,6561.49,0,0,3398.1,0,0,0
+103,Example Industrial Co,2102,Other Creditors,V0008,Blue Ocean Shipping,2026-04-20,BPV,500135,1,D,AED,6561.49,6561.49,0,3398.1,0,0,0,0
+103,Example Industrial Co,2102,Other Creditors,V0008,Blue Ocean Shipping,2025-07-16,PIN,500136,1,C,AED,73736.61,73736.61,0,0,0,0,0,0
+103,Example Industrial Co,2102,Other Creditors,V0008,Blue Ocean Shipping,2025-08-04,BPV,500137,1,D,AED,73736.61,73736.61,0,0,0,0,0,0
+103,Example Industrial Co,2102,Other Creditors,V0008,Blue Ocean Shipping,2026-09-06,PIN,500138,1,C,AED,138090.77,138090.77,0,0,0,0,0,0
+103,Example Industrial Co,2102,Other Creditors,V0008,Blue Ocean Shipping,2026-09-21,BPV,500139,1,D,AED,138090.77,138090.77,0,0,0,0,0,0
+103,Example Industrial Co,2102,Other Creditors,V0008,Blue Ocean Shipping,2026-08-04,PIN,500140,1,C,AED,213688.37,47895.67,165792.7,0,213688.37,0,-165792.7,-165792.7
+103,Example Industrial Co,2102,Other Creditors,V0008,Blue Ocean Shipping,2025-10-24,PIN,500141,1,C,AED,200378.82,200378.82,0,0,0,0,0,0
+103,Example Industrial Co,2102,Other Creditors,V0008,Blue Ocean Shipping,2026-01-08,BPV,500142,1,D,AED,200378.82,200378.82,0,0,0,0,0,0
+103,Example Industrial Co,2102,Other Creditors,V0008,Blue Ocean Shipping,2026-10-13,PIN,500143,1,C,AED,132662.61,42773.34,89889.27,0,132662.61,0,-89889.27,-89889.27
+103,Example Industrial Co,2102,Other Creditors,V0008,Blue Ocean Shipping,2025-12-31,PIN,500144,1,C,AED,45005.96,0,45005.96,0,45005.96,0,-45005.96,-45005.96
+103,Example Industrial Co,2102,Other Creditors,V0008,Blue Ocean Shipping,2025-01-12,PIN,500145,1,C,AED,201193.59,201193.59,0,0,3076.98,0,0,0
+103,Example Industrial Co,2102,Other Creditors,V0008,Blue Ocean Shipping,2025-03-19,BPV,500146,1,D,AED,201193.59,201193.59,0,3076.98,0,0,0,0
+103,Example Industrial Co,2102,Other Creditors,V0008,Blue Ocean Shipping,2026-09-18,BPV,500147,1,D,AED,10385.16,0,10385.16,10385.16,0,0,10385.16,10385.16
+104,Placeholder Foods FZE,2101,Trade Account Payable,V0009,Emirates Office Supplies,2026-09-12,PIN,500148,1,C,USD,9896.72,9896.72,0,0,0,0,0,0
+104,Placeholder Foods FZE,2101,Trade Account Payable,V0009,Emirates Office Supplies,2026-10-15,BPV,500149,1,D,AED,9896.72,9896.72,0,0,0,0,0,0
+104,Placeholder Foods FZE,2101,Trade Account Payable,V0009,Emirates Office Supplies,2025-01-13,PIN,500150,1,C,USD,3960.74,3960.74,0,0,0,0,0,0
+104,Placeholder Foods FZE,2101,Trade Account Payable,V0009,Emirates Office Supplies,2025-02-24,BPV,500151,1,D,AED,3960.74,3960.74,0,0,0,0,0,0
+104,Placeholder Foods FZE,2101,Trade Account Payable,V0009,Emirates Office Supplies,2025-12-02,PIN,500152,1,C,USD,4398.93,4398.93,0,0,0,0,0,0
+104,Placeholder Foods FZE,2101,Trade Account Payable,V0009,Emirates Office Supplies,2025-12-22,BPV,500153,1,D,AED,4398.93,4398.93,0,0,0,0,0,0
+104,Placeholder Foods FZE,2101,Trade Account Payable,V0009,Emirates Office Supplies,2026-09-21,PIN,500154,1,C,USD,5736.72,0,5736.72,0,5736.72,0,-5736.72,-5736.72
+104,Placeholder Foods FZE,2101,Trade Account Payable,V0009,Emirates Office Supplies,2026-03-01,PIN,500155,1,C,USD,8695.38,1971.1,6724.28,0,8695.38,0,-6724.28,-6724.28
+104,Placeholder Foods FZE,2101,Trade Account Payable,V0009,Emirates Office Supplies,2025-12-26,PIN,500156,1,C,USD,8998.4,8998.4,0,0,0,0,0,0
+104,Placeholder Foods FZE,2101,Trade Account Payable,V0009,Emirates Office Supplies,2026-03-13,BPV,500157,1,D,AED,8998.4,8998.4,0,0,0,0,0,0
+104,Placeholder Foods FZE,2101,Trade Account Payable,V0009,Emirates Office Supplies,2024-12-02,PIN,500158,1,C,USD,10677.16,10677.16,0,0,2248.35,0,0,0
+104,Placeholder Foods FZE,2101,Trade Account Payable,V0009,Emirates Office Supplies,2025-01-24,BPV,500159,1,D,AED,10677.16,10677.16,0,2248.35,0,0,0,0
+104,Placeholder Foods FZE,2101,Trade Account Payable,V0009,Emirates Office Supplies,2026-09-09,PIN,500160,1,C,USD,1019.05,0,1019.05,0,1019.05,1019.05,-1019.05,-2038.1
+104,Placeholder Foods FZE,2101,Trade Account Payable,V0009,Emirates Office Supplies,2025-09-25,PIN,500161,1,C,USD,8642.88,8642.88,0,0,0,0,0,0
+104,Placeholder Foods FZE,2101,Trade Account Payable,V0009,Emirates Office Supplies,2025-10-25,BPV,500162,1,D,AED,8642.88,8642.88,0,0,0,0,0,0
+104,Placeholder Foods FZE,2101,Trade Account Payable,V0009,Emirates Office Supplies,2026-02-25,PIN,500163,1,C,USD,7505.44,7505.44,0,0,0,0,0,0
+104,Placeholder Foods FZE,2101,Trade Account Payable,V0009,Emirates Office Supplies,2026-05-01,BPV,500164,1,D,AED,7505.44,7505.44,0,0,0,0,0,0
+104,Placeholder Foods FZE,2101,Trade Account Payable,V0009,Emirates Office Supplies,2026-06-28,BPV,500165,1,D,AED,221058.06,0,221058.06,221058.06,0,0,221058.06,221058.06
+105,Fictional Tech Distribution,2101,Trade Account Payable,V0010,Pioneer Chemicals,2025-08-20,PIN,500166,1,C,AED,329034.66,0,329034.66,0,329034.66,0,-329034.66,-329034.66
+105,Fictional Tech Distribution,2101,Trade Account Payable,V0010,Pioneer Chemicals,2024-11-04,PIN,500167,1,C,AED,151736.56,151736.56,0,0,0,0,0,0
+105,Fictional Tech Distribution,2101,Trade Account Payable,V0010,Pioneer Chemicals,2024-12-08,BPV,500168,1,D,AED,151736.56,151736.56,0,0,0,0,0,0
+105,Fictional Tech Distribution,2101,Trade Account Payable,V0010,Pioneer Chemicals,2025-07-22,PIN,500169,1,C,AED,217962.08,217962.08,0,0,29983.45,0,0,0
+105,Fictional Tech Distribution,2101,Trade Account Payable,V0010,Pioneer Chemicals,2025-09-30,BPV,500170,1,D,AED,217962.08,217962.08,0,29983.45,0,0,0,0
+105,Fictional Tech Distribution,2101,Trade Account Payable,V0010,Pioneer Chemicals,2026-08-06,PIN,500171,1,C,AED,79510.14,18395.39,61114.75,0,79510.14,0,-61114.75,-61114.75
+105,Fictional Tech Distribution,2101,Trade Account Payable,V0010,Pioneer Chemicals,2025-05-24,PIN,500172,1,C,AED,447772.54,447772.54,0,0,0,0,0,0
+105,Fictional Tech Distribution,2101,Trade Account Payable,V0010,Pioneer Chemicals,2025-08-10,BPV,500173,1,D,AED,447772.54,447772.54,0,0,0,0,0,0
+105,Fictional Tech Distribution,2101,Trade Account Payable,V0010,Pioneer Chemicals,2026-07-28,PIN,500174,1,C,AED,351523.35,0,351523.35,0,351523.35,0,-351523.35,-351523.35
+105,Fictional Tech Distribution,2101,Trade Account Payable,V0010,Pioneer Chemicals,2026-09-24,PIN,500175,1,C,AED,210680.41,0,210680.41,0,210680.41,0,-210680.41,-210680.41
+105,Fictional Tech Distribution,2101,Trade Account Payable,V0010,Pioneer Chemicals,2025-10-31,PIN,500176,1,C,AED,479490.72,479490.72,0,0,0,0,0,0
+105,Fictional Tech Distribution,2101,Trade Account Payable,V0010,Pioneer Chemicals,2026-01-16,BPV,500177,1,D,AED,479490.72,479490.72,0,0,0,0,0,0
+105,Fictional Tech Distribution,2101,Trade Account Payable,V0010,Pioneer Chemicals,2026-02-27,PIN,500178,1,C,AED,164654.72,164654.72,0,0,0,0,0,0
+105,Fictional Tech Distribution,2101,Trade Account Payable,V0010,Pioneer Chemicals,2026-04-07,BPV,500179,1,D,AED,164654.72,164654.72,0,0,0,0,0,0
+105,Fictional Tech Distribution,2101,Trade Account Payable,V0010,Pioneer Chemicals,2025-10-19,PIN,500180,1,C,AED,222999.08,0,222999.08,0,222999.08,0,-222999.08,-222999.08
+105,Fictional Tech Distribution,2101,Trade Account Payable,V0010,Pioneer Chemicals,2024-11-22,PIN,500181,1,C,AED,139781.32,139781.32,0,0,0,0,0,0
+105,Fictional Tech Distribution,2101,Trade Account Payable,V0010,Pioneer Chemicals,2025-02-18,BPV,500182,1,D,AED,139781.32,139781.32,0,0,0,0,0,0
+105,Fictional Tech Distribution,2101,Trade Account Payable,V0010,Pioneer Chemicals,2026-04-11,PIN,500183,1,C,AED,169622.79,0,169622.79,0,169622.79,0,-169622.79,-169622.79
+105,Fictional Tech Distribution,2101,Trade Account Payable,V0010,Pioneer Chemicals,2025-07-02,PIN,500184,1,C,AED,400337.8,400337.8,0,0,0,0,0,0
+105,Fictional Tech Distribution,2101,Trade Account Payable,V0010,Pioneer Chemicals,2025-09-12,BPV,500185,1,D,AED,400337.8,400337.8,0,0,0,0,0,0
+105,Fictional Tech Distribution,2101,Trade Account Payable,V0010,Pioneer Chemicals,2025-12-28,PIN,500186,1,C,AED,458951.56,0,458951.56,0,458951.56,0,-458951.56,-458951.56
+105,Fictional Tech Distribution,2101,Trade Account Payable,V0010,Pioneer Chemicals,2025-04-05,PIN,500187,1,C,AED,176267.64,176267.64,0,0,0,0,0,0
+105,Fictional Tech Distribution,2101,Trade Account Payable,V0010,Pioneer Chemicals,2025-05-01,BPV,500188,1,D,AED,176267.64,176267.64,0,0,0,0,0,0
+105,Fictional Tech Distribution,2101,Trade Account Payable,V0010,Pioneer Chemicals,2026-02-08,PIN,500189,1,C,AED,451965.13,0,451965.13,0,451965.13,0,-451965.13,-451965.13
+105,Fictional Tech Distribution,2101,Trade Account Payable,V0010,Pioneer Chemicals,2026-03-25,PIN,500190,1,C,AED,170576.29,0,170576.29,0,170576.29,0,-170576.29,-170576.29
+105,Fictional Tech Distribution,2101,Trade Account Payable,V0010,Pioneer Chemicals,2026-09-15,BPV,500191,1,D,AED,7129.75,0,7129.75,7129.75,0,0,7129.75,7129.75
+101,Sample Trading LLC,2101,Trade Account Payable,V0011,Vertex IT Solutions,2025-12-18,PIN,500192,1,C,AED,15189.4,15189.4,0,0,3764.23,0,0,0
+101,Sample Trading LLC,2101,Trade Account Payable,V0011,Vertex IT Solutions,2026-02-21,BPV,500193,1,D,AED,15189.4,15189.4,0,3764.23,0,0,0,0
+101,Sample Trading LLC,2101,Trade Account Payable,V0011,Vertex IT Solutions,2026-07-09,PIN,500194,1,C,AED,105726.9,105726.9,0,0,0,0,0,0
+101,Sample Trading LLC,2101,Trade Account Payable,V0011,Vertex IT Solutions,2026-08-06,BPV,500195,1,D,AED,105726.9,105726.9,0,0,0,0,0,0
+101,Sample Trading LLC,2101,Trade Account Payable,V0011,Vertex IT Solutions,2026-09-25,PIN,500196,1,C,AED,37419.71,37419.71,0,0,22348.19,0,0,0
+101,Sample Trading LLC,2101,Trade Account Payable,V0011,Vertex IT Solutions,2026-10-15,BPV,500197,1,D,AED,37419.71,37419.71,0,22348.19,0,0,0,0
+101,Sample Trading LLC,2101,Trade Account Payable,V0011,Vertex IT Solutions,2026-09-27,PIN,500198,1,C,AED,101541.93,101541.93,0,0,7093.97,0,0,0
+101,Sample Trading LLC,2101,Trade Account Payable,V0011,Vertex IT Solutions,2026-10-15,BPV,500199,1,D,AED,101541.93,101541.93,0,7093.97,0,0,0,0
+101,Sample Trading LLC,2101,Trade Account Payable,V0011,Vertex IT Solutions,2026-06-09,PIN,500200,1,C,AED,3839.25,0,3839.25,0,3839.25,0,-3839.25,-3839.25
+101,Sample Trading LLC,2101,Trade Account Payable,V0011,Vertex IT Solutions,2025-11-28,PIN,500201,1,C,AED,36048.17,36048.17,0,0,0,0,0,0
+101,Sample Trading LLC,2101,Trade Account Payable,V0011,Vertex IT Solutions,2026-02-16,BPV,500202,1,D,AED,36048.17,36048.17,0,0,0,0,0,0
+101,Sample Trading LLC,2101,Trade Account Payable,V0011,Vertex IT Solutions,2026-07-13,PIN,500203,1,C,AED,74052.22,74052.22,0,0,0,0,0,0
+101,Sample Trading LLC,2101,Trade Account Payable,V0011,Vertex IT Solutions,2026-09-12,BPV,500204,1,D,AED,74052.22,74052.22,0,0,0,0,0,0
+101,Sample Trading LLC,2101,Trade Account Payable,V0011,Vertex IT Solutions,2026-09-21,BPV,500205,1,D,AED,3208.89,0,3208.89,3208.89,0,0,3208.89,3208.89
+102,Demo Medical Supplies LLC,2102,Other Creditors,V0012,Golden Grain Mills,2026-04-13,PIN,500206,1,C,AED,7699.36,0,7699.36,0,7699.36,0,-7699.36,-7699.36
+102,Demo Medical Supplies LLC,2102,Other Creditors,V0012,Golden Grain Mills,2024-09-25,PIN,500207,1,C,AED,6188.01,6188.01,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2102,Other Creditors,V0012,Golden Grain Mills,2024-11-02,BPV,500208,1,D,AED,6188.01,6188.01,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2102,Other Creditors,V0012,Golden Grain Mills,2026-09-14,PIN,500209,1,C,AED,4317.84,4317.84,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2102,Other Creditors,V0012,Golden Grain Mills,2026-10-03,BPV,500210,1,D,AED,4317.84,4317.84,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2102,Other Creditors,V0012,Golden Grain Mills,2026-02-21,PIN,500211,1,C,AED,7570.43,7570.43,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2102,Other Creditors,V0012,Golden Grain Mills,2026-03-08,BPV,500212,1,D,AED,7570.43,7570.43,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2102,Other Creditors,V0012,Golden Grain Mills,2026-09-25,PIN,500213,1,C,AED,5513.44,0,5513.44,0,5513.44,0,-5513.44,-5513.44
+102,Demo Medical Supplies LLC,2102,Other Creditors,V0012,Golden Grain Mills,2026-09-22,PIN,500214,1,C,AED,18133.31,0,18133.31,0,18133.31,0,-18133.31,-18133.31
+102,Demo Medical Supplies LLC,2102,Other Creditors,V0012,Golden Grain Mills,2025-11-18,PIN,500215,1,C,AED,5089.7,5089.7,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2102,Other Creditors,V0012,Golden Grain Mills,2025-12-02,BPV,500216,1,D,AED,5089.7,5089.7,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2102,Other Creditors,V0012,Golden Grain Mills,2026-07-16,PIN,500217,1,C,AED,18547.72,18547.72,0,0,1246.1,0,0,0
+102,Demo Medical Supplies LLC,2102,Other Creditors,V0012,Golden Grain Mills,2026-08-01,BPV,500218,1,D,AED,18547.72,18547.72,0,1246.1,0,0,0,0
+102,Demo Medical Supplies LLC,2102,Other Creditors,V0012,Golden Grain Mills,2026-09-20,PIN,500219,1,C,AED,3418.66,0,3418.66,0,3418.66,0,-3418.66,-3418.66
+102,Demo Medical Supplies LLC,2102,Other Creditors,V0012,Golden Grain Mills,2026-07-07,PIN,500220,1,C,AED,10564.83,0,10564.83,0,10564.83,0,-10564.83,-10564.83
+102,Demo Medical Supplies LLC,2102,Other Creditors,V0012,Golden Grain Mills,2026-09-19,PIN,500221,1,C,AED,3024.26,0,3024.26,0,3024.26,0,-3024.26,-3024.26
+102,Demo Medical Supplies LLC,2102,Other Creditors,V0012,Golden Grain Mills,2026-03-06,PIN,500222,1,C,AED,21246.2,21246.2,0,0,442.36,0,0,0
+102,Demo Medical Supplies LLC,2102,Other Creditors,V0012,Golden Grain Mills,2026-03-20,BPV,500223,1,D,AED,21246.2,21246.2,0,442.36,0,0,0,0
+102,Demo Medical Supplies LLC,2102,Other Creditors,V0012,Golden Grain Mills,2026-07-22,PIN,500224,1,C,AED,7989.68,7989.68,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2102,Other Creditors,V0012,Golden Grain Mills,2026-10-01,BPV,500225,1,D,AED,7989.68,7989.68,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2102,Other Creditors,V0012,Golden Grain Mills,2025-11-24,PIN,500226,1,C,AED,13860.25,13860.25,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2102,Other Creditors,V0012,Golden Grain Mills,2025-12-08,BPV,500227,1,D,AED,13860.25,13860.25,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2102,Other Creditors,V0012,Golden Grain Mills,2026-09-06,BPV,500228,1,D,AED,1992.43,0,1992.43,1992.43,0,0,1992.43,1992.43
+103,Example Industrial Co,2101,Trade Account Payable,V0013,Harbor Customs Clearing,2026-10-08,PIN,500229,1,C,AED,61741.1,0,61741.1,0,61741.1,0,-61741.1,-61741.1
+103,Example Industrial Co,2101,Trade Account Payable,V0013,Harbor Customs Clearing,2026-08-24,PIN,500230,1,C,AED,36529.13,36529.13,0,0,0,0,0,0
+103,Example Industrial Co,2101,Trade Account Payable,V0013,Harbor Customs Clearing,2026-10-07,BPV,500231,1,D,AED,36529.13,36529.13,0,0,0,0,0,0
+103,Example Industrial Co,2101,Trade Account Payable,V0013,Harbor Customs Clearing,2025-10-10,PIN,500232,1,C,AED,136856.41,136856.41,0,0,27294.36,0,0,0
+103,Example Industrial Co,2101,Trade Account Payable,V0013,Harbor Customs Clearing,2025-10-28,BPV,500233,1,D,AED,136856.41,136856.41,0,27294.36,0,0,0,0
+103,Example Industrial Co,2101,Trade Account Payable,V0013,Harbor Customs Clearing,2026-04-22,PIN,500234,1,C,AED,110105.46,0,110105.46,0,110105.46,0,-110105.46,-110105.46
+103,Example Industrial Co,2101,Trade Account Payable,V0013,Harbor Customs Clearing,2026-10-03,PIN,500235,1,C,AED,45599.35,0,45599.35,0,45599.35,0,-45599.35,-45599.35
+103,Example Industrial Co,2101,Trade Account Payable,V0013,Harbor Customs Clearing,2026-10-11,PIN,500236,1,C,AED,68701.52,0,68701.52,0,68701.52,0,-68701.52,-68701.52
+103,Example Industrial Co,2101,Trade Account Payable,V0013,Harbor Customs Clearing,2023-09-09,PIN,500237,1,C,AED,105271.07,105271.07,0,0,14901.68,0,0,0
+103,Example Industrial Co,2101,Trade Account Payable,V0013,Harbor Customs Clearing,2023-12-02,BPV,500238,1,D,AED,105271.07,105271.07,0,14901.68,0,0,0,0
+103,Example Industrial Co,2101,Trade Account Payable,V0013,Harbor Customs Clearing,2026-05-11,PIN,500239,1,C,AED,38105.14,38105.14,0,0,28508.23,0,0,0
+103,Example Industrial Co,2101,Trade Account Payable,V0013,Harbor Customs Clearing,2026-08-02,BPV,500240,1,D,AED,38105.14,38105.14,0,28508.23,0,0,0,0
+103,Example Industrial Co,2101,Trade Account Payable,V0013,Harbor Customs Clearing,2025-07-30,PIN,500241,1,C,AED,101726.63,101726.63,0,0,0,0,0,0
+103,Example Industrial Co,2101,Trade Account Payable,V0013,Harbor Customs Clearing,2025-10-01,BPV,500242,1,D,AED,101726.63,101726.63,0,0,0,0,0,0
+103,Example Industrial Co,2101,Trade Account Payable,V0013,Harbor Customs Clearing,2026-09-20,PIN,500243,1,C,AED,167680.81,0,167680.81,0,167680.81,0,-167680.81,-167680.81
+103,Example Industrial Co,2101,Trade Account Payable,V0013,Harbor Customs Clearing,2026-07-01,PIN,500244,1,C,AED,77049.73,0,77049.73,0,77049.73,0,-77049.73,-77049.73
+103,Example Industrial Co,2101,Trade Account Payable,V0013,Harbor Customs Clearing,2026-05-09,PIN,500245,1,C,AED,81273.78,0,81273.78,0,81273.78,0,-81273.78,-81273.78
+103,Example Industrial Co,2101,Trade Account Payable,V0013,Harbor Customs Clearing,2026-05-25,PIN,500246,1,C,AED,34920.94,34920.94,0,0,0,0,0,0
+103,Example Industrial Co,2101,Trade Account Payable,V0013,Harbor Customs Clearing,2026-08-21,BPV,500247,1,D,AED,34920.94,34920.94,0,0,0,0,0,0
+104,Placeholder Foods FZE,2101,Trade Account Payable,V0014,Nova Lab Equipment,2021-11-19,PIN,500248,1,C,AED,99945.29,99945.29,0,0,14804.32,0,0,0
+104,Placeholder Foods FZE,2101,Trade Account Payable,V0014,Nova Lab Equipment,2022-01-11,BPV,500249,1,D,AED,99945.29,99945.29,0,14804.32,0,0,0,0
+104,Placeholder Foods FZE,2101,Trade Account Payable,V0014,Nova Lab Equipment,2025-12-16,PIN,500250,1,C,AED,11885.43,0,11885.43,0,11885.43,0,-11885.43,-11885.43
+104,Placeholder Foods FZE,2101,Trade Account Payable,V0014,Nova Lab Equipment,2025-12-25,PIN,500251,1,C,AED,72894.29,72894.29,0,0,35705.58,0,0,0
+104,Placeholder Foods FZE,2101,Trade Account Payable,V0014,Nova Lab Equipment,2026-02-27,BPV,500252,1,D,AED,72894.29,72894.29,0,35705.58,0,0,0,0
+104,Placeholder Foods FZE,2101,Trade Account Payable,V0014,Nova Lab Equipment,2026-06-19,PIN,500253,1,C,AED,11340.93,11340.93,0,0,8541.08,0,0,0
+104,Placeholder Foods FZE,2101,Trade Account Payable,V0014,Nova Lab Equipment,2026-09-16,BPV,500254,1,D,AED,11340.93,11340.93,0,8541.08,0,0,0,0
+104,Placeholder Foods FZE,2101,Trade Account Payable,V0014,Nova Lab Equipment,2026-02-06,PIN,500255,1,C,AED,142730.5,142730.5,0,0,0,0,0,0
+104,Placeholder Foods FZE,2101,Trade Account Payable,V0014,Nova Lab Equipment,2026-03-30,BPV,500256,1,D,AED,142730.5,142730.5,0,0,0,0,0,0
+104,Placeholder Foods FZE,2101,Trade Account Payable,V0014,Nova Lab Equipment,2026-09-08,PIN,500257,1,C,AED,114644.11,114644.11,0,0,0,0,0,0
+104,Placeholder Foods FZE,2101,Trade Account Payable,V0014,Nova Lab Equipment,2026-10-15,BPV,500258,1,D,AED,114644.11,114644.11,0,0,0,0,0,0
+104,Placeholder Foods FZE,2101,Trade Account Payable,V0014,Nova Lab Equipment,2026-09-19,PIN,500259,1,C,AED,51222.02,24488.27,26733.75,0,51222.02,0,-26733.75,-26733.75
+104,Placeholder Foods FZE,2101,Trade Account Payable,V0014,Nova Lab Equipment,2026-09-12,PIN,500260,1,C,AED,28285.94,18667.11,9618.83,0,28285.94,0,-9618.83,-9618.83
+104,Placeholder Foods FZE,2101,Trade Account Payable,V0014,Nova Lab Equipment,2026-10-12,PIN,500261,1,C,AED,118036.54,0,118036.54,0,118036.54,0,-118036.54,-118036.54
+104,Placeholder Foods FZE,2101,Trade Account Payable,V0014,Nova Lab Equipment,2026-08-30,PIN,500262,1,C,AED,133020.17,30200.68,102819.49,0,133020.17,0,-102819.49,-102819.49
+104,Placeholder Foods FZE,2101,Trade Account Payable,V0014,Nova Lab Equipment,2026-07-30,PIN,500263,1,C,AED,58991.6,34641.13,24350.47,0,58991.6,0,-24350.47,-24350.47
+104,Placeholder Foods FZE,2101,Trade Account Payable,V0014,Nova Lab Equipment,2026-05-20,PIN,500264,1,C,AED,56267.14,0,56267.14,0,56267.14,0,-56267.14,-56267.14
+104,Placeholder Foods FZE,2101,Trade Account Payable,V0014,Nova Lab Equipment,2026-07-26,PIN,500265,1,C,AED,30266.67,30266.67,0,0,8437.87,0,0,0
+104,Placeholder Foods FZE,2101,Trade Account Payable,V0014,Nova Lab Equipment,2026-09-04,BPV,500266,1,D,AED,30266.67,30266.67,0,8437.87,0,0,0,0
+104,Placeholder Foods FZE,2101,Trade Account Payable,V0014,Nova Lab Equipment,2026-02-02,PIN,500267,1,C,AED,103936.19,103936.19,0,0,0,0,0,0
+104,Placeholder Foods FZE,2101,Trade Account Payable,V0014,Nova Lab Equipment,2026-03-09,BPV,500268,1,D,AED,103936.19,103936.19,0,0,0,0,0,0
+104,Placeholder Foods FZE,2101,Trade Account Payable,V0014,Nova Lab Equipment,2024-11-13,PIN,500269,1,C,AED,25953.79,25953.79,0,0,0,0,0,0
+104,Placeholder Foods FZE,2101,Trade Account Payable,V0014,Nova Lab Equipment,2024-12-05,BPV,500270,1,D,AED,25953.79,25953.79,0,0,0,0,0,0
+104,Placeholder Foods FZE,2101,Trade Account Payable,V0014,Nova Lab Equipment,2025-01-23,PIN,500271,1,C,AED,103370.27,103370.27,0,0,0,0,0,0
+104,Placeholder Foods FZE,2101,Trade Account Payable,V0014,Nova Lab Equipment,2025-02-27,BPV,500272,1,D,AED,103370.27,103370.27,0,0,0,0,0,0
+104,Placeholder Foods FZE,2101,Trade Account Payable,V0014,Nova Lab Equipment,2026-09-04,PIN,500273,1,C,AED,112561.99,112561.99,0,0,0,0,0,0
+104,Placeholder Foods FZE,2101,Trade Account Payable,V0014,Nova Lab Equipment,2026-10-15,BPV,500274,1,D,AED,112561.99,112561.99,0,0,0,0,0,0
+104,Placeholder Foods FZE,2101,Trade Account Payable,V0014,Nova Lab Equipment,2026-08-19,BPV,500275,1,D,AED,4443.37,0,4443.37,4443.37,0,0,4443.37,4443.37
+105,Fictional Tech Distribution,2101,Trade Account Payable,V0015,Prime Facility Services,2026-06-14,PIN,500276,1,C,AED,53965.92,53965.92,0,0,10501.79,0,0,0
+105,Fictional Tech Distribution,2101,Trade Account Payable,V0015,Prime Facility Services,2026-08-04,BPV,500277,1,D,AED,53965.92,53965.92,0,10501.79,0,0,0,0
+105,Fictional Tech Distribution,2101,Trade Account Payable,V0015,Prime Facility Services,2026-09-03,PIN,500278,1,C,AED,30961.91,0,30961.91,0,30961.91,0,-30961.91,-30961.91
+105,Fictional Tech Distribution,2101,Trade Account Payable,V0015,Prime Facility Services,2022-01-16,PIN,500279,1,C,AED,59935.77,59935.77,0,0,15521.75,0,0,0
+105,Fictional Tech Distribution,2101,Trade Account Payable,V0015,Prime Facility Services,2022-04-06,BPV,500280,1,D,AED,59935.77,59935.77,0,15521.75,0,0,0,0
+105,Fictional Tech Distribution,2101,Trade Account Payable,V0015,Prime Facility Services,2025-01-05,PIN,500281,1,C,AED,59996.15,0,59996.15,0,59996.15,0,-59996.15,-59996.15
+105,Fictional Tech Distribution,2101,Trade Account Payable,V0015,Prime Facility Services,2026-07-06,PIN,500282,1,C,AED,27951.53,27951.53,0,0,0,0,0,0
+105,Fictional Tech Distribution,2101,Trade Account Payable,V0015,Prime Facility Services,2026-07-17,BPV,500283,1,D,AED,27951.53,27951.53,0,0,0,0,0,0
+105,Fictional Tech Distribution,2101,Trade Account Payable,V0015,Prime Facility Services,2026-09-11,BPV,500284,1,D,AED,6897.55,0,6897.55,6897.55,0,0,6897.55,6897.55
+105,Fictional Tech Distribution,2101,Trade Account Payable,V0015,Prime Facility Services,2026-07-18,BPV,500285,1,D,AED,42105.54,0,42105.54,42105.54,0,0,42105.54,42105.54
+101,Sample Trading LLC,2102,Other Creditors,V0016,Orion Print House,2026-08-25,PIN,500286,1,C,USD,12663.08,12663.08,0,0,0,0,0,0
+101,Sample Trading LLC,2102,Other Creditors,V0016,Orion Print House,2026-10-15,BPV,500287,1,D,AED,12663.08,12663.08,0,0,0,0,0,0
+101,Sample Trading LLC,2102,Other Creditors,V0016,Orion Print House,2026-03-18,PIN,500288,1,C,USD,1932.57,1932.57,0,0,198,0,0,0
+101,Sample Trading LLC,2102,Other Creditors,V0016,Orion Print House,2026-04-12,BPV,500289,1,D,AED,1932.57,1932.57,0,198,0,0,0,0
+101,Sample Trading LLC,2102,Other Creditors,V0016,Orion Print House,2026-06-27,PIN,500290,1,C,USD,6579.66,0,6579.66,0,6579.66,0,-6579.66,-6579.66
+101,Sample Trading LLC,2102,Other Creditors,V0016,Orion Print House,2023-01-08,PIN,500291,1,C,USD,8784.22,8784.22,0,0,0,0,0,0
+101,Sample Trading LLC,2102,Other Creditors,V0016,Orion Print House,2023-02-22,BPV,500292,1,D,AED,8784.22,8784.22,0,0,0,0,0,0
+101,Sample Trading LLC,2102,Other Creditors,V0016,Orion Print House,2021-12-24,PIN,500293,1,C,USD,4851.8,0,4851.8,0,4851.8,0,-4851.8,-4851.8
+101,Sample Trading LLC,2102,Other Creditors,V0016,Orion Print House,2026-08-27,BPV,500294,1,D,AED,479.59,0,479.59,479.59,0,0,479.59,479.59
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0017,Silverline Insurance Brokers,2026-02-26,PIN,500295,1,C,AED,120386.94,0,120386.94,0,120386.94,0,-120386.94,-120386.94
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0017,Silverline Insurance Brokers,2025-12-20,PIN,500296,1,C,AED,111030.03,0,111030.03,0,111030.03,0,-111030.03,-111030.03
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0017,Silverline Insurance Brokers,2026-01-03,PIN,500297,1,C,AED,59946.72,59946.72,0,0,19894.24,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0017,Silverline Insurance Brokers,2026-03-11,BPV,500298,1,D,AED,59946.72,59946.72,0,19894.24,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0017,Silverline Insurance Brokers,2026-09-05,PIN,500299,1,C,AED,27738.37,27738.37,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0017,Silverline Insurance Brokers,2026-10-15,BPV,500300,1,D,AED,27738.37,27738.37,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0017,Silverline Insurance Brokers,2026-09-05,PIN,500301,1,C,AED,29064.53,11394.69,17669.84,0,29064.53,0,-17669.84,-17669.84
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0017,Silverline Insurance Brokers,2023-07-07,PIN,500302,1,C,AED,124830.56,124830.56,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0017,Silverline Insurance Brokers,2023-07-27,BPV,500303,1,D,AED,124830.56,124830.56,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0017,Silverline Insurance Brokers,2026-06-20,PIN,500304,1,C,AED,110077.74,63903.64,46174.1,0,110077.74,0,-46174.1,-46174.1
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0017,Silverline Insurance Brokers,2026-07-07,PIN,500305,1,C,AED,104144.67,104144.67,0,0,86066.63,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0017,Silverline Insurance Brokers,2026-07-29,BPV,500306,1,D,AED,104144.67,104144.67,0,86066.63,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0017,Silverline Insurance Brokers,2026-08-05,PIN,500307,1,C,AED,25290.41,25290.41,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0017,Silverline Insurance Brokers,2026-09-06,BPV,500308,1,D,AED,25290.41,25290.41,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0017,Silverline Insurance Brokers,2024-09-20,PIN,500309,1,C,AED,81137.08,81137.08,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0017,Silverline Insurance Brokers,2024-11-16,BPV,500310,1,D,AED,81137.08,81137.08,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0017,Silverline Insurance Brokers,2025-05-19,PIN,500311,1,C,AED,121330.97,121330.97,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0017,Silverline Insurance Brokers,2025-08-15,BPV,500312,1,D,AED,121330.97,121330.97,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0017,Silverline Insurance Brokers,2026-01-14,PIN,500313,1,C,AED,42704.82,42704.82,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0017,Silverline Insurance Brokers,2026-01-30,BPV,500314,1,D,AED,42704.82,42704.82,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0017,Silverline Insurance Brokers,2025-05-04,PIN,500315,1,C,AED,134966.13,134966.13,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0017,Silverline Insurance Brokers,2025-06-04,BPV,500316,1,D,AED,134966.13,134966.13,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0017,Silverline Insurance Brokers,2025-06-29,PIN,500317,1,C,AED,117086.43,117086.43,0,0,73278.49,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0017,Silverline Insurance Brokers,2025-09-01,BPV,500318,1,D,AED,117086.43,117086.43,0,73278.49,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0017,Silverline Insurance Brokers,2026-07-07,PIN,500319,1,C,AED,134465.26,134465.26,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0017,Silverline Insurance Brokers,2026-09-13,BPV,500320,1,D,AED,134465.26,134465.26,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0017,Silverline Insurance Brokers,2026-04-08,PIN,500321,1,C,AED,21954.2,0,21954.2,0,21954.2,0,-21954.2,-21954.2
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0017,Silverline Insurance Brokers,2025-04-19,PIN,500322,1,C,AED,48917.99,48917.99,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0017,Silverline Insurance Brokers,2025-07-02,BPV,500323,1,D,AED,48917.99,48917.99,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0017,Silverline Insurance Brokers,2026-07-26,PIN,500324,1,C,AED,22358.13,0,22358.13,0,22358.13,0,-22358.13,-22358.13
+103,Example Industrial Co,2101,Trade Account Payable,V0018,Desert Rose Catering,2026-10-04,PIN,500325,1,C,AED,65236,0,65236,0,65236,0,-65236,-65236
+103,Example Industrial Co,2101,Trade Account Payable,V0018,Desert Rose Catering,2026-10-07,PIN,500326,1,C,AED,28682.02,0,28682.02,0,28682.02,0,-28682.02,-28682.02
+103,Example Industrial Co,2101,Trade Account Payable,V0018,Desert Rose Catering,2026-07-11,PIN,500327,1,C,AED,61027.87,15027.51,46000.36,0,61027.87,0,-46000.36,-46000.36
+103,Example Industrial Co,2101,Trade Account Payable,V0018,Desert Rose Catering,2026-01-09,PIN,500328,1,C,AED,44050.31,0,44050.31,0,44050.31,0,-44050.31,-44050.31
+103,Example Industrial Co,2101,Trade Account Payable,V0018,Desert Rose Catering,2025-10-13,PIN,500329,1,C,AED,42656.99,42656.99,0,0,0,0,0,0
+103,Example Industrial Co,2101,Trade Account Payable,V0018,Desert Rose Catering,2026-01-05,BPV,500330,1,D,AED,42656.99,42656.99,0,0,0,0,0,0
+103,Example Industrial Co,2101,Trade Account Payable,V0018,Desert Rose Catering,2026-07-14,PIN,500331,1,C,AED,40582.86,0,40582.86,0,40582.86,0,-40582.86,-40582.86
+103,Example Industrial Co,2101,Trade Account Payable,V0018,Desert Rose Catering,2026-09-16,PIN,500332,1,C,AED,81167.54,0,81167.54,0,81167.54,0,-81167.54,-81167.54
+103,Example Industrial Co,2101,Trade Account Payable,V0018,Desert Rose Catering,2026-09-23,PIN,500333,1,C,AED,34442.83,0,34442.83,0,34442.83,0,-34442.83,-34442.83
+103,Example Industrial Co,2101,Trade Account Payable,V0018,Desert Rose Catering,2026-09-21,PIN,500334,1,C,AED,27285.67,27285.67,0,0,15202.22,0,0,0
+103,Example Industrial Co,2101,Trade Account Payable,V0018,Desert Rose Catering,2026-10-15,BPV,500335,1,D,AED,27285.67,27285.67,0,15202.22,0,0,0,0
+103,Example Industrial Co,2101,Trade Account Payable,V0018,Desert Rose Catering,2026-09-24,PIN,500336,1,C,AED,81435.1,0,81435.1,0,81435.1,0,-81435.1,-81435.1
+104,Placeholder Foods FZE,2101,Trade Account Payable,V0019,Keystone Steel Trading,2026-02-14,PIN,500337,1,C,AED,35628.45,0,35628.45,0,35628.45,0,-35628.45,-35628.45
+104,Placeholder Foods FZE,2101,Trade Account Payable,V0019,Keystone Steel Trading,2026-03-03,PIN,500338,1,C,AED,42478.06,42478.06,0,0,0,0,0,0
+104,Placeholder Foods FZE,2101,Trade Account Payable,V0019,Keystone Steel Trading,2026-05-13,BPV,500339,1,D,AED,42478.06,42478.06,0,0,0,0,0,0
+104,Placeholder Foods FZE,2101,Trade Account Payable,V0019,Keystone Steel Trading,2026-09-09,PIN,500340,1,C,AED,88286.82,88286.82,0,0,0,0,0,0
+104,Placeholder Foods FZE,2101,Trade Account Payable,V0019,Keystone Steel Trading,2026-10-15,BPV,500341,1,D,AED,88286.82,88286.82,0,0,0,0,0,0
+104,Placeholder Foods FZE,2101,Trade Account Payable,V0019,Keystone Steel Trading,2022-09-28,PIN,500342,1,C,AED,54933.33,54933.33,0,0,0,0,0,0
+104,Placeholder Foods FZE,2101,Trade Account Payable,V0019,Keystone Steel Trading,2022-12-17,BPV,500343,1,D,AED,54933.33,54933.33,0,0,0,0,0,0
+104,Placeholder Foods FZE,2101,Trade Account Payable,V0019,Keystone Steel Trading,2026-04-28,PIN,500344,1,C,AED,14840.59,14840.59,0,0,8808.67,0,0,0
+104,Placeholder Foods FZE,2101,Trade Account Payable,V0019,Keystone Steel Trading,2026-06-23,BPV,500345,1,D,AED,14840.59,14840.59,0,8808.67,0,0,0,0
+104,Placeholder Foods FZE,2101,Trade Account Payable,V0019,Keystone Steel Trading,2026-05-08,PIN,500346,1,C,AED,65317.29,0,65317.29,0,65317.29,0,-65317.29,-65317.29
+104,Placeholder Foods FZE,2101,Trade Account Payable,V0019,Keystone Steel Trading,2026-04-16,PIN,500347,1,C,AED,138846.11,0,138846.11,0,138846.11,0,-138846.11,-138846.11
+104,Placeholder Foods FZE,2101,Trade Account Payable,V0019,Keystone Steel Trading,2026-05-06,PIN,500348,1,C,AED,99813.72,0,99813.72,0,99813.72,0,-99813.72,-99813.72
+104,Placeholder Foods FZE,2101,Trade Account Payable,V0019,Keystone Steel Trading,2026-02-10,PIN,500349,1,C,AED,105489.93,105489.93,0,0,0,0,0,0
+104,Placeholder Foods FZE,2101,Trade Account Payable,V0019,Keystone Steel Trading,2026-05-01,BPV,500350,1,D,AED,105489.93,105489.93,0,0,0,0,0,0
+104,Placeholder Foods FZE,2101,Trade Account Payable,V0019,Keystone Steel Trading,2026-07-04,PIN,500351,1,C,AED,50423.99,50423.99,0,0,24563.02,0,0,0
+104,Placeholder Foods FZE,2101,Trade Account Payable,V0019,Keystone Steel Trading,2026-08-17,BPV,500352,1,D,AED,50423.99,50423.99,0,24563.02,0,0,0,0
+104,Placeholder Foods FZE,2101,Trade Account Payable,V0019,Keystone Steel Trading,2026-09-25,BPV,500353,1,D,AED,18986.54,0,18986.54,18986.54,0,0,18986.54,18986.54
+105,Fictional Tech Distribution,2102,Other Creditors,V0020,Zenith Cold Chain,2024-03-11,PIN,500354,1,C,AED,145235.03,145235.03,0,0,0,0,0,0
+105,Fictional Tech Distribution,2102,Other Creditors,V0020,Zenith Cold Chain,2024-04-16,BPV,500355,1,D,AED,145235.03,145235.03,0,0,0,0,0,0
+105,Fictional Tech Distribution,2102,Other Creditors,V0020,Zenith Cold Chain,2026-09-24,PIN,500356,1,C,AED,351525.63,0,351525.63,0,351525.63,351525.63,-351525.63,-703051.26
+105,Fictional Tech Distribution,2102,Other Creditors,V0020,Zenith Cold Chain,2026-07-15,PIN,500357,1,C,AED,98654.96,98654.96,0,0,88784.77,0,0,0
+105,Fictional Tech Distribution,2102,Other Creditors,V0020,Zenith Cold Chain,2026-08-20,BPV,500358,1,D,AED,98654.96,98654.96,0,88784.77,0,0,0,0
+105,Fictional Tech Distribution,2102,Other Creditors,V0020,Zenith Cold Chain,2026-09-01,PIN,500359,1,C,AED,150354.55,0,150354.55,0,150354.55,0,-150354.55,-150354.55
+105,Fictional Tech Distribution,2102,Other Creditors,V0020,Zenith Cold Chain,2025-12-30,PIN,500360,1,C,AED,290741.74,290741.74,0,0,0,0,0,0
+105,Fictional Tech Distribution,2102,Other Creditors,V0020,Zenith Cold Chain,2026-01-16,BPV,500361,1,D,AED,290741.74,290741.74,0,0,0,0,0,0
+105,Fictional Tech Distribution,2102,Other Creditors,V0020,Zenith Cold Chain,2025-04-05,PIN,500362,1,C,AED,151873.61,151873.61,0,0,68089.59,0,0,0
+105,Fictional Tech Distribution,2102,Other Creditors,V0020,Zenith Cold Chain,2025-05-09,BPV,500363,1,D,AED,151873.61,151873.61,0,68089.59,0,0,0,0
+105,Fictional Tech Distribution,2102,Other Creditors,V0020,Zenith Cold Chain,2026-08-21,PIN,500364,1,C,AED,106398.26,0,106398.26,0,106398.26,0,-106398.26,-106398.26
+105,Fictional Tech Distribution,2102,Other Creditors,V0020,Zenith Cold Chain,2021-11-18,PIN,500365,1,C,AED,281728.14,0,281728.14,0,281728.14,0,-281728.14,-281728.14
+105,Fictional Tech Distribution,2102,Other Creditors,V0020,Zenith Cold Chain,2026-10-03,PIN,500366,1,C,AED,156216.76,0,156216.76,0,156216.76,0,-156216.76,-156216.76
+105,Fictional Tech Distribution,2102,Other Creditors,V0020,Zenith Cold Chain,2026-07-22,PIN,500367,1,C,AED,256435.19,0,256435.19,0,256435.19,0,-256435.19,-256435.19
+105,Fictional Tech Distribution,2102,Other Creditors,V0020,Zenith Cold Chain,2026-09-23,PIN,500368,1,C,AED,215837.22,82328,133509.22,0,215837.22,133509.22,-133509.22,-267018.44
+105,Fictional Tech Distribution,2102,Other Creditors,V0020,Zenith Cold Chain,2026-10-02,PIN,500369,1,C,AED,258064.41,258064.41,0,0,206614.08,0,0,0
+105,Fictional Tech Distribution,2102,Other Creditors,V0020,Zenith Cold Chain,2026-10-14,BPV,500370,1,D,AED,258064.41,258064.41,0,206614.08,0,0,0,0
+105,Fictional Tech Distribution,2102,Other Creditors,V0020,Zenith Cold Chain,2025-06-16,PIN,500371,1,C,AED,353915.26,353915.26,0,0,0,0,0,0
+105,Fictional Tech Distribution,2102,Other Creditors,V0020,Zenith Cold Chain,2025-09-01,BPV,500372,1,D,AED,353915.26,353915.26,0,0,0,0,0,0
+105,Fictional Tech Distribution,2102,Other Creditors,V0020,Zenith Cold Chain,2026-03-06,PIN,500373,1,C,AED,193768.86,66553.35,127215.51,0,193768.86,0,-127215.51,-127215.51
+105,Fictional Tech Distribution,2102,Other Creditors,V0020,Zenith Cold Chain,2023-03-06,PIN,500374,1,C,AED,246267.73,246267.73,0,0,0,0,0,0
+105,Fictional Tech Distribution,2102,Other Creditors,V0020,Zenith Cold Chain,2023-04-14,BPV,500375,1,D,AED,246267.73,246267.73,0,0,0,0,0,0
+101,Sample Trading LLC,2101,Trade Account Payable,V0021,Marina Fit-Out Contracting,2026-03-18,PIN,500376,1,C,AED,25648.99,0,25648.99,0,25648.99,0,-25648.99,-25648.99
+101,Sample Trading LLC,2101,Trade Account Payable,V0021,Marina Fit-Out Contracting,2026-05-15,PIN,500377,1,C,AED,14000.13,14000.13,0,0,8192.36,0,0,0
+101,Sample Trading LLC,2101,Trade Account Payable,V0021,Marina Fit-Out Contracting,2026-07-22,BPV,500378,1,D,AED,14000.13,14000.13,0,8192.36,0,0,0,0
+101,Sample Trading LLC,2101,Trade Account Payable,V0021,Marina Fit-Out Contracting,2025-02-05,PIN,500379,1,C,AED,16718.35,16718.35,0,0,10081.47,0,0,0
+101,Sample Trading LLC,2101,Trade Account Payable,V0021,Marina Fit-Out Contracting,2025-04-16,BPV,500380,1,D,AED,16718.35,16718.35,0,10081.47,0,0,0,0
+101,Sample Trading LLC,2101,Trade Account Payable,V0021,Marina Fit-Out Contracting,2026-07-20,PIN,500381,1,C,AED,5740.55,0,5740.55,0,5740.55,0,-5740.55,-5740.55
+101,Sample Trading LLC,2101,Trade Account Payable,V0021,Marina Fit-Out Contracting,2026-01-13,PIN,500382,1,C,AED,24544.6,0,24544.6,0,24544.6,0,-24544.6,-24544.6
+101,Sample Trading LLC,2101,Trade Account Payable,V0021,Marina Fit-Out Contracting,2026-05-07,BPV,500383,1,D,AED,85156.14,0,85156.14,85156.14,0,0,85156.14,85156.14
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0022,Apex Spare Parts,2025-10-01,PIN,500384,1,C,AED,167812.81,167812.81,0,0,44576.97,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0022,Apex Spare Parts,2025-11-15,BPV,500385,1,D,AED,167812.81,167812.81,0,44576.97,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0022,Apex Spare Parts,2026-10-07,PIN,500386,1,C,AED,363645.79,0,363645.79,0,363645.79,0,-363645.79,-363645.79
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0022,Apex Spare Parts,2026-10-12,PIN,500387,1,C,AED,53194.42,0,53194.42,0,53194.42,0,-53194.42,-53194.42
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0022,Apex Spare Parts,2026-10-12,PIN,500388,1,C,AED,204941.87,204941.87,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0022,Apex Spare Parts,2026-10-15,BPV,500389,1,D,AED,204941.87,204941.87,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0022,Apex Spare Parts,2026-01-22,PIN,500390,1,C,AED,89127.04,89127.04,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0022,Apex Spare Parts,2026-03-27,BPV,500391,1,D,AED,89127.04,89127.04,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0022,Apex Spare Parts,2026-01-10,PIN,500392,1,C,AED,180543.78,0,180543.78,0,180543.78,0,-180543.78,-180543.78
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0022,Apex Spare Parts,2026-04-20,PIN,500393,1,C,AED,241844.32,241844.32,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0022,Apex Spare Parts,2026-05-24,BPV,500394,1,D,AED,241844.32,241844.32,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0022,Apex Spare Parts,2026-09-22,PIN,500395,1,C,AED,14144.1,0,14144.1,0,14144.1,0,-14144.1,-14144.1
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0022,Apex Spare Parts,2024-11-18,PIN,500396,1,C,AED,294974.92,294974.92,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0022,Apex Spare Parts,2025-01-20,BPV,500397,1,D,AED,294974.92,294974.92,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0022,Apex Spare Parts,2026-09-05,PIN,500398,1,C,AED,382672.29,382672.29,0,0,219478.95,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0022,Apex Spare Parts,2026-10-15,BPV,500399,1,D,AED,382672.29,382672.29,0,219478.95,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0022,Apex Spare Parts,2026-10-07,BPV,500400,1,D,AED,13803.83,0,13803.83,13803.83,0,0,13803.83,13803.83
+103,Example Industrial Co,2101,Trade Account Payable,V0023,Lighthouse Advertising,2026-09-14,PIN,500401,1,C,USD,55891.74,38472.57,17419.17,0,55891.74,0,-17419.17,-17419.17
+103,Example Industrial Co,2101,Trade Account Payable,V0023,Lighthouse Advertising,2023-08-29,PIN,500402,1,C,USD,9599.61,9599.61,0,0,6321.62,0,0,0
+103,Example Industrial Co,2101,Trade Account Payable,V0023,Lighthouse Advertising,2023-09-08,BPV,500403,1,D,AED,9599.61,9599.61,0,6321.62,0,0,0,0
+103,Example Industrial Co,2101,Trade Account Payable,V0023,Lighthouse Advertising,2026-08-26,PIN,500404,1,C,USD,59464.16,59464.16,0,0,50349.77,0,0,0
+103,Example Industrial Co,2101,Trade Account Payable,V0023,Lighthouse Advertising,2026-10-15,BPV,500405,1,D,AED,59464.16,59464.16,0,50349.77,0,0,0,0
+103,Example Industrial Co,2101,Trade Account Payable,V0023,Lighthouse Advertising,2025-12-03,PIN,500406,1,C,USD,75813.73,0,75813.73,0,75813.73,0,-75813.73,-75813.73
+103,Example Industrial Co,2101,Trade Account Payable,V0023,Lighthouse Advertising,2023-11-06,PIN,500407,1,C,USD,91463.52,91463.52,0,0,0,0,0,0
+103,Example Industrial Co,2101,Trade Account Payable,V0023,Lighthouse Advertising,2024-02-03,BPV,500408,1,D,AED,91463.52,91463.52,0,0,0,0,0,0
+103,Example Industrial Co,2101,Trade Account Payable,V0023,Lighthouse Advertising,2026-07-20,PIN,500409,1,C,USD,89824.02,31402.61,58421.41,0,89824.02,0,-58421.41,-58421.41
+103,Example Industrial Co,2101,Trade Account Payable,V0023,Lighthouse Advertising,2026-02-26,PIN,500410,1,C,USD,41629.97,22820.8,18809.17,0,41629.97,0,-18809.17,-18809.17
+103,Example Industrial Co,2101,Trade Account Payable,V0023,Lighthouse Advertising,2026-10-12,PIN,500411,1,C,USD,79096.7,0,79096.7,0,79096.7,0,-79096.7,-79096.7
+103,Example Industrial Co,2101,Trade Account Payable,V0023,Lighthouse Advertising,2022-11-09,PIN,500412,1,C,USD,45390.11,45390.11,0,0,0,0,0,0
+103,Example Industrial Co,2101,Trade Account Payable,V0023,Lighthouse Advertising,2023-01-06,BPV,500413,1,D,AED,45390.11,45390.11,0,0,0,0,0,0
+103,Example Industrial Co,2101,Trade Account Payable,V0023,Lighthouse Advertising,2022-07-08,PIN,500414,1,C,USD,35492.59,35492.59,0,0,0,0,0,0
+103,Example Industrial Co,2101,Trade Account Payable,V0023,Lighthouse Advertising,2022-07-22,BPV,500415,1,D,AED,35492.59,35492.59,0,0,0,0,0,0
+104,Placeholder Foods FZE,2102,Other Creditors,V0024,Summit Security Services,2026-08-29,PIN,500416,1,C,AED,72228.9,0,72228.9,0,72228.9,0,-72228.9,-72228.9
+104,Placeholder Foods FZE,2102,Other Creditors,V0024,Summit Security Services,2026-09-08,PIN,500417,1,C,AED,34767.27,0,34767.27,0,34767.27,0,-34767.27,-34767.27
+104,Placeholder Foods FZE,2102,Other Creditors,V0024,Summit Security Services,2025-06-06,PIN,500418,1,C,AED,70729.73,70729.73,0,0,51961.04,0,0,0
+104,Placeholder Foods FZE,2102,Other Creditors,V0024,Summit Security Services,2025-07-01,BPV,500419,1,D,AED,70729.73,70729.73,0,51961.04,0,0,0,0
+104,Placeholder Foods FZE,2102,Other Creditors,V0024,Summit Security Services,2026-04-20,PIN,500420,1,C,AED,51386.1,10714.11,40671.99,0,51386.1,0,-40671.99,-40671.99
+104,Placeholder Foods FZE,2102,Other Creditors,V0024,Summit Security Services,2025-12-06,PIN,500421,1,C,AED,73030.57,0,73030.57,0,73030.57,0,-73030.57,-73030.57
+104,Placeholder Foods FZE,2102,Other Creditors,V0024,Summit Security Services,2026-09-26,PIN,500422,1,C,AED,29403.67,0,29403.67,0,29403.67,0,-29403.67,-29403.67
+104,Placeholder Foods FZE,2102,Other Creditors,V0024,Summit Security Services,2026-06-01,PIN,500423,1,C,AED,59713.47,0,59713.47,0,59713.47,0,-59713.47,-59713.47
+104,Placeholder Foods FZE,2102,Other Creditors,V0024,Summit Security Services,2026-03-31,PIN,500424,1,C,AED,26659.24,0,26659.24,0,26659.24,0,-26659.24,-26659.24
+104,Placeholder Foods FZE,2102,Other Creditors,V0024,Summit Security Services,2026-09-25,PIN,500425,1,C,AED,68135.33,0,68135.33,0,68135.33,0,-68135.33,-68135.33
+104,Placeholder Foods FZE,2102,Other Creditors,V0024,Summit Security Services,2026-09-06,PIN,500426,1,C,AED,53825.74,32635.84,21189.9,0,53825.74,0,-21189.9,-21189.9
+105,Fictional Tech Distribution,2101,Trade Account Payable,V0025,Crescent Utilities Provider,2026-04-25,PIN,500427,1,C,AED,18584.56,18584.56,0,0,0,0,0,0
+105,Fictional Tech Distribution,2101,Trade Account Payable,V0025,Crescent Utilities Provider,2026-05-11,BPV,500428,1,D,AED,18584.56,18584.56,0,0,0,0,0,0
+105,Fictional Tech Distribution,2101,Trade Account Payable,V0025,Crescent Utilities Provider,2026-07-29,PIN,500429,1,C,AED,12467.85,0,12467.85,0,12467.85,0,-12467.85,-12467.85
+105,Fictional Tech Distribution,2101,Trade Account Payable,V0025,Crescent Utilities Provider,2026-09-09,PIN,500430,1,C,AED,28654.07,16984.32,11669.75,0,28654.07,0,-11669.75,-11669.75
+105,Fictional Tech Distribution,2101,Trade Account Payable,V0025,Crescent Utilities Provider,2026-06-01,PIN,500431,1,C,AED,21478.35,21478.35,0,0,0,0,0,0
+105,Fictional Tech Distribution,2101,Trade Account Payable,V0025,Crescent Utilities Provider,2026-08-17,BPV,500432,1,D,AED,21478.35,21478.35,0,0,0,0,0,0
+105,Fictional Tech Distribution,2101,Trade Account Payable,V0025,Crescent Utilities Provider,2026-08-17,PIN,500433,1,C,AED,11428.64,0,11428.64,0,11428.64,0,-11428.64,-11428.64
+105,Fictional Tech Distribution,2101,Trade Account Payable,V0025,Crescent Utilities Provider,2026-07-08,PIN,500434,1,C,AED,12733.25,0,12733.25,0,12733.25,0,-12733.25,-12733.25
+105,Fictional Tech Distribution,2101,Trade Account Payable,V0025,Crescent Utilities Provider,2026-07-05,PIN,500435,1,C,AED,7644.53,7644.53,0,0,5574.45,0,0,0
+105,Fictional Tech Distribution,2101,Trade Account Payable,V0025,Crescent Utilities Provider,2026-08-17,BPV,500436,1,D,AED,7644.53,7644.53,0,5574.45,0,0,0,0
+105,Fictional Tech Distribution,2101,Trade Account Payable,V0025,Crescent Utilities Provider,2026-09-06,PIN,500437,1,C,AED,34145.25,34145.25,0,0,0,0,0,0
+105,Fictional Tech Distribution,2101,Trade Account Payable,V0025,Crescent Utilities Provider,2026-10-15,BPV,500438,1,D,AED,34145.25,34145.25,0,0,0,0,0,0
+105,Fictional Tech Distribution,2101,Trade Account Payable,V0025,Crescent Utilities Provider,2026-10-01,BPV,500439,1,D,AED,3361.59,0,3361.59,3361.59,0,0,3361.59,3361.59
+101,Sample Trading LLC,2101,Trade Account Payable,V0026,Falcon Travel Agency,2026-08-21,PIN,500440,1,C,AED,226711.89,104630.1,122081.79,0,226711.89,0,-122081.79,-122081.79
+101,Sample Trading LLC,2101,Trade Account Payable,V0026,Falcon Travel Agency,2026-09-07,PIN,500441,1,C,AED,247703.25,0,247703.25,0,247703.25,0,-247703.25,-247703.25
+101,Sample Trading LLC,2101,Trade Account Payable,V0026,Falcon Travel Agency,2026-07-05,PIN,500442,1,C,AED,94950.56,0,94950.56,0,94950.56,0,-94950.56,-94950.56
+101,Sample Trading LLC,2101,Trade Account Payable,V0026,Falcon Travel Agency,2026-09-28,PIN,500443,1,C,AED,296529.66,296529.66,0,0,0,0,0,0
+101,Sample Trading LLC,2101,Trade Account Payable,V0026,Falcon Travel Agency,2026-10-15,BPV,500444,1,D,AED,296529.66,296529.66,0,0,0,0,0,0
+101,Sample Trading LLC,2101,Trade Account Payable,V0026,Falcon Travel Agency,2026-09-10,PIN,500445,1,C,AED,264739.62,0,264739.62,0,264739.62,0,-264739.62,-264739.62
+101,Sample Trading LLC,2101,Trade Account Payable,V0026,Falcon Travel Agency,2026-09-14,PIN,500446,1,C,AED,235605.28,0,235605.28,0,235605.28,0,-235605.28,-235605.28
+101,Sample Trading LLC,2101,Trade Account Payable,V0026,Falcon Travel Agency,2026-07-28,PIN,500447,1,C,AED,17300.11,0,17300.11,0,17300.11,0,-17300.11,-17300.11
+101,Sample Trading LLC,2101,Trade Account Payable,V0026,Falcon Travel Agency,2025-04-30,PIN,500448,1,C,AED,189937.16,189937.16,0,0,0,0,0,0
+101,Sample Trading LLC,2101,Trade Account Payable,V0026,Falcon Travel Agency,2025-06-07,BPV,500449,1,D,AED,189937.16,189937.16,0,0,0,0,0,0
+101,Sample Trading LLC,2101,Trade Account Payable,V0026,Falcon Travel Agency,2025-11-02,PIN,500450,1,C,AED,267185.24,267185.24,0,0,205330.42,0,0,0
+101,Sample Trading LLC,2101,Trade Account Payable,V0026,Falcon Travel Agency,2026-01-26,BPV,500451,1,D,AED,267185.24,267185.24,0,205330.42,0,0,0,0
+101,Sample Trading LLC,2101,Trade Account Payable,V0026,Falcon Travel Agency,2026-03-10,PIN,500452,1,C,AED,39670.45,39670.45,0,0,7948.45,0,0,0
+101,Sample Trading LLC,2101,Trade Account Payable,V0026,Falcon Travel Agency,2026-04-01,BPV,500453,1,D,AED,39670.45,39670.45,0,7948.45,0,0,0,0
+101,Sample Trading LLC,2101,Trade Account Payable,V0026,Falcon Travel Agency,2026-10-09,PIN,500454,1,C,AED,117422.72,0,117422.72,0,117422.72,0,-117422.72,-117422.72
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0027,Evergreen Cleaning Co,2026-07-06,PIN,500455,1,C,AED,1042.15,1042.15,0,0,128.01,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0027,Evergreen Cleaning Co,2026-09-19,BPV,500456,1,D,AED,1042.15,1042.15,0,128.01,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0027,Evergreen Cleaning Co,2025-11-01,PIN,500457,1,C,AED,4908.36,4908.36,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0027,Evergreen Cleaning Co,2025-12-18,BPV,500458,1,D,AED,4908.36,4908.36,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0027,Evergreen Cleaning Co,2026-08-17,PIN,500459,1,C,AED,7224.41,0,7224.41,0,7224.41,0,-7224.41,-7224.41
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0027,Evergreen Cleaning Co,2024-09-17,PIN,500460,1,C,AED,5424.33,5424.33,0,0,4086.78,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0027,Evergreen Cleaning Co,2024-12-07,BPV,500461,1,D,AED,5424.33,5424.33,0,4086.78,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0027,Evergreen Cleaning Co,2026-10-01,PIN,500462,1,C,AED,8668.92,3476.75,5192.17,0,8668.92,0,-5192.17,-5192.17
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0027,Evergreen Cleaning Co,2025-04-03,PIN,500463,1,C,AED,1419.87,1419.87,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0027,Evergreen Cleaning Co,2025-05-17,BPV,500464,1,D,AED,1419.87,1419.87,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0027,Evergreen Cleaning Co,2026-05-02,PIN,500465,1,C,AED,439.95,311.79,128.16,0,439.95,0,-128.16,-128.16
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0027,Evergreen Cleaning Co,2026-01-22,PIN,500466,1,C,AED,3859.65,3859.65,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0027,Evergreen Cleaning Co,2026-04-01,BPV,500467,1,D,AED,3859.65,3859.65,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0027,Evergreen Cleaning Co,2023-04-18,PIN,500468,1,C,AED,5986.24,5986.24,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0027,Evergreen Cleaning Co,2023-06-13,BPV,500469,1,D,AED,5986.24,5986.24,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0027,Evergreen Cleaning Co,2023-02-17,PIN,500470,1,C,AED,4012.35,4012.35,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0027,Evergreen Cleaning Co,2023-03-22,BPV,500471,1,D,AED,4012.35,4012.35,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0027,Evergreen Cleaning Co,2026-05-14,PIN,500472,1,C,AED,3985.59,3985.59,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0027,Evergreen Cleaning Co,2026-06-28,BPV,500473,1,D,AED,3985.59,3985.59,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0027,Evergreen Cleaning Co,2026-09-15,PIN,500474,1,C,AED,2816.92,0,2816.92,0,2816.92,0,-2816.92,-2816.92
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0027,Evergreen Cleaning Co,2026-04-25,PIN,500475,1,C,AED,5693.85,0,5693.85,0,5693.85,0,-5693.85,-5693.85
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0027,Evergreen Cleaning Co,2026-09-02,PIN,500476,1,C,AED,3029.07,0,3029.07,0,3029.07,0,-3029.07,-3029.07
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0027,Evergreen Cleaning Co,2025-10-23,PIN,500477,1,C,AED,552.71,552.71,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0027,Evergreen Cleaning Co,2025-12-13,BPV,500478,1,D,AED,552.71,552.71,0,0,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0027,Evergreen Cleaning Co,2026-03-01,PIN,500479,1,C,AED,1735.29,1735.29,0,0,1494.74,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0027,Evergreen Cleaning Co,2026-05-01,BPV,500480,1,D,AED,1735.29,1735.29,0,1494.74,0,0,0,0
+102,Demo Medical Supplies LLC,2101,Trade Account Payable,V0027,Evergreen Cleaning Co,2026-06-13,BPV,500481,1,D,AED,180729.85,0,180729.85,180729.85,0,0,180729.85,180729.85
+103,Example Industrial Co,2102,Other Creditors,V0028,Polaris Software Licences,2025-11-28,PIN,500482,1,C,AED,24239.12,24239.12,0,0,0,0,0,0
+103,Example Industrial Co,2102,Other Creditors,V0028,Polaris Software Licences,2025-12-16,BPV,500483,1,D,AED,24239.12,24239.12,0,0,0,0,0,0
+103,Example Industrial Co,2102,Other Creditors,V0028,Polaris Software Licences,2026-08-28,PIN,500484,1,C,AED,16766.3,11501.99,5264.31,0,16766.3,0,-5264.31,-5264.31
+103,Example Industrial Co,2102,Other Creditors,V0028,Polaris Software Licences,2025-07-28,PIN,500485,1,C,AED,16945.16,16945.16,0,0,3964.55,0,0,0
+103,Example Industrial Co,2102,Other Creditors,V0028,Polaris Software Licences,2025-08-18,BPV,500486,1,D,AED,16945.16,16945.16,0,3964.55,0,0,0,0
+103,Example Industrial Co,2102,Other Creditors,V0028,Polaris Software Licences,2025-04-18,PIN,500487,1,C,AED,28145.78,28145.78,0,0,0,0,0,0
+103,Example Industrial Co,2102,Other Creditors,V0028,Polaris Software Licences,2025-06-30,BPV,500488,1,D,AED,28145.78,28145.78,0,0,0,0,0,0
+103,Example Industrial Co,2102,Other Creditors,V0028,Polaris Software Licences,2026-09-11,PIN,500489,1,C,AED,13472.51,0,13472.51,0,13472.51,0,-13472.51,-13472.51

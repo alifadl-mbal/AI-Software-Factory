@@ -4,6 +4,8 @@ import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { DatabaseSync, type SQLInputValue } from "node:sqlite";
 
+import { addDays } from "@/lib/filters";
+
 import { ensureReadOnly } from "./guard";
 import type { Binds, Row } from "./types";
 
@@ -19,6 +21,12 @@ import type { Binds, Row } from "./types";
 
 export const SAMPLE_DIR = path.join(process.cwd(), "data", "sample");
 const SAMPLE_SCHEMA = "MBALI";
+/**
+ * Views of open balances, aged against today. Shifting them by whole years would leave documents in
+ * the future or age them all into the same bucket, so with `anchorToDate` their dates move by whole
+ * days instead, until the newest date in the file is that day.
+ */
+export const BALANCE_VIEWS: ReadonlySet<string> = new Set(["ZF_SOA_DETL_CUST_INV_SM_BI", "ZF_SOAP_DETL_BI"]);
 const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const NUMBER_RE = /^-?\d+(\.\d+)?$/;
 const PERIOD_RE = /^\d{6}$/;
@@ -40,18 +48,30 @@ export interface SampleOptions {
    * (`YYYY-MM`), making it the current, provisional month-end. `null` leaves periods as they are.
    */
   rebaseToMonth?: string | null;
+  /**
+   * Shift the dates of the `BALANCE_VIEWS` fixtures by whole days so the newest is this date
+   * (`YYYY-MM-DD`). The app passes today; tests pass `null` for fixed dates.
+   */
+  anchorToDate?: string | null;
 }
 
 export class SampleSource {
   private readonly fixtureDir: string;
   private readonly rebaseToYear: number | null;
   private readonly rebaseToMonth: string | null;
+  private readonly anchorToDate: string | null;
   private database: DatabaseSync | undefined;
 
-  constructor({ fixtureDir = SAMPLE_DIR, rebaseToYear = null, rebaseToMonth = null }: SampleOptions = {}) {
+  constructor({
+    fixtureDir = SAMPLE_DIR,
+    rebaseToYear = null,
+    rebaseToMonth = null,
+    anchorToDate = null,
+  }: SampleOptions = {}) {
     this.fixtureDir = fixtureDir;
     this.rebaseToYear = rebaseToYear;
     this.rebaseToMonth = rebaseToMonth;
+    this.anchorToDate = anchorToDate;
   }
 
   async query<T extends Row = Row>(sql: string, binds: Binds = {}): Promise<T[]> {
@@ -76,13 +96,16 @@ export class SampleSource {
       );
       for (const file of readdirSync(this.fixtureDir).filter((name) => name.endsWith(".csv"))) {
         const table = parseCsv(readFileSync(path.join(this.fixtureDir, file), "utf8"));
-        if (this.rebaseToYear !== null) {
+        const view = path.basename(file, ".csv").toUpperCase();
+        if (BALANCE_VIEWS.has(view)) {
+          if (this.anchorToDate !== null) anchorDates(table, this.anchorToDate);
+        } else if (this.rebaseToYear !== null) {
           rebaseDates(table, this.rebaseToYear);
         }
         if (this.rebaseToMonth !== null) {
           rebasePeriods(table, this.rebaseToMonth);
         }
-        loadTable(database, `${SAMPLE_SCHEMA}."${path.basename(file, ".csv").toUpperCase()}"`, table);
+        loadTable(database, `${SAMPLE_SCHEMA}."${view}"`, table);
       }
       this.database = database;
     }
@@ -102,7 +125,7 @@ function lowerCaseKeys(row: Record<string, unknown>): Row {
   return Object.fromEntries(Object.entries(row).map(([key, value]) => [key.toLowerCase(), value]));
 }
 
-interface Table {
+export interface Table {
   header: string[];
   /** One array per row; `null` for an empty cell. */
   rows: (string | null)[][];
@@ -148,17 +171,37 @@ export function parseCsv(text: string): Table {
   return { header, rows: rows.map((row) => header.map((_, i) => (row[i] ? row[i] : null))) };
 }
 
-function rebaseDates(table: Table, targetYear: number): void {
-  table.header.forEach((_, column) => {
+/** The indexes of the columns that hold nothing but `YYYY-MM-DD` dates, with their values. */
+function dateColumns(table: Table): { column: number; values: string[] }[] {
+  return table.header.flatMap((_, column) => {
     const values = table.rows.map((row) => row[column]).filter((value) => value !== null);
-    if (values.length === 0 || !values.every((value) => ISO_DATE_RE.test(value))) return;
+    return values.length > 0 && values.every((value) => ISO_DATE_RE.test(value)) ? [{ column, values }] : [];
+  });
+}
+
+/** Move every date by the same number of days, so the newest one in the table is `date`. */
+export function anchorDates(table: Table, date: string): void {
+  const columns = dateColumns(table);
+  if (columns.length === 0) return;
+  const newest = columns.flatMap(({ values }) => values).reduce((max, value) => (value > max ? value : max));
+  const offset = Math.round((Date.parse(date) - Date.parse(newest)) / 86_400_000);
+  for (const { column } of columns) {
+    for (const row of table.rows) {
+      const value = row[column];
+      if (value !== null) row[column] = addDays(value, offset);
+    }
+  }
+}
+
+function rebaseDates(table: Table, targetYear: number): void {
+  for (const { column, values } of dateColumns(table)) {
     const offset = targetYear - Math.max(...values.map((value) => Number(value.slice(0, 4))));
-    if (offset === 0) return;
+    if (offset === 0) continue;
     for (const row of table.rows) {
       const value = row[column];
       if (value !== null) row[column] = shiftYear(value, offset);
     }
-  });
+  }
 }
 
 function rebasePeriods(table: Table, targetMonth: string): void {

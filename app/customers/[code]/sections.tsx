@@ -11,6 +11,7 @@ import { ReportAsOf } from "@/components/shell/shell-context";
 import { AGING_BUCKETS } from "@/lib/aging";
 import { previousYear, type Filters } from "@/lib/filters";
 import { formatAed, formatInt, formatPct } from "@/lib/format";
+import { itemHref } from "@/lib/items";
 import { salesOrderCurrencyNote } from "@/lib/notes";
 import { dataAsOf } from "@/lib/server/db";
 import { load } from "@/lib/server/errors";
@@ -22,6 +23,7 @@ import {
   summarize,
 } from "@/lib/server/queries/ar-ap";
 import { companies as loadCompanies } from "@/lib/server/queries/common";
+import { itemCodesByName } from "@/lib/server/queries/items";
 import { openBookKpis, openByCurrency, openLines, OPEN_ROW_LIMIT } from "@/lib/server/queries/sales-orders";
 import {
   RETURN_ROW_LIMIT,
@@ -183,7 +185,7 @@ export async function CustomerTrend({ code, filters }: CustomerProps) {
 }
 
 const ITEM_COLUMNS: ColumnSpec[] = [
-  { key: "label", header: "Item" },
+  { key: "label", header: "Item", linkKey: "href" },
   { key: "netRevenue", header: "Net revenue", format: "aed", sum: true },
   { key: "grossMargin", header: "Gross margin", format: "aed", sum: true },
   { key: "marginPct", header: "Margin %", format: "pct" },
@@ -193,6 +195,10 @@ export async function CustomerTopItems({ code, filters }: CustomerProps) {
   const title = "Top items bought";
   const result = await load(() => salesBreakdown(filters, "item", TOP_ITEMS, code));
   const total = result.ok ? result.data.reduce((sum, row) => sum + row.netRevenue, 0) : 0;
+  // Grouped by name, as on the Sales page; a name links when one item code carries it.
+  const codes = result.ok
+    ? await itemCodesByName(result.data.map((row) => row.label)).catch(() => new Map<string, string>())
+    : new Map<string, string>();
   return (
     <ChartCard
       title={title}
@@ -209,6 +215,7 @@ export async function CustomerTopItems({ code, filters }: CustomerProps) {
           columns={ITEM_COLUMNS}
           rows={result.data.map((row) => ({
             label: row.label,
+            href: codes.has(row.label) ? itemHref(codes.get(row.label)!, filters) : null,
             netRevenue: row.netRevenue,
             grossMargin: row.grossMargin,
             marginPct: row.marginPct,
@@ -310,7 +317,7 @@ const ORDER_LINE_COLUMNS: ColumnSpec[] = [
   { key: "company", header: "Company" },
   { key: "orderNumber", header: "Order no" },
   { key: "orderDate", header: "Order date", format: "date" },
-  { key: "item", header: "Item" },
+  { key: "item", header: "Item", linkKey: "itemHref" },
   { key: "orderedQty", header: "Ordered", format: "qty" },
   { key: "deliveredQty", header: "Delivered", format: "qty" },
   { key: "invoicedQty", header: "Invoiced", format: "qty" },
@@ -361,6 +368,7 @@ export async function CustomerOpenOrders({ code, filters, today }: CustomerProps
               orderNumber: line.orderNumber,
               orderDate: line.orderDate,
               item: line.item,
+              itemHref: line.itemCode ? itemHref(line.itemCode, filters) : null,
               orderedQty: line.orderedQty,
               deliveredQty: line.deliveredQty,
               invoicedQty: line.invoicedQty,

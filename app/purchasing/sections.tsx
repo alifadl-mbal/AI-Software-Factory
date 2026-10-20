@@ -14,6 +14,7 @@ import { TrendChart } from "@/components/dashboard/trend-chart";
 import { ReportAsOf } from "@/components/shell/shell-context";
 import { previousYear, type Filters } from "@/lib/filters";
 import { formatAed, formatInt, formatNumber, formatPct } from "@/lib/format";
+import { itemHref } from "@/lib/items";
 import { dataAsOf } from "@/lib/server/db";
 import { load } from "@/lib/server/errors";
 import { companies } from "@/lib/server/queries/common";
@@ -207,7 +208,7 @@ const OVERDUE_COLUMNS: ColumnSpec[] = [
   { key: "company", header: "Company" },
   { key: "poNumber", header: "PO number" },
   { key: "supplier", header: "Supplier" },
-  { key: "item", header: "Item" },
+  { key: "item", header: "Item", linkKey: "itemHref" },
   { key: "poDate", header: "PO date", format: "date" },
   { key: "daysOpen", header: "Days open", format: "int" },
   { key: "pendingQty", header: "Pending qty", format: "qty" },
@@ -246,6 +247,7 @@ export async function OverdueLinesTable({ filters, today }: SectionProps) {
               poNumber: line.poNumber,
               supplier: line.supplier,
               item: line.item,
+              itemHref: line.itemCode ? itemHref(line.itemCode, filters) : null,
               poDate: line.poDate,
               daysOpen: line.daysOpen,
               pendingQty: line.pendingQty,

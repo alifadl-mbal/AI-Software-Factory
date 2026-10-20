@@ -13,6 +13,7 @@ import { ReportAsOf } from "@/components/shell/shell-context";
 import { Badge } from "@/components/ui/badge";
 import { todayIso } from "@/lib/filters";
 import { formatAed, formatAedCompact, formatDeltaPct, formatInt, formatMonth, pctChange } from "@/lib/format";
+import { itemHref } from "@/lib/items";
 import { dataAsOf } from "@/lib/server/db";
 import { load } from "@/lib/server/errors";
 import { lastClosed } from "@/lib/server/overview";
@@ -192,7 +193,7 @@ function NegativeStockNote({ month }: { month: MonthEnd }) {
 }
 
 const DEAD_STOCK_COLUMNS: ColumnSpec[] = [
-  { key: "item", header: "Item" },
+  { key: "item", header: "Item", linkKey: "href" },
   { key: "itemCode", header: "Code" },
   { key: "company", header: "Company" },
   { key: "location", header: "Location" },
@@ -204,9 +205,12 @@ const DEAD_STOCK_COLUMNS: ColumnSpec[] = [
 export async function DeadStockSection({
   companies,
   months,
+  search,
 }: {
   companies: string[];
   months: DeadStockMonths;
+  /** The page's filters as a query string, kept on the item links. */
+  search: string;
 }) {
   const result = await load(() => deadStock(companies, months, todayIso()));
   const asOf = result.ok && result.data.asOfMonth ? formatMonth(result.data.asOfMonth) : null;
@@ -245,7 +249,7 @@ export async function DeadStockSection({
           <DataTable
             title={`Dead stock ${months} months`}
             columns={DEAD_STOCK_COLUMNS}
-            rows={result.data.rows.map((row) => ({ ...row }))}
+            rows={result.data.rows.map((row) => ({ ...row, href: itemHref(row.itemCode, search) }))}
             showTotals={result.data.count === result.data.rows.length}
           />
         </div>
@@ -255,7 +259,7 @@ export async function DeadStockSection({
 }
 
 const REORDER_COLUMNS: ColumnSpec[] = [
-  { key: "item", header: "Item" },
+  { key: "item", header: "Item", linkKey: "href" },
   { key: "itemCode", header: "Code" },
   { key: "company", header: "Company" },
   { key: "location", header: "Location" },
@@ -265,7 +269,7 @@ const REORDER_COLUMNS: ColumnSpec[] = [
 ];
 
 /** Active items at or below their reorder level. */
-export async function ReorderAlertsSection({ companies }: { companies: string[] }) {
+export async function ReorderAlertsSection({ companies, search }: { companies: string[]; search: string }) {
   const result = await load(() => reorderAlerts(companies));
   return (
     <ChartCard
@@ -289,6 +293,7 @@ export async function ReorderAlertsSection({ companies }: { companies: string[] 
           columns={REORDER_COLUMNS}
           rows={result.data.map((alert) => ({
             item: alert.item,
+            href: itemHref(alert.itemCode, search),
             itemCode: alert.itemCode,
             company: alert.company,
             location: alert.location,

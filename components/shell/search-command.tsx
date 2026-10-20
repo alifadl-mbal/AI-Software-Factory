@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Loader2, Search, UserRound } from "lucide-react";
+import { Loader2, Package, Search, UserRound, type LucideIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -15,6 +15,7 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { customerHref } from "@/lib/customers";
+import { itemHref } from "@/lib/items";
 
 import { useShell } from "./shell-context";
 
@@ -24,7 +25,7 @@ const MIN_LENGTH = 2;
 const DEBOUNCE_MS = 200;
 
 interface SearchResult {
-  kind: "customer";
+  kind: "customer" | "item";
   code: string;
   name: string;
   detail: string | null;
@@ -75,9 +76,15 @@ function useSearch(query: string): SearchState {
   return state;
 }
 
+/** The result groups, in the order the server answers them. */
+const GROUPS: { kind: SearchResult["kind"]; heading: string; icon: LucideIcon }[] = [
+  { kind: "customer", heading: "Customers", icon: UserRound },
+  { kind: "item", heading: "Items", icon: Package },
+];
+
 /**
- * The search button in the top bar and its Ctrl/⌘+K dialog: find a customer by name or code and
- * open their page with the current filters.
+ * The search button in the top bar and its Ctrl/⌘+K dialog: find a customer or an item by name,
+ * description or code and open its page with the current filters.
  */
 export function SearchCommand() {
   const router = useRouter();
@@ -100,7 +107,8 @@ export function SearchCommand() {
   function openResult(result: SearchResult) {
     setOpen(false);
     setQuery("");
-    startTransition(() => router.push(customerHref(result.code, filters)));
+    const href = result.kind === "item" ? itemHref(result.code, filters) : customerHref(result.code, filters);
+    startTransition(() => router.push(href));
   }
 
   const results = search.status === "done" ? search.results : [];
@@ -113,11 +121,13 @@ export function SearchCommand() {
         onClick={() => setOpen(true)}
         aria-keyshortcuts="Control+K Meta+K"
         data-testid="search-trigger"
-        title="Search customers (Ctrl+K, ⌘K on a Mac)"
+        title="Search customers and items (Ctrl+K, ⌘K on a Mac)"
       >
         <Search aria-hidden />
-        <span className="hidden 2xl:inline">Search customers…</span>
-        <span className="sr-only 2xl:hidden">Search customers</span>
+        <span className="hidden 2xl:inline" aria-hidden>
+          Search…
+        </span>
+        <span className="sr-only">Search customers and items</span>
         <kbd className="pointer-events-none hidden h-5 items-center gap-0.5 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium 2xl:inline-flex">
           Ctrl K
         </kbd>
@@ -128,8 +138,8 @@ export function SearchCommand() {
           setOpen(value);
           if (!value) setQuery("");
         }}
-        title="Search customers"
-        description="Find a customer by name or code and open their page."
+        title="Search customers and items"
+        description="Find a customer or an item by name, description or code and open its page."
         className="max-w-[calc(100vw-2rem)] sm:max-w-lg"
       >
         {/* The server does the matching, so cmdk shows its results as they come. */}
@@ -137,14 +147,14 @@ export function SearchCommand() {
           <CommandInput
             value={query}
             onValueChange={setQuery}
-            placeholder="Customer name or code…"
-            aria-label="Customer name or code"
+            placeholder="Customer or item name, or code…"
+            aria-label="Customer or item name, or code"
             data-testid="search-input"
           />
           <CommandList aria-label="Search results">
             {search.status === "idle" && (
               <p className="py-6 text-center text-sm text-muted-foreground">
-                Type at least {MIN_LENGTH} characters of a customer’s name or code.
+                Type at least {MIN_LENGTH} characters of a customer’s name, an item’s description or a code.
               </p>
             )}
             {search.status === "loading" && (
@@ -161,26 +171,32 @@ export function SearchCommand() {
                 {search.message}
               </p>
             )}
-            {search.status === "done" && <CommandEmpty>No customer matches “{search.query}”.</CommandEmpty>}
-            {results.length > 0 && (
-              <CommandGroup heading="Customers">
-                {results.map((result) => (
-                  <CommandItem
-                    key={`${result.kind}:${result.code}`}
-                    value={`${result.kind}:${result.code}`}
-                    onSelect={() => openResult(result)}
-                    data-testid="search-result"
-                  >
-                    <UserRound className="text-muted-foreground" aria-hidden />
-                    <span className="min-w-0 flex-1 truncate">{result.name}</span>
-                    <span className="tabular shrink-0 text-xs text-muted-foreground">
-                      {result.detail ? `${result.detail} · ` : ""}
-                      {result.code}
-                    </span>
-                  </CommandItem>
-                ))}
-              </CommandGroup>
+            {search.status === "done" && (
+              <CommandEmpty>No customer or item matches “{search.query}”.</CommandEmpty>
             )}
+            {GROUPS.map(({ kind, heading, icon: Icon }) => {
+              const group = results.filter((result) => result.kind === kind);
+              if (group.length === 0) return null;
+              return (
+                <CommandGroup key={kind} heading={heading} data-testid={`search-group-${kind}`}>
+                  {group.map((result) => (
+                    <CommandItem
+                      key={`${result.kind}:${result.code}`}
+                      value={`${result.kind}:${result.code}`}
+                      onSelect={() => openResult(result)}
+                      data-testid="search-result"
+                    >
+                      <Icon className="text-muted-foreground" aria-hidden />
+                      <span className="min-w-0 flex-1 truncate">{result.name}</span>
+                      <span className="tabular max-w-[45%] shrink-0 truncate text-xs text-muted-foreground">
+                        {result.detail ? `${result.detail} · ` : ""}
+                        {result.code}
+                      </span>
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              );
+            })}
           </CommandList>
         </Command>
       </CommandDialog>

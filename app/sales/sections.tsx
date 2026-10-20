@@ -11,10 +11,12 @@ import { TrendChart } from "@/components/dashboard/trend-chart";
 import { ReportAsOf } from "@/components/shell/shell-context";
 import { customerHref } from "@/lib/customers";
 import { previousYear, type Filters } from "@/lib/filters";
+import { itemHref } from "@/lib/items";
 import { formatAed } from "@/lib/format";
 import { dataAsOf } from "@/lib/server/db";
 import { load } from "@/lib/server/errors";
 import { customerCodesByName } from "@/lib/server/queries/customers";
+import { itemCodesByName } from "@/lib/server/queries/items";
 import {
   salesBreakdown,
   salesKpis,
@@ -167,11 +169,15 @@ export async function SalesTopTable({
 }) {
   const result = await load(() => salesBreakdown(filters, dimension, TOP_N));
   const total = result.ok ? totalOf(result.data) : 0;
-  // Customers are grouped by name (as reconciled); a name links to its page when one code has it.
+  // Customers and items are grouped by name (as reconciled); a name links to its page when one
+  // code has it.
+  const lookup =
+    dimension === "customer" ? customerCodesByName : dimension === "item" ? itemCodesByName : null;
   const codes =
-    result.ok && dimension === "customer"
-      ? await customerCodesByName(result.data.map((row) => row.label)).catch(() => new Map<string, string>())
+    result.ok && lookup
+      ? await lookup(result.data.map((row) => row.label)).catch(() => new Map<string, string>())
       : new Map<string, string>();
+  const href = dimension === "item" ? itemHref : customerHref;
   return (
     <ChartCard title={title} description={`Top ${TOP_N} by net revenue; the rest are grouped as "All other"`}>
       {!result.ok ? (
@@ -182,7 +188,7 @@ export async function SalesTopTable({
           columns={TABLE_COLUMNS(labelHeader)}
           rows={result.data.map((row) => ({
             label: row.label,
-            href: codes.has(row.label) ? customerHref(codes.get(row.label)!, filters) : null,
+            href: codes.has(row.label) ? href(codes.get(row.label)!, filters) : null,
             netRevenue: row.netRevenue,
             grossMargin: row.grossMargin,
             marginPct: row.marginPct,

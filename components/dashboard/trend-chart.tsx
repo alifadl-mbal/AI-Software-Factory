@@ -10,7 +10,7 @@ import {
   ChartTooltipContent,
   type ChartConfig,
 } from "@/components/ui/chart";
-import { formatAed, formatAedCompact, formatMonth } from "@/lib/format";
+import { formatAed, formatAedCompact, formatCompact, formatMonth, formatQty } from "@/lib/format";
 
 export interface TrendPoint {
   /** `YYYY-MM`. */
@@ -29,11 +29,16 @@ export function TrendChart({
   data,
   height = 300,
   ariaLabel = "Monthly net revenue, this year compared with last year",
+  format = "aed",
 }: {
   data: TrendPoint[];
   height?: number;
   ariaLabel?: string;
+  /** `aed` for money (the default), `qty` for quantities. */
+  format?: "aed" | "qty";
 }) {
+  const full = format === "qty" ? formatQty : formatAed;
+  const compact = format === "qty" ? formatCompact : formatAedCompact;
   return (
     <ChartContainer
       config={CONFIG}
@@ -56,13 +61,13 @@ export function TrendChart({
           tickLine={false}
           axisLine={false}
           width={84}
-          tickFormatter={(value: number) => formatAedCompact(value)}
+          tickFormatter={(value: number) => compact(value)}
         />
         <ChartTooltip
           cursor={{ fill: "var(--muted)", opacity: 0.6 }}
           content={
             <ChartTooltipContent
-              valueFormatter={(value) => formatAed(value)}
+              valueFormatter={(value) => full(value)}
               labelFormatter={(_, payload) => formatMonth(String(payload?.[0]?.payload?.month ?? ""))}
             />
           }

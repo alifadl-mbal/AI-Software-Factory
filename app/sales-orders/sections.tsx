@@ -12,6 +12,7 @@ import { TrendChart } from "@/components/dashboard/trend-chart";
 import { ReportAsOf } from "@/components/shell/shell-context";
 import { AGING_BUCKETS } from "@/lib/aging";
 import { customerHref } from "@/lib/customers";
+import { itemHref } from "@/lib/items";
 import { previousYear, type Filters } from "@/lib/filters";
 import { formatAed, formatAedCompact, formatInt, formatPct } from "@/lib/format";
 import { salesOrderCurrencyNote } from "@/lib/notes";
@@ -265,7 +266,7 @@ const LINE_COLUMNS: ColumnSpec[] = [
   { key: "orderDate", header: "Order date", format: "date" },
   { key: "customer", header: "Customer", linkKey: "customerHref" },
   { key: "salesperson", header: "Salesperson" },
-  { key: "item", header: "Item" },
+  { key: "item", header: "Item", linkKey: "itemHref" },
   { key: "orderedQty", header: "Ordered", format: "qty" },
   { key: "deliveredQty", header: "Delivered", format: "qty" },
   { key: "invoicedQty", header: "Invoiced", format: "qty" },
@@ -309,6 +310,7 @@ export async function OpenLinesTable({ filters, today }: SectionProps) {
               customerHref: line.customerCode ? customerHref(line.customerCode, filters) : null,
               salesperson: line.salesperson,
               item: line.item,
+              itemHref: line.itemCode ? itemHref(line.itemCode, filters) : null,
               orderedQty: line.orderedQty,
               deliveredQty: line.deliveredQty,
               invoicedQty: line.invoicedQty,

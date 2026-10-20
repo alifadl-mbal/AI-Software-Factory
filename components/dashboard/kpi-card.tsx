@@ -26,6 +26,8 @@ export interface KpiCardProps {
   spark?: number[];
   /** One short line under the value. */
   hint?: string;
+  /** Words shown in place of the value when there is no figure, such as "No recent sales". */
+  valueText?: string;
   /** For costs: a rise is coloured as bad and a fall as good. The arrow still shows the direction. */
   lowerIsBetter?: boolean;
 }
@@ -41,6 +43,7 @@ export function KpiCard({
   delta = "pct",
   spark,
   hint,
+  valueText,
   lowerIsBetter = false,
 }: KpiCardProps) {
   const change =
@@ -74,13 +77,22 @@ export function KpiCard({
     <Card className="gap-0 py-0" data-testid="kpi-card">
       <CardContent className="flex flex-col gap-2 p-4 sm:gap-3 sm:p-5">
         <p className="text-sm font-medium text-muted-foreground">{label}</p>
-        <p
-          className="tabular text-xl font-semibold tracking-tight text-foreground sm:text-2xl"
-          title={formatValue(fullFormat, value)}
-          data-testid="kpi-value"
-        >
-          {formatValue(format, value)}
-        </p>
+        {valueText !== undefined ? (
+          <p
+            className="text-lg font-semibold tracking-tight text-foreground sm:text-xl"
+            data-testid="kpi-value"
+          >
+            {valueText}
+          </p>
+        ) : (
+          <p
+            className="tabular text-xl font-semibold tracking-tight text-foreground sm:text-2xl"
+            title={formatValue(fullFormat, value)}
+            data-testid="kpi-value"
+          >
+            {formatValue(format, value)}
+          </p>
+        )}
         <div className="flex min-h-5 flex-wrap items-center gap-x-2 gap-y-1 text-xs">
           {changeText !== null ? (
             <span

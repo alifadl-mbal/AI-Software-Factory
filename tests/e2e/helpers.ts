@@ -1,8 +1,10 @@
 import { expect, type Page } from "@playwright/test";
 
+/** Every page, with how many KPI cards it shows and one money KPI that must have a value. */
 export const PAGES = [
-  { path: "/", heading: "Overview" },
-  { path: "/sales", heading: "Sales" },
+  { path: "/", heading: "Overview", kpis: 5, headline: "Net revenue" },
+  { path: "/sales", heading: "Sales", kpis: 5, headline: "Net revenue" },
+  { path: "/finance", heading: "Finance", kpis: 7, headline: "Revenue" },
 ] as const;
 
 /** Collect console errors and uncaught exceptions for the life of the page. */

@@ -1,11 +1,27 @@
-.venv/
-venv/
-__pycache__/
-*.py[cod]
-.pytest_cache/
-.ruff_cache/
+# dependencies
+/node_modules
+
+# next.js
+/.next/
+/out/
+/build
+next-env.d.ts
+*.tsbuildinfo
+
+# tests
+/coverage
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+
+# env files: never commit credentials
 .env
 .env.*
 !.env.example
-.streamlit/secrets.toml
+
+# misc
+.DS_Store
+*.pem
 *.log
+npm-debug.log*

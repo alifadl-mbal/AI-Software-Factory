@@ -7,10 +7,11 @@ Stack: Next.js 16 (App Router) · React 19 · TypeScript (strict) · Tailwind CS
 (Radix) · lucide-react · Recharts · TanStack Table · node-oracledb (thin mode, no Instant Client)
 · Vitest + Testing Library · Playwright + axe · ESLint + Prettier · GitHub Actions.
 
-| Page     | Route    | View        | What it shows                                                                                                                                                                               |
-| -------- | -------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Overview | `/`      |             | Headline sales figures and a card for each dashboard                                                                                                                                        |
-| Sales    | `/sales` | `ZF_CSL_BI` | Net revenue, gross margin, margin %, invoices, returns (vs last year, with sparklines); monthly trend vs last year; revenue by company, item group, salesperson; top 20 customers and items |
+| Page     | Route      | View               | What it shows                                                                                                                                                                                                                                                 |
+| -------- | ---------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Overview | `/`        |                    | Headline sales figures and a card for each dashboard                                                                                                                                                                                                          |
+| Sales    | `/sales`   | `ZF_CSL_BI`        | Net revenue, gross margin, margin %, invoices, returns (vs last year, with sparklines); monthly trend vs last year; revenue by company, item group, salesperson; top 20 customers and items                                                                   |
+| Finance  | `/finance` | `ZF_F_T_DETAIL_BI` | Revenue, cost of sales, gross profit and GP %, G&A, net profit and net margin % (vs last year); monthly P&L; P&L statement by level_1 that expands to GL accounts; costs by account, division and department; journal-line drill-down; unmapped-account total |
 
 ## Setup
 
@@ -95,9 +96,11 @@ app/
   page.tsx              Overview
   sales/page.tsx        Sales page: Suspense sections, one per card/chart/table
   sales/sections.tsx    async server components that load data and render the components
+  finance/              Finance page, sections, P&L statement table and journal-line side panel
+  api/finance/journal-lines/route.ts   GET endpoint the drill-down panel reads (shared filters)
   actions.ts            Refresh server action (clears the cache)
 components/
-  dashboard/            KpiCard, ChartCard, TrendChart, BarBreakdown, DataTable, EmptyState,
+  dashboard/            KpiCard, ChartCard, TrendChart, PnlChart, BarBreakdown, DataTable, EmptyState,
                         ErrorCard, skeletons, PageHeader: reuse these in every dashboard
   shell/                sidebar, top bar, date-range picker, company select, URL filter state
   ui/                   shadcn/ui primitives
@@ -112,8 +115,10 @@ lib/
     oracle.ts           node-oracledb pool
     sample.ts           SQLite sample source with Oracle shims
     sql.ts              filterWhere (binds), labelOrUnassigned, UNASSIGNED/ALL_OTHER
-    queries/            one module per Orion domain (common.ts, sales.ts)
+    chart-of-accounts.ts  reads data/chart-of-accounts.csv; unknown accounts are 'Unmapped'
+    queries/            one module per Orion domain (common.ts, sales.ts, finance.ts)
 data/sample/            sample fixtures, one CSV per view
+data/chart-of-accounts.csv  GL main account -> level_0/1/2 (finance owns it)
 tests/unit, tests/e2e   Vitest and Playwright; tests/fixtures has the hand-checked CSV
 ```
 
@@ -151,7 +156,7 @@ Queries are written once in Oracle SQL and must also run on SQLite in sample mod
 - `SELECT ... FROM MBALI.<VIEW> WHERE ... GROUP BY ... ORDER BY ...`, subqueries in `FROM` (give
   them an alias), `WITH`;
 - `SUM`, `COUNT`, `COUNT(DISTINCT ...)`, `MIN`, `MAX`, `AVG`; `CASE WHEN`; `COALESCE`, `NULLIF`,
-  `TRIM`, `ABS`; `||` for concatenation; `ROW_NUMBER() OVER (ORDER BY ...)` and other window functions;
+  `TRIM`, `ABS`, `SUBSTR(x, start, length)`; `||` for concatenation; `ROW_NUMBER() OVER (ORDER BY ...)` and other window functions;
 - `NVL(x, y)`, `TO_CHAR(date, 'YYYY-MM-DD' | 'YYYY-MM' | 'YYYY')` and
   `TO_DATE(:bind, 'YYYY-MM-DD')` (shimmed in `lib/server/sample.ts`);
 - named binds (`:start_date`).
@@ -205,6 +210,30 @@ Say, Inventory on `ZF_CURR_STK_BI`:
    `EmptyState` and `ErrorCard`.
 5. **Tests:** add the route to `PAGES` in `tests/e2e/helpers.ts` so it gets the console-error,
    mobile and axe checks.
+
+## Business rules (Finance)
+
+- Source `MBALI.ZF_F_T_DETAIL_BI`, one row per GL line. Period on `D_DT` (posting date), company on
+  `D_COMP_CODE`.
+- **Posted lines only:** `SUBSTR(TD_STATUS, 3, 1) = 'C'` (`PYC`, `CYC`). `CYU` is unposted. There is
+  no `'P'` status.
+- **Net amount** = `NVL(D_CREDIT_LC, 0) - NVL(D_DEBIT_LC, 0)`, in AED. Each line fills only one of
+  the two columns, so both need the `NVL`.
+- **Sign:** revenue sums positive and costs negative; net profit = revenue + cost of sales + G&A in
+  those signed terms. Queries, loaders and tests keep that convention; only the screen shows costs
+  as positive amounts.
+- **P&L grouping** comes from `data/chart-of-accounts.csv`
+  (`main_acnt, main_acnt_name, level_0, level_1, level_2`). `level_0` is `Profit and loss` or
+  `Balance sheet`; P&L `level_1` is `Revenue`, `Cost of sales` or `General and admin expenses`.
+  Orion is read-only, so the file is attached after the SQL aggregates by `D_MAIN_ACNT`, as a LEFT
+  JOIN: an account missing from the file is **Unmapped**, never dropped. Unmapped postings are kept
+  out of profit, listed in the P&L statement and totalled in a banner (shown only when non-zero).
+  Finance can replace the file at any time; the server re-reads it when it changes.
+- The shipped file was built from every account with posted lines in Orion (446 accounts, October
+  2026), classified by code (1xxxx assets, 2xxxx liabilities and equity, 3xxxx revenue, 4xxxx
+  costs) and name. Finance should review it, in particular which 4xxxx accounts are cost of sales.
+- The drill-down shows the newest 500 posted lines of an account, with the count and totals of all
+  of them.
 
 ## Business rules (Sales)
 

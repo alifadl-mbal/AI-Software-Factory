@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 
 import { kpiFull, PAGES, waitForData, watchConsole } from "./helpers";
 
-for (const { path, heading, kpis, kpi } of PAGES) {
+for (const { path, heading, kpis, headline } of PAGES) {
   test(`${path} loads with real figures and no console errors`, async ({ page }) => {
     const errors = watchConsole(page);
     await page.goto(path);
@@ -12,7 +12,7 @@ for (const { path, heading, kpis, kpi } of PAGES) {
     await waitForData(page);
     await expect(page.getByTestId("kpi-card")).toHaveCount(kpis);
     await expect(page.getByTestId("error-card")).toHaveCount(0);
-    expect(await kpiFull(page, kpi)).toMatch(/^AED [1-9][\d,]*$/);
+    expect(await kpiFull(page, headline)).toMatch(/^AED [1-9][\d,]*$/);
     expect(errors).toEqual([]);
   });
 }

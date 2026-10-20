@@ -1,0 +1,35 @@
+D_COMP_CODE,TD_STATUS,D_TRAN_CODE,D_DOC_NO,D_DT,D_DOC_REF,D_MAIN_ACNT,D_MAIN_ACNT_NAME,D_DIVN_NAME,D_DEPT_NAME,D_DETAIL,D_DEBIT_LC,D_CREDIT_LC
+101,PYC,SI,15,2024-02-10,INV-15,30611,Gross Sales,Trading,Sales,Last year sale,,7000
+101,PYC,SI,15,2024-02-10,INV-15,10251,Trade Account Receivable,Trading,Sales,Last year sale,7000,
+101,PYC,JV,16,2024-02-10,COGS-16,40711,Cost of Sales,,,Last year cost,4000,
+101,PYC,JV,16,2024-02-10,COGS-16,10215,Inventories,,,Last year cost,,4000
+101,PYC,PV,17,2024-03-31,PAY-17,40809,Salaries & Staff Benefits,Trading,Sales,Last year payroll,1000,
+101,PYC,PV,17,2024-03-31,PAY-17,12291,Cash at Bank,Trading,Sales,Last year payroll,,1000
+101,CYC,SI,1,2025-01-15,INV-1,30611,Gross Sales,Trading,Sales,Sale to Customer A,,10000
+101,CYC,SI,1,2025-01-15,INV-1,10251,Trade Account Receivable,Trading,Sales,Sale to Customer A,10000,
+101,CYC,JV,5,2025-01-15,COGS-5,40711,Cost of Sales,,,Cost of INV-1,6000,
+101,CYC,JV,5,2025-01-15,COGS-5,10215,Inventories,,,Cost of INV-1,,6000
+101,CYC,PV,7,2025-01-31,PAY-7,40809,Salaries & Staff Benefits,Trading,Sales,January payroll,2000,
+101,CYC,PV,7,2025-01-31,PAY-7,12291,Cash at Bank,Trading,Sales,January payroll,,2000
+101,CYC,SI,2,2025-02-10,INV-2,30611,Gross Sales,Trading,Sales,Sale to Customer B,,5000
+101,CYC,SI,2,2025-02-10,INV-2,10251,Trade Account Receivable,Trading,Sales,Sale to Customer B,5000,
+102,CYC,JV,11,2025-02-15,JV-11,40999,New GL account,Retail,Finance,Posted to an account finance has not mapped,700,
+102,CYC,JV,11,2025-02-15,JV-11,12291,Cash at Bank,Retail,Finance,Posted to an account finance has not mapped,,700
+101,CYC,CN,4,2025-02-20,CN-4,30641,Discounts,Trading,Sales,Discount on INV-2,500,
+101,CYC,CN,4,2025-02-20,CN-4,10251,Trade Account Receivable,Trading,Sales,Discount on INV-2,,500
+102,CYC,PV,8,2025-02-28,PAY-8,40809,Salaries & Staff Benefits,Retail,Finance,February payroll,1500,
+102,CYC,PV,8,2025-02-28,PAY-8,12291,Cash at Bank,Retail,Finance,February payroll,,1500
+102,CYC,SI,3,2025-03-05,INV-3,30611,Gross Sales,Retail,Sales,Sale to Customer C,,8000
+102,CYC,SI,3,2025-03-05,INV-3,10251,Trade Account Receivable,Retail,Sales,Sale to Customer C,8000,
+102,CYC,JV,6,2025-03-05,COGS-6,40711,Cost of Sales,,,Cost of INV-3,4800,
+102,CYC,JV,6,2025-03-05,COGS-6,10215,Inventories,,,Cost of INV-3,,4800
+101,CYC,PV,10,2025-03-15,REF-10,40809,Salaries & Staff Benefits,Trading,Sales,Payroll refund,,300
+101,CYC,PV,10,2025-03-15,REF-10,12291,Cash at Bank,Trading,Sales,Payroll refund,300,
+101,CYU,SI,12,2025-03-20,INV-12,30611,Gross Sales,Trading,Sales,Unposted sale,,99999
+101,CYU,SI,12,2025-03-20,INV-12,10251,Trade Account Receivable,Trading,Sales,Unposted sale,99999,
+102,CYU,PV,13,2025-03-25,PAY-13,40809,Salaries & Staff Benefits,Retail,Finance,Unposted payroll,55555,
+102,CYU,PV,13,2025-03-25,PAY-13,12291,Cash at Bank,Retail,Finance,Unposted payroll,,55555
+101,CYC,PV,9,2025-03-31,RENT-9,40814,Rents & Rates,Trading,,Q1 rent,1200,
+101,CYC,PV,9,2025-03-31,RENT-9,12291,Cash at Bank,Trading,,Q1 rent,,1200
+101,CYC,SI,14,2025-04-02,INV-14,30611,Gross Sales,Trading,Sales,April sale,,3000
+101,CYC,SI,14,2025-04-02,INV-14,10251,Trade Account Receivable,Trading,Sales,April sale,3000,

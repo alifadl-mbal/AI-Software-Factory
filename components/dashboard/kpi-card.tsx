@@ -26,6 +26,8 @@ export interface KpiCardProps {
   spark?: number[];
   /** One short line under the value. */
   hint?: string;
+  /** For costs: a rise is coloured as bad and a fall as good. The arrow still shows the direction. */
+  lowerIsBetter?: boolean;
 }
 
 const SPARK_CONFIG = { value: { label: "Value", color: "var(--chart-1)" } } satisfies ChartConfig;
@@ -39,6 +41,7 @@ export function KpiCard({
   delta = "pct",
   spark,
   hint,
+  lowerIsBetter = false,
 }: KpiCardProps) {
   const change =
     previous === undefined
@@ -56,6 +59,8 @@ export function KpiCard({
         : change < -0.0005
           ? "down"
           : "flat";
+  const good = lowerIsBetter ? direction === "down" : direction === "up";
+  const bad = lowerIsBetter ? direction === "up" : direction === "down";
   const fullFormat = format === "aedCompact" ? "aed" : format;
   const Arrow = direction === "up" ? ArrowUpRight : direction === "down" ? ArrowDownRight : Minus;
   const changeText =
@@ -81,8 +86,8 @@ export function KpiCard({
             <span
               className={cn(
                 "tabular inline-flex items-center gap-0.5 rounded-md px-1.5 py-0.5 font-medium",
-                direction === "up" && "bg-positive/12 text-positive",
-                direction === "down" && "bg-negative/12 text-negative",
+                good && "bg-positive/12 text-positive",
+                bad && "bg-negative/12 text-negative",
                 direction === "flat" && "bg-muted text-muted-foreground",
               )}
             >

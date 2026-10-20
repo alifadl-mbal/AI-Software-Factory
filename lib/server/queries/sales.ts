@@ -22,14 +22,22 @@ import type { Query } from "../types";
  *   this leaves out the zero-value delivery notes.
  * - Blank dimension values show as 'Unassigned' and are never dropped.
  *
- * Every query takes an optional customer code (`CSL_CUST_CODE`, the code space of
- * `ZF_CUSTOMER.CUST_CODE`) for the customer page. Without one the SQL is exactly the dashboard's.
+ * - Quantity = `SUM(CSL_QTY)` over the same rows, signed (negative on returns). A delivery note
+ *   carries the quantity and the invoice raised from it carries none (`INP`, `INID`, `CIN`, `LSIN`
+ *   lines have `CSL_QTY = 0` on live Orion), so nothing is counted twice. It only means something
+ *   for one item; the dashboards don't show it.
+ *
+ * Every query takes an optional scope for the detail pages: a customer code (`CSL_CUST_CODE`, the
+ * code space of `ZF_CUSTOMER.CUST_CODE`) for the customer page, an item code (`CSL_ITEM_CODE`, the
+ * code space of `ZF_ITEM.IM_ITEM_CODE`) for the item page. Without one the SQL filters on nothing
+ * more than the dashboard's.
  */
 
 const VIEW = "MBALI.ZF_CSL_BI";
 const DATE_COLUMN = "CSL_DATE";
 const COMPANY_COLUMN = "CSL_COMP_CODE";
 const CUSTOMER_COLUMN = "CSL_CUST_CODE";
+const ITEM_COLUMN = "CSL_ITEM_CODE";
 const REVENUE_TXN_TYPES = "CSL_TXN_TYPE IN ('INV', 'SARTN')";
 const NET_VALUE = "NVL(CSL_NET_SL_VALUE, 0)";
 const COST_VALUE = "NVL(CSL_WAC_VALUE, 0)";
@@ -37,6 +45,7 @@ const COST_VALUE = "NVL(CSL_WAC_VALUE, 0)";
 const MEASURES = `
     SUM(${NET_VALUE}) AS net_revenue,
     SUM(${COST_VALUE}) AS cost,
+    SUM(NVL(CSL_QTY, 0)) AS quantity,
     SUM(CASE WHEN CSL_TXN_TYPE = 'SARTN' THEN ${NET_VALUE} ELSE 0 END) AS returns_value,
     COUNT(DISTINCT CASE WHEN CSL_TXN_TYPE = 'INV' AND ${NET_VALUE} <> 0
         THEN CSL_COMP_CODE || '-' || CSL_TXN_CODE || '-' || CSL_NO END) AS invoice_count`;
@@ -54,6 +63,12 @@ export type Dimension = keyof typeof DIMENSIONS;
 
 export const TOP_N = 20;
 
+/**
+ * Narrows a query to one customer and/or one item. A plain string is a customer code, as the
+ * customer page passes it.
+ */
+export type SalesScope = string | { customer?: string; item?: string };
+
 export interface SalesKpis {
   netRevenue: number;
   cost: number;
@@ -63,6 +78,8 @@ export interface SalesKpis {
   /** Negative: returns reduce revenue. */
   returnsValue: number;
   invoiceCount: number;
+  /** Units sold less units returned; only meaningful for one item. */
+  quantity: number;
 }
 
 export interface SalesMonth extends SalesKpis {
@@ -70,24 +87,33 @@ export interface SalesMonth extends SalesKpis {
   month: string;
   /** Net revenue of the same month a year earlier. */
   lastYearNetRevenue: number;
+  /** Quantity of the same month a year earlier. */
+  lastYearQuantity: number;
 }
 
 export interface BreakdownRow {
   label: string;
+  /** Units sold less units returned; only meaningful within one item. */
+  quantity: number;
   netRevenue: number;
   grossMargin: number;
   marginPct: number | null;
 }
 
-function where(filters: Filters, customer?: string): ReturnType<typeof filterWhere> {
+function where(filters: Filters, scope?: SalesScope): ReturnType<typeof filterWhere> {
   const fragment = filterWhere(filters, DATE_COLUMN, COMPANY_COLUMN);
-  if (customer === undefined) {
-    return { sql: `${REVENUE_TXN_TYPES} AND ${fragment.sql}`, binds: fragment.binds };
+  const { customer, item } = typeof scope === "string" ? { customer: scope, item: undefined } : (scope ?? {});
+  const clauses = [REVENUE_TXN_TYPES, fragment.sql];
+  const binds = { ...fragment.binds };
+  if (customer !== undefined) {
+    clauses.push(`${CUSTOMER_COLUMN} = :cust_code`);
+    binds.cust_code = customer;
   }
-  return {
-    sql: `${REVENUE_TXN_TYPES} AND ${fragment.sql} AND ${CUSTOMER_COLUMN} = :cust_code`,
-    binds: { ...fragment.binds, cust_code: customer },
-  };
+  if (item !== undefined) {
+    clauses.push(`${ITEM_COLUMN} = :item_code`);
+    binds.item_code = item;
+  }
+  return { sql: clauses.join(" AND "), binds };
 }
 
 function toKpis(row: Record<string, unknown> | undefined): SalesKpis {
@@ -101,16 +127,17 @@ function toKpis(row: Record<string, unknown> | undefined): SalesKpis {
     marginPct: netRevenue ? grossMargin / netRevenue : null,
     returnsValue: num(row?.returns_value),
     invoiceCount: num(row?.invoice_count),
+    quantity: num(row?.quantity),
   };
 }
 
-export function kpiQuery(filters: Filters, customer?: string): Query {
-  const { sql, binds } = where(filters, customer);
+export function kpiQuery(filters: Filters, scope?: SalesScope): Query {
+  const { sql, binds } = where(filters, scope);
   return { sql: `SELECT${MEASURES}\nFROM ${VIEW}\nWHERE ${sql}`, binds };
 }
 
-export function monthlyQuery(filters: Filters, customer?: string): Query {
-  const { sql, binds } = where(filters, customer);
+export function monthlyQuery(filters: Filters, scope?: SalesScope): Query {
+  const { sql, binds } = where(filters, scope);
   return {
     sql: `
 SELECT TO_CHAR(${DATE_COLUMN}, 'YYYY-MM') AS sales_month,${MEASURES}
@@ -127,12 +154,13 @@ export function breakdownQuery(
   filters: Filters,
   dimension: Dimension,
   topN?: number,
-  customer?: string,
+  scope?: SalesScope,
 ): Query {
   const label = labelOrUnassigned(DIMENSIONS[dimension]);
-  const { sql, binds } = where(filters, customer);
+  const { sql, binds } = where(filters, scope);
   const grouped = `
-SELECT ${label} AS label, SUM(${NET_VALUE}) AS net_revenue, SUM(${COST_VALUE}) AS cost
+SELECT ${label} AS label, SUM(${NET_VALUE}) AS net_revenue, SUM(${COST_VALUE}) AS cost,
+    SUM(NVL(CSL_QTY, 0)) AS quantity
 FROM ${VIEW}
 WHERE ${sql}
 GROUP BY ${label}`;
@@ -143,11 +171,12 @@ GROUP BY ${label}`;
   // expression that contains a bind variable (ORA-00979).
   return {
     sql: `
-SELECT bucket AS label, SUM(net_revenue) AS net_revenue, SUM(cost) AS cost, MIN(rn) AS sort_order
+SELECT bucket AS label, SUM(net_revenue) AS net_revenue, SUM(cost) AS cost, SUM(quantity) AS quantity,
+    MIN(rn) AS sort_order
 FROM (
-    SELECT CASE WHEN rn <= :top_n THEN label ELSE '${ALL_OTHER}' END AS bucket, net_revenue, cost, rn
+    SELECT CASE WHEN rn <= :top_n THEN label ELSE '${ALL_OTHER}' END AS bucket, net_revenue, cost, quantity, rn
     FROM (
-        SELECT label, net_revenue, cost, ROW_NUMBER() OVER (ORDER BY net_revenue DESC, label) AS rn
+        SELECT label, net_revenue, cost, quantity, ROW_NUMBER() OVER (ORDER BY net_revenue DESC, label) AS rn
         FROM (${grouped}
         ) grouped
     ) ranked
@@ -158,9 +187,9 @@ ORDER BY sort_order`,
   };
 }
 
-/** Headline figures for the period, of one customer if `customer` is given. */
-export async function salesKpis(filters: Filters, customer?: string): Promise<SalesKpis> {
-  const [row] = await run(kpiQuery(filters, customer));
+/** Headline figures for the period, narrowed to one customer or item by `scope`. */
+export async function salesKpis(filters: Filters, scope?: SalesScope): Promise<SalesKpis> {
+  const [row] = await run(kpiQuery(filters, scope));
   return toKpis(row);
 }
 
@@ -168,19 +197,18 @@ export async function salesKpis(filters: Filters, customer?: string): Promise<Sa
  * Every month of the period with its figures, and net revenue of the same month a year earlier.
  * Months without sales are zeros.
  */
-export async function salesMonthly(filters: Filters, customer?: string): Promise<SalesMonth[]> {
+export async function salesMonthly(filters: Filters, scope?: SalesScope): Promise<SalesMonth[]> {
   const [current, previous] = await Promise.all([
-    run(monthlyQuery(filters, customer)),
-    run(monthlyQuery(previousYear(filters), customer)),
+    run(monthlyQuery(filters, scope)),
+    run(monthlyQuery(previousYear(filters), scope)),
   ]);
   const byMonth = new Map(current.map((row) => [String(row.sales_month), row]));
-  const lastYear = new Map(
-    previous.map((row) => [shiftMonth(String(row.sales_month), 1), num(row.net_revenue)]),
-  );
+  const lastYear = new Map(previous.map((row) => [shiftMonth(String(row.sales_month), 1), row]));
   return monthsInRange(filters.start, filters.end).map((month) => ({
     month,
     ...toKpis(byMonth.get(month)),
-    lastYearNetRevenue: lastYear.get(month) ?? 0,
+    lastYearNetRevenue: num(lastYear.get(month)?.net_revenue),
+    lastYearQuantity: num(lastYear.get(month)?.quantity),
   }));
 }
 
@@ -189,14 +217,15 @@ export async function salesBreakdown(
   filters: Filters,
   dimension: Dimension,
   topN?: number,
-  customer?: string,
+  scope?: SalesScope,
 ): Promise<BreakdownRow[]> {
-  const rows = await run(breakdownQuery(filters, dimension, topN, customer));
+  const rows = await run(breakdownQuery(filters, dimension, topN, scope));
   return rows.map((row) => {
     const netRevenue = num(row.net_revenue);
     const grossMargin = netRevenue - num(row.cost);
     return {
       label: String(row.label),
+      quantity: num(row.quantity),
       netRevenue,
       grossMargin,
       marginPct: netRevenue ? grossMargin / netRevenue : null,

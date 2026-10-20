@@ -56,6 +56,10 @@ import { agingBinds, bucketCase } from "./ar-ap";
  * - **Customer codes:** `H_CUST_CODE` is the code space of `ZF_CUSTOMER.CUST_CODE`: every code
  *   on orders since 2025 is in the master, under the same name. The customer page narrows the book
  *   with it.
+ * - **Item codes:** `D_ITEM_CODE` is the code space of `ZF_ITEM.IM_ITEM_CODE`: every code on orders
+ *   since 2025 is in the master. `D_ITEM_DESC` is the line's own text and differs from the master
+ *   name on many lines, so the item page shows the master name. The item page narrows the book with
+ *   the code.
  *
  * The open book is **as of today** and follows only the company filter; "booked" figures follow
  * both filters. Order age uses the shared ladder in `lib/aging.ts` on `H_DT`, with the cut-offs
@@ -94,12 +98,19 @@ export function pendingValue(netValue: number, orderedQty: number, deliveredQty:
  * not-invoiced quantity and value, currency flag, expected delivery (`YYYY-MM-DD`) and age bucket.
  * Aggregation happens outside: Oracle rejects a GROUP BY on an expression with a bind (ORA-00979).
  */
+/** Narrows the book to one customer (`H_CUST_CODE`) and/or one item (`D_ITEM_CODE`). */
+export interface BookScope {
+  customer?: string;
+  item?: string;
+}
+
 function bookLines(
   companies: readonly string[],
   today: string,
   columns: string[] = [],
-  customer?: string,
+  scope: string | BookScope = {},
 ): Query {
+  const { customer, item } = typeof scope === "string" ? { customer: scope, item: undefined } : scope;
   const company = companyWhere(companies, "H_COMP_CODE");
   // Order age has no "over 90 days" figure; an unused bind is an error on both sources.
   const ageBinds = Object.fromEntries(
@@ -122,8 +133,13 @@ function bookLines(
     WHERE ${NOT_CLOSED} AND D_QTY > 0
       AND (${PENDING_QTY} > 0 OR ${UNINVOICED_QTY} > 0)${company ? `\n      AND ${company.sql}` : ""}${
         customer === undefined ? "" : `\n      AND H_CUST_CODE = :cust_code`
-      }`,
-    binds: { ...ageBinds, ...company?.binds, ...(customer !== undefined && { cust_code: customer }) },
+      }${item === undefined ? "" : `\n      AND D_ITEM_CODE = :item_code`}`,
+    binds: {
+      ...ageBinds,
+      ...company?.binds,
+      ...(customer !== undefined && { cust_code: customer }),
+      ...(item !== undefined && { item_code: item }),
+    },
   };
 }
 
@@ -196,6 +212,7 @@ export interface OpenLine {
   orderDate: string;
   customer: string;
   salesperson: string;
+  itemCode: string;
   item: string;
   orderedQty: number;
   deliveredQty: number;
@@ -207,9 +224,9 @@ export interface OpenLine {
   daysOverdue: number | null;
 }
 
-/** With `customer`, only that customer's orders (`H_CUST_CODE`). */
-export function openKpiQuery(companies: readonly string[], today: string, customer?: string): Query {
-  const lines = bookLines(companies, today, [], customer);
+/** With `scope`, only that customer's (`H_CUST_CODE`) or item's (`D_ITEM_CODE`) orders. */
+export function openKpiQuery(companies: readonly string[], today: string, scope?: string | BookScope): Query {
+  const lines = bookLines(companies, today, [], scope);
   return {
     sql: `
 SELECT
@@ -279,9 +296,13 @@ export function openByCustomerQuery(
   return foldTopN(grouped, lines.binds, topN);
 }
 
-export function openByCurrencyQuery(companies: readonly string[], today: string, customer?: string): Query {
+export function openByCurrencyQuery(
+  companies: readonly string[],
+  today: string,
+  scope?: string | BookScope,
+): Query {
   const OPEN_OTHER = "pend_qty > 0 AND is_aed = 0";
-  const lines = bookLines(companies, today, [`${labelOrUnassigned("H_CURR_CODE")} AS currency`], customer);
+  const lines = bookLines(companies, today, [`${labelOrUnassigned("H_CURR_CODE")} AS currency`], scope);
   return {
     sql: `
 SELECT currency, SUM(CASE WHEN ${OPEN_OTHER} THEN 1 ELSE 0 END) AS line_count,
@@ -295,12 +316,12 @@ ORDER BY line_count DESC, currency`,
   };
 }
 
-/** The largest open AED lines by pending value, at most `limit`; with `customer`, only theirs. */
+/** The largest open AED lines by pending value, at most `limit`; with `scope`, only those. */
 export function openLinesQuery(
   companies: readonly string[],
   today: string,
   limit = OPEN_ROW_LIMIT,
-  customer?: string,
+  scope?: string | BookScope,
 ): Query {
   const lines = bookLines(
     companies,
@@ -313,16 +334,17 @@ export function openLinesQuery(
       "TO_CHAR(H_DT, 'YYYY-MM-DD') AS order_date",
       `${labelOrUnassigned("H_CUST_NAME")} AS customer`,
       `${labelOrUnassigned("H_SM_NAME")} AS salesperson`,
+      "D_ITEM_CODE AS item_code",
       "COALESCE(NULLIF(TRIM(D_ITEM_DESC), ''), D_ITEM_CODE) AS item",
       "D_QTY AS ordered_qty",
       "NVL(D_DELIVERED_QTY, 0) AS delivered_qty",
       "NVL(D_INVOICED_QTY, 0) AS invoiced_qty",
       "H_DEL_DT AS del_text",
     ],
-    customer,
+    scope,
   );
   const columns =
-    "company_code, cust_code, txn_code, txn_no, order_date, customer, salesperson, item, ordered_qty, delivered_qty, invoiced_qty, del_text, pend_value";
+    "company_code, cust_code, txn_code, txn_no, order_date, customer, salesperson, item_code, item, ordered_qty, delivered_qty, invoiced_qty, del_text, pend_value";
   return {
     sql: `
 SELECT ${columns}
@@ -348,9 +370,9 @@ function text(value: unknown): string {
 export async function openBookKpis(
   companies: readonly string[],
   today: string,
-  customer?: string,
+  scope?: string | BookScope,
 ): Promise<OpenBookKpis> {
-  const [row] = await run(openKpiQuery(companies, today, customer));
+  const [row] = await run(openKpiQuery(companies, today, scope));
   return {
     openValue: num(row?.open_value),
     openOrders: num(row?.open_orders),
@@ -389,9 +411,9 @@ export function openByCustomer(companies: readonly string[], today: string, topN
 export async function openByCurrency(
   companies: readonly string[],
   today: string,
-  customer?: string,
+  scope?: string | BookScope,
 ): Promise<CurrencyBook[]> {
-  const rows = await run(openByCurrencyQuery(companies, today, customer));
+  const rows = await run(openByCurrencyQuery(companies, today, scope));
   return rows.map((row) => ({
     currency: String(row.currency),
     lines: num(row.line_count),
@@ -403,9 +425,9 @@ export async function openLines(
   companies: readonly string[],
   today: string,
   limit = OPEN_ROW_LIMIT,
-  customer?: string,
+  scope?: string | BookScope,
 ): Promise<OpenLine[]> {
-  const rows = await run(openLinesQuery(companies, today, limit, customer));
+  const rows = await run(openLinesQuery(companies, today, limit, scope));
   return rows.map((row) => {
     const expectedDate = parseOrionDate(row.del_text);
     const overdue = expectedDate === null ? null : daysBetween(expectedDate, today);
@@ -416,6 +438,7 @@ export async function openLines(
       orderDate: String(row.order_date),
       customer: String(row.customer),
       salesperson: String(row.salesperson),
+      itemCode: text(row.item_code),
       item: text(row.item),
       orderedQty: num(row.ordered_qty),
       deliveredQty: num(row.delivered_qty),
@@ -425,6 +448,115 @@ export async function openLines(
       daysOverdue: overdue !== null && overdue > 0 ? overdue : null,
     };
   });
+}
+
+/** The item page lists at most this many of an item's open lines (the largest quantity first). */
+export const ITEM_OPEN_ROW_LIMIT = 200;
+
+export interface ItemOpenLine {
+  companyCode: string;
+  customerCode: string;
+  customer: string;
+  orderNumber: string;
+  /** YYYY-MM-DD. */
+  orderDate: string;
+  currency: string;
+  orderedQty: number;
+  deliveredQty: number;
+  /** Still to deliver. */
+  pendingQty: number;
+  /** In the order's currency. */
+  pendingValue: number;
+  /** YYYY-MM-DD; `null` if Orion's text date can't be read. */
+  expectedDate: string | null;
+  daysOverdue: number | null;
+}
+
+export interface ItemOpenBook {
+  /** Every open line of the item (something left to deliver), in any currency. */
+  lines: number;
+  pendingQty: number;
+  /** The largest by quantity still to deliver, at most {@link ITEM_OPEN_ROW_LIMIT}. */
+  rows: ItemOpenLine[];
+}
+
+/**
+ * One item's open order lines with something left to deliver, in any currency (a quantity adds up
+ * whatever the currency), largest quantity first, with the totals of all of them on every row. Same
+ * book as the Sales orders page: Closed orders are out.
+ */
+export function itemOpenLinesQuery(
+  companies: readonly string[],
+  today: string,
+  item: string,
+  limit = ITEM_OPEN_ROW_LIMIT,
+): Query {
+  const lines = bookLines(
+    companies,
+    today,
+    [
+      "H_COMP_CODE AS company_code",
+      "H_CUST_CODE AS cust_code",
+      `${labelOrUnassigned("H_CUST_NAME")} AS customer`,
+      "H_TXN_CODE AS txn_code",
+      "H_TXN_NO AS txn_no",
+      "TO_CHAR(H_DT, 'YYYY-MM-DD') AS order_date",
+      `${labelOrUnassigned("H_CURR_CODE")} AS currency`,
+      "D_QTY AS ordered_qty",
+      "NVL(D_DELIVERED_QTY, 0) AS delivered_qty",
+      "H_DEL_DT AS del_text",
+    ],
+    { item },
+  );
+  const columns =
+    "company_code, cust_code, customer, txn_code, txn_no, order_date, currency, ordered_qty, delivered_qty, del_text, pend_qty, pend_value";
+  return {
+    sql: `
+SELECT ${columns}, total_lines, total_qty
+FROM (
+    SELECT ${columns},
+        ROW_NUMBER() OVER (ORDER BY pend_qty DESC, order_date, company_code, txn_code, txn_no) AS rn,
+        COUNT(*) OVER () AS total_lines,
+        SUM(pend_qty) OVER () AS total_qty
+    FROM (${lines.sql}
+    ) book
+    WHERE pend_qty > 0
+) ranked
+WHERE rn <= :row_limit
+ORDER BY rn`,
+    binds: { ...lines.binds, row_limit: limit },
+  };
+}
+
+export async function itemOpenBook(
+  companies: readonly string[],
+  today: string,
+  item: string,
+  limit = ITEM_OPEN_ROW_LIMIT,
+): Promise<ItemOpenBook> {
+  const rows = await run(itemOpenLinesQuery(companies, today, item, limit));
+  return {
+    lines: num(rows[0]?.total_lines),
+    pendingQty: num(rows[0]?.total_qty),
+    rows: rows.map((row) => {
+      const expectedDate = parseOrionDate(row.del_text);
+      const overdue = expectedDate === null ? null : daysBetween(expectedDate, today);
+      return {
+        companyCode: String(row.company_code),
+        customerCode: text(row.cust_code),
+        customer: String(row.customer),
+        orderNumber: `${text(row.txn_code)}-${text(row.txn_no)}`,
+        orderDate: String(row.order_date),
+        currency: String(row.currency),
+        orderedQty: num(row.ordered_qty),
+        deliveredQty: num(row.delivered_qty),
+        pendingQty: num(row.pend_qty),
+        pendingValue: num(row.pend_value),
+        expectedDate,
+        daysOverdue: overdue !== null && overdue > 0 ? overdue : null,
+      };
+    }),
+  };
 }
 
 // ---------------------------------------------------------------------------------------------

@@ -10,6 +10,18 @@ function companyWhere(companyCodes: readonly string[], companyColumn: string): {
   return companyFilter(companyCodes, companyColumn) ?? { sql: "1 = 1", binds: {} };
 }
 
+/** The company filter, narrowed to one item code when the item page passes one. */
+function scopeWhere(
+  companyCodes: readonly string[],
+  companyColumn: string,
+  item: string | undefined,
+  itemColumn: string,
+): { sql: string; binds: Binds } {
+  const where = companyWhere(companyCodes, companyColumn);
+  if (item === undefined) return where;
+  return { sql: `${where.sql} AND ${itemColumn} = :item_code`, binds: { ...where.binds, item_code: item } };
+}
+
 /**
  * Inventory dashboard queries on three Orion views:
  *
@@ -31,6 +43,9 @@ function companyWhere(companyCodes: readonly string[], companyColumn: string): {
  *   month is its closing qty minus the previous month's closing qty. The current month keeps
  *   receiving adjustments and is shown as provisional.
  * - The date filter doesn't apply: live stock is as of today, the trend is the last 24 periods.
+ *
+ * The month-end trend and reorder alerts take an optional item code (`ZSL_ITEM_CODE`, `CS_ITEM_CODE`:
+ * the code space of `ZF_ITEM.IM_ITEM_CODE`) for the item page; without one the SQL is the dashboard's.
  */
 
 const STOCK = "MBALI.ZF_CURR_STK_BI";
@@ -103,6 +118,8 @@ export interface MonthEnd {
   /** `YYYY-MM`. */
   month: string;
   closeValue: number;
+  /** Only meaningful for one item. */
+  closeQty: number;
   /** Part of `closeValue` on lines with a negative closing quantity (so a negative amount). */
   negativeValue: number;
   negativeLines: number;
@@ -215,12 +232,18 @@ ORDER BY sort_order`,
  * Closing stock value of the newest `periods` periods as of `today`, oldest first, with the part of
  * it on lines with a negative closing quantity (month-end stock can go below zero; live stock can't).
  */
-export function monthEndQuery(companyCodes: string[], today: string, periods = TREND_PERIODS): Query {
-  const where = companyWhere(companyCodes, "z.ZSL_COMP_CODE");
+export function monthEndQuery(
+  companyCodes: string[],
+  today: string,
+  periods = TREND_PERIODS,
+  item?: string,
+): Query {
+  const where = scopeWhere(companyCodes, "z.ZSL_COMP_CODE", item, "z.ZSL_ITEM_CODE");
   return {
     sql: `
 WITH ${RANKED_PERIODS}
 SELECT z.ZSL_PERIOD AS period, SUM(NVL(z.ZSL_CLOSE_VAL, 0)) AS close_value,
+    SUM(NVL(z.ZSL_CLOSE_QTY, 0)) AS close_qty,
     SUM(CASE WHEN z.ZSL_CLOSE_QTY < 0 THEN NVL(z.ZSL_CLOSE_VAL, 0) ELSE 0 END) AS negative_value,
     SUM(CASE WHEN z.ZSL_CLOSE_QTY < 0 THEN 1 ELSE 0 END) AS negative_lines
 FROM ${CLOSING} z
@@ -290,8 +313,8 @@ ORDER BY row_num`,
  * Active items at or below their reorder level, per company × location × item (grades added
  * together). Only items with a reorder level above zero alert.
  */
-export function reorderAlertsQuery(companyCodes: string[]): Query {
-  const where = companyWhere(companyCodes, "s.CS_COMP_CODE");
+export function reorderAlertsQuery(companyCodes: string[], item?: string): Query {
+  const where = scopeWhere(companyCodes, "s.CS_COMP_CODE", item, "s.CS_ITEM_CODE");
   return {
     // A LEFT JOIN like everywhere else; the WHERE on the item columns then keeps only matched,
     // active items, which is right here: an item with no master row has no reorder level.
@@ -306,6 +329,38 @@ WHERE i.IM_FRZ_FLAG = 'Active' AND i.IM_RORD_LVL > 0 AND ${where.sql}
 GROUP BY s.CS_COMP_CODE, s.CS_LOCN_CODE, s.CS_ITEM_CODE
 HAVING SUM(${AVAILABLE_QTY}) <= MAX(i.IM_RORD_LVL)
 ORDER BY SUM(${AVAILABLE_QTY}) - MAX(i.IM_RORD_LVL), s.CS_COMP_CODE, s.CS_LOCN_CODE, s.CS_ITEM_CODE`,
+    binds: where.binds,
+  };
+}
+
+export interface StockLocation {
+  companyCode: string;
+  company: string;
+  locationCode: string;
+  location: string;
+  qty: number;
+  availableQty: number;
+  reservedQty: number;
+  value: number;
+  availableValue: number;
+  reservedValue: number;
+}
+
+/**
+ * One item's live stock per company × location (grades added together), with the same quantity
+ * and value rules as the dashboard's KPIs, so its rows add up to the item's share of them.
+ */
+export function stockByLocationQuery(companyCodes: string[], item: string): Query {
+  const where = scopeWhere(companyCodes, "s.CS_COMP_CODE", item, "s.CS_ITEM_CODE");
+  return {
+    sql: `
+SELECT s.CS_COMP_CODE AS comp_code, s.CS_LOCN_CODE AS locn_code, MAX(s.CS_LOCN_NAME) AS locn_name,
+    SUM(${TOTAL_QTY}) AS total_qty, SUM(${AVAILABLE_QTY}) AS available_qty,
+    SUM(${STOCK_VALUE}) AS stock_value, SUM(${AVAILABLE_VALUE}) AS available_value
+FROM ${STOCK} s
+WHERE ${where.sql}
+GROUP BY s.CS_COMP_CODE, s.CS_LOCN_CODE
+ORDER BY SUM(${STOCK_VALUE}) DESC, s.CS_COMP_CODE, s.CS_LOCN_CODE`,
     binds: where.binds,
   };
 }
@@ -346,11 +401,13 @@ export async function monthEndTrend(
   companyCodes: string[],
   today: string,
   periods = TREND_PERIODS,
+  item?: string,
 ): Promise<MonthEnd[]> {
-  const rows = await run(monthEndQuery(companyCodes, today, periods));
+  const rows = await run(monthEndQuery(companyCodes, today, periods, item));
   return rows.map((row) => ({
     month: periodToMonth(row.period),
     closeValue: num(row.close_value),
+    closeQty: num(row.close_qty),
     negativeValue: num(row.negative_value),
     negativeLines: num(row.negative_lines),
   }));
@@ -383,8 +440,8 @@ export async function deadStock(
   };
 }
 
-export async function reorderAlerts(companyCodes: string[]): Promise<ReorderAlert[]> {
-  const [rows, names] = await Promise.all([run(reorderAlertsQuery(companyCodes)), companyNames()]);
+export async function reorderAlerts(companyCodes: string[], item?: string): Promise<ReorderAlert[]> {
+  const [rows, names] = await Promise.all([run(reorderAlertsQuery(companyCodes, item)), companyNames()]);
   return rows.map((row) => ({
     companyCode: String(row.comp_code),
     company: names.get(String(row.comp_code)) ?? String(row.comp_code),
@@ -396,4 +453,27 @@ export async function reorderAlerts(companyCodes: string[]): Promise<ReorderAler
     reorderLevel: num(row.reorder_level),
     reorderQty: num(row.reorder_qty),
   }));
+}
+
+/** One item's live stock per company × location, largest value first; companies by name. */
+export async function stockByLocation(companyCodes: string[], item: string): Promise<StockLocation[]> {
+  const [rows, names] = await Promise.all([run(stockByLocationQuery(companyCodes, item)), companyNames()]);
+  return rows.map((row) => {
+    const qty = num(row.total_qty);
+    const availableQty = num(row.available_qty);
+    const value = num(row.stock_value);
+    const availableValue = num(row.available_value);
+    return {
+      companyCode: String(row.comp_code),
+      company: names.get(String(row.comp_code)) ?? String(row.comp_code),
+      locationCode: String(row.locn_code),
+      location: row.locn_name ? String(row.locn_name) : String(row.locn_code),
+      qty,
+      availableQty,
+      reservedQty: qty - availableQty,
+      value,
+      availableValue,
+      reservedValue: value - availableValue,
+    };
+  });
 }

@@ -202,6 +202,7 @@ describe("open lines table", () => {
       orderDate: "2025-01-15",
       customer: "Customer C",
       salesperson: UNASSIGNED,
+      itemCode: "I4",
       item: "Item Four",
       orderedQty: 2,
       deliveredQty: 0,

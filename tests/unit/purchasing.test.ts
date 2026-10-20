@@ -171,6 +171,7 @@ describe("overdue lines", () => {
       companyCode: "101",
       poNumber: "LPO-5002",
       supplier: "Supplier One",
+      itemCode: "I2",
       item: "Item Two",
       poDate: "2025-04-07",
       daysOpen: 84,

@@ -86,16 +86,26 @@ function bucketCase(today: string): { sql: string; binds: Binds } {
   return { sql: `CASE ${branches.join(" ")} ELSE '${last}' END`, binds };
 }
 
-function pendingWhere(companies: readonly string[]): { sql: string; binds: Binds } {
+/** With `item`, only that item's lines (`PO_ITEM_CODE`, the code space of `ZF_ITEM.IM_ITEM_CODE`). */
+function pendingWhere(companies: readonly string[], item?: string): { sql: string; binds: Binds } {
   const company = companyWhere(companies, "PO_COMP_CODE");
-  return company
-    ? { sql: `${PENDING_LINE} AND ${company.sql}`, binds: company.binds }
-    : { sql: PENDING_LINE, binds: {} };
+  const clauses = [PENDING_LINE, ...(company ? [company.sql] : [])];
+  const binds: Binds = { ...company?.binds };
+  if (item !== undefined) {
+    clauses.push("PO_ITEM_CODE = :item_code");
+    binds.item_code = item;
+  }
+  return { sql: clauses.join(" AND "), binds };
 }
 
 /** Pending lines with their value and bucket, as a subquery to aggregate over. */
-function pendingLines(companies: readonly string[], today: string, columns: string[] = []): Query {
-  const where = pendingWhere(companies);
+function pendingLines(
+  companies: readonly string[],
+  today: string,
+  columns: string[] = [],
+  item?: string,
+): Query {
+  const where = pendingWhere(companies, item);
   const bucket = bucketCase(today);
   return {
     sql: `
@@ -146,6 +156,7 @@ export interface OverdueLine {
   companyCode: string;
   poNumber: string;
   supplier: string;
+  itemCode: string;
   item: string;
   /** YYYY-MM-DD. */
   poDate: string;
@@ -214,15 +225,16 @@ export function overdueLinesQuery(
     "PO_TXN_CODE AS txn_code",
     "PO_TXN_NO AS txn_no",
     `${labelOrUnassigned("PO_SUPP_NAME")} AS supplier`,
+    "PO_ITEM_CODE AS item_code",
     "COALESCE(NULLIF(TRIM(PO_ITEM_DESC), ''), PO_ITEM_CODE) AS item",
     "TO_CHAR(PO_DATE, 'YYYY-MM-DD') AS po_date",
     "PO_PEND_QTY AS pend_qty",
   ]);
   return {
     sql: `
-SELECT company_code, txn_code, txn_no, supplier, item, po_date, pend_qty, pend_value
+SELECT company_code, txn_code, txn_no, supplier, item_code, item, po_date, pend_qty, pend_value
 FROM (
-    SELECT company_code, txn_code, txn_no, supplier, item, po_date, pend_qty, pend_value,
+    SELECT company_code, txn_code, txn_no, supplier, item_code, item, po_date, pend_qty, pend_value,
         ROW_NUMBER() OVER (ORDER BY pend_value DESC, po_date, company_code, txn_code, txn_no) AS rn
     FROM (${lines.sql}
     ) lines
@@ -284,6 +296,7 @@ export async function overdueLines(
       // TXN_NO is a NUMBER; format it here so no ".0" can creep in.
       poNumber: `${String(row.txn_code)}-${num(row.txn_no)}`,
       supplier: String(row.supplier),
+      itemCode: row.item_code === null || row.item_code === undefined ? "" : String(row.item_code),
       item: row.item === null || row.item === undefined ? "" : String(row.item),
       poDate,
       daysOpen: daysBetween(poDate, today),
@@ -292,6 +305,102 @@ export async function overdueLines(
       pendingValue: num(row.pend_value),
     };
   });
+}
+
+/** The item page lists at most this many of an item's pending lines (the largest quantity first). */
+export const ITEM_PO_ROW_LIMIT = 200;
+
+export interface ItemPendingLine {
+  companyCode: string;
+  poNumber: string;
+  supplier: string;
+  /** YYYY-MM-DD. */
+  poDate: string;
+  /** YYYY-MM-DD: PO date + {@link PO_LEAD_DAYS}, as on the Purchasing page. */
+  expectedDate: string;
+  /** Days past the expected date; `null` while it is on time. */
+  daysOverdue: number | null;
+  pendingQty: number;
+  pendingValue: number;
+}
+
+export interface ItemPending {
+  /** Every pending line of the item, not just the listed ones. */
+  lines: number;
+  pendingQty: number;
+  pendingValue: number;
+  /** The largest by pending quantity, at most {@link ITEM_PO_ROW_LIMIT}. */
+  rows: ItemPendingLine[];
+}
+
+/**
+ * One item's pending PO lines, largest quantity first, with the totals of all of them on every row
+ * (the same pending-line rule and value as the dashboard, so the value is the item's share of it).
+ */
+export function itemPendingQuery(
+  companies: readonly string[],
+  today: string,
+  item: string,
+  limit = ITEM_PO_ROW_LIMIT,
+): Query {
+  const lines = pendingLines(
+    companies,
+    today,
+    [
+      "PO_COMP_CODE AS company_code",
+      "PO_TXN_CODE AS txn_code",
+      "PO_TXN_NO AS txn_no",
+      `${labelOrUnassigned("PO_SUPP_NAME")} AS supplier`,
+      "TO_CHAR(PO_DATE, 'YYYY-MM-DD') AS po_date",
+      "PO_PEND_QTY AS pend_qty",
+    ],
+    item,
+  );
+  const columns = "company_code, txn_code, txn_no, supplier, po_date, pend_qty, pend_value";
+  return {
+    sql: `
+SELECT ${columns}, total_lines, total_qty, total_value
+FROM (
+    SELECT ${columns},
+        ROW_NUMBER() OVER (ORDER BY pend_qty DESC, po_date, company_code, txn_code, txn_no) AS rn,
+        COUNT(*) OVER () AS total_lines,
+        SUM(pend_qty) OVER () AS total_qty,
+        SUM(pend_value) OVER () AS total_value
+    FROM (${lines.sql}
+    ) lines
+) ranked
+WHERE rn <= :row_limit
+ORDER BY rn`,
+    binds: { ...lines.binds, row_limit: limit },
+  };
+}
+
+export async function itemPending(
+  companies: readonly string[],
+  today: string,
+  item: string,
+  limit = ITEM_PO_ROW_LIMIT,
+): Promise<ItemPending> {
+  const rows = await run(itemPendingQuery(companies, today, item, limit));
+  return {
+    lines: num(rows[0]?.total_lines),
+    pendingQty: num(rows[0]?.total_qty),
+    pendingValue: num(rows[0]?.total_value),
+    rows: rows.map((row) => {
+      const poDate = String(row.po_date);
+      const overdue = daysOverdue(poDate, today);
+      return {
+        companyCode: String(row.company_code),
+        poNumber: `${String(row.txn_code)}-${num(row.txn_no)}`,
+        supplier: String(row.supplier),
+        poDate,
+        expectedDate: addDays(poDate, PO_LEAD_DAYS),
+        daysOverdue: overdue >= 0 ? overdue : null,
+        pendingQty: num(row.pend_qty),
+        pendingValue: num(row.pend_value),
+      };
+    }),
+  };
 }
 
 // ---------------------------------------------------------------------------------------------

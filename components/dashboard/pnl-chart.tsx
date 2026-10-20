@@ -27,15 +27,24 @@ const CONFIG = {
 } satisfies ChartConfig;
 
 /** Monthly revenue (bars) with gross and net profit (lines). Losses dip below the zero line. */
-export function PnlChart({ data, height = 300 }: { data: PnlPoint[]; height?: number }) {
-  const hasLoss = data.some((point) => point.netProfit < 0 || point.grossProfit < 0);
+export function PnlChart({
+  data,
+  height = 300,
+  showGrossProfit = true,
+}: {
+  data: PnlPoint[];
+  height?: number;
+  /** False for a lighter chart of revenue and net profit only. */
+  showGrossProfit?: boolean;
+}) {
+  const hasLoss = data.some((point) => point.netProfit < 0 || (showGrossProfit && point.grossProfit < 0));
   return (
     <ChartContainer
       config={CONFIG}
       className="aspect-auto w-full"
       style={{ height }}
       role="img"
-      aria-label="Monthly revenue, gross profit and net profit"
+      aria-label={`Monthly revenue${showGrossProfit ? ", gross profit" : ""} and net profit`}
     >
       <ComposedChart data={data} margin={{ top: 8, right: 8, left: 4, bottom: 0 }}>
         <CartesianGrid vertical={false} strokeDasharray="3 3" />
@@ -65,14 +74,16 @@ export function PnlChart({ data, height = 300 }: { data: PnlPoint[]; height?: nu
         <ChartLegend content={<ChartLegendContent />} />
         {hasLoss && <ReferenceLine y={0} stroke="var(--muted-foreground)" strokeOpacity={0.6} />}
         <Bar dataKey="revenue" fill="var(--color-revenue)" radius={[4, 4, 0, 0]} maxBarSize={36} />
-        <Line
-          dataKey="grossProfit"
-          type="monotone"
-          stroke="var(--color-grossProfit)"
-          strokeWidth={2}
-          dot={{ r: 3, fill: "var(--color-grossProfit)", strokeWidth: 0 }}
-          activeDot={{ r: 5 }}
-        />
+        {showGrossProfit && (
+          <Line
+            dataKey="grossProfit"
+            type="monotone"
+            stroke="var(--color-grossProfit)"
+            strokeWidth={2}
+            dot={{ r: 3, fill: "var(--color-grossProfit)", strokeWidth: 0 }}
+            activeDot={{ r: 5 }}
+          />
+        )}
         <Line
           dataKey="netProfit"
           type="monotone"

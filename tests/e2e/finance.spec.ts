@@ -123,9 +123,13 @@ test.describe("mobile 390px", () => {
     await page.getByTestId("pnl-account").first().click();
     const drawer = page.getByRole("dialog");
     await expect(drawer.getByTestId("data-table")).toBeVisible();
-    const box = (await drawer.boundingBox())!;
-    expect(box.x).toBeGreaterThanOrEqual(0);
-    expect(box.x + box.width).toBeLessThanOrEqual(390);
+    // The panel slides in from the right: wait for it to settle before measuring.
+    await expect
+      .poll(async () => {
+        const box = (await drawer.boundingBox())!;
+        return box.x >= 0 && box.x + box.width <= 390;
+      })
+      .toBe(true);
     await drawer.getByRole("button", { name: "Close" }).click();
     const overflow = await page.evaluate(
       () => document.documentElement.scrollWidth - document.documentElement.clientWidth,

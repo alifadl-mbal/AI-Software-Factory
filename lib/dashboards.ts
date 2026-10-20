@@ -1,11 +1,4 @@
-import {
-  Landmark,
-  LayoutDashboard,
-  Scale,
-  ShoppingCart,
-  TrendingUp,
-  type LucideIcon,
-} from "lucide-react";
+import { Landmark, LayoutDashboard, Scale, ShoppingCart, TrendingUp, type LucideIcon } from "lucide-react";
 
 /**
  * The dashboard registry: the single list the sidebar and the Overview page are built from.

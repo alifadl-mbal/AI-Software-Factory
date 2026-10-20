@@ -13,6 +13,7 @@ import { DEFAULT_DEAD_STOCK_MONTHS } from "@/lib/server/queries/inventory";
 import {
   AreaGroup,
   ArOver90Attention,
+  OVERVIEW_ORDER_SCOPE,
   AttentionSkeleton,
   DeadStockAttention,
   FinanceTiles,
@@ -58,7 +59,7 @@ export default async function OverviewPage({ searchParams }: PageProps<"/">) {
         title="Overview"
         description="MBAL's headline figures from Orion, with a way into each dashboard."
         filters={filters}
-        note={`Stock, pending POs and AR/AP are as of today, ${formatDate(today)}, and follow only the company filter.`}
+        note={`Stock, pending POs and AR/AP are as of today, ${formatDate(today)}, and follow only the company filter. Pending POs count ${OVERVIEW_ORDER_SCOPE}, as on Purchasing.`}
       />
       <div className="flex flex-col gap-8">
         <section aria-labelledby="headline-heading" className="flex flex-col gap-4">
@@ -104,7 +105,7 @@ export default async function OverviewPage({ searchParams }: PageProps<"/">) {
               title={purchasing.title}
               icon={purchasing.icon}
               href={href(purchasing)}
-              caption={asOfCaption}
+              caption={`${asOfCaption} · ${OVERVIEW_ORDER_SCOPE}`}
             >
               <Suspense key={`purchasing${asOfKey}`} fallback={<KpiRowSkeleton count={2} grid={TILE_GRID} />}>
                 <PurchasingTiles {...asOf} />

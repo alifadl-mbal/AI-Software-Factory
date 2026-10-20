@@ -1,6 +1,7 @@
 import "server-only";
 
 import { parseFilters, previousYear, todayIso, type Filters } from "@/lib/filters";
+import { DEFAULT_ORDER_AGE } from "@/lib/order-age";
 
 import { refreshedSince } from "./db";
 import { friendlyMessage } from "./errors";
@@ -43,7 +44,7 @@ import {
 
 /**
  * The warm-up job behind `POST /api/cron/warm`: loads the default view (default date preset, all
- * companies) of the Overview and of every dashboard, so the first visitor finds it in the cache.
+ * companies, orders from the last 2 years) of the Overview and of every dashboard, so the first visitor finds it in the cache.
  *
  * Each section calls the same loaders with the same arguments as the page's section component
  * (app/<page>/sections.tsx), so the cache keys match; tests/unit/warm.test.ts renders every page's
@@ -75,6 +76,7 @@ export function warmPlan(today: string): Page[] {
   const filters: Filters = parseFilters({}, today);
   const lastYear = previousYear(filters);
   const all: string[] = [];
+  const age = DEFAULT_ORDER_AGE;
 
   return [
     {
@@ -90,7 +92,7 @@ export function warmPlan(today: string): Page[] {
           load: () => Promise.all([financeVsLastYear(filters), financeMonthly(filters)]),
         },
         { name: "Inventory tiles", load: () => stockPosition(all, today) },
-        { name: "Purchasing tiles, overdue POs", load: () => pendingKpis(all, today) },
+        { name: "Purchasing tiles, overdue POs", load: () => pendingKpis(all, today, age) },
         { name: "Receivables tiles, AR over 90 days", load: () => arSummary(today, all) },
         { name: "Payables tiles", load: () => apSplit(today, all) },
         { name: "Dead stock", load: () => deadStock(all, DEFAULT_DEAD_STOCK_MONTHS, today) },
@@ -149,17 +151,17 @@ export function warmPlan(today: string): Page[] {
           name: "KPIs and receipts trend",
           load: () =>
             Promise.all([
-              pendingKpis(all, today),
+              pendingKpis(all, today, age),
               receiptsKpis(filters),
               receiptsKpis(lastYear),
               receiptsMonthly(filters),
             ]),
         },
         { name: "Zero-rate receipts", load: () => zeroRateReceipts(filters) },
-        { name: "Pending by age", load: () => pendingByBucket(all, today) },
-        { name: "Pending by company", load: () => pendingByCompany(all, today) },
-        { name: "Pending by supplier", load: () => pendingBySupplier(all, today) },
-        { name: "Overdue PO lines", load: () => overdueLines(all, today) },
+        { name: "Pending by age", load: () => pendingByBucket(all, today, age) },
+        { name: "Pending by company", load: () => pendingByCompany(all, today, age) },
+        { name: "Pending by supplier", load: () => pendingBySupplier(all, today, age) },
+        { name: "Overdue PO lines", load: () => overdueLines(all, today, age) },
         { name: "Top suppliers by spend", load: () => receiptsBySupplier(filters) },
       ],
     },
@@ -182,17 +184,20 @@ export function warmPlan(today: string): Page[] {
           name: "KPIs and booked trend",
           load: () =>
             Promise.all([
-              openBookKpis(all, today),
+              openBookKpis(all, today, age),
               bookedKpis(filters),
               bookedKpis(lastYear),
               bookedMonthly(filters),
             ]),
         },
-        { name: "Non-AED currency note", load: () => openByCurrency(all, today) },
-        { name: "Open value by order age", load: () => openByAge(all, today) },
-        { name: "Open value by salesperson", load: () => openBySalesperson(all, today) },
-        { name: "Open value by customer", load: () => openByCustomer(all, today).then(withCustomerCodes) },
-        { name: "Open order lines", load: () => openLines(all, today) },
+        { name: "Non-AED currency note", load: () => openByCurrency(all, today, age) },
+        { name: "Open value by order age", load: () => openByAge(all, today, age) },
+        { name: "Open value by salesperson", load: () => openBySalesperson(all, today, age) },
+        {
+          name: "Open value by customer",
+          load: () => openByCustomer(all, today, age).then(withCustomerCodes),
+        },
+        { name: "Open order lines", load: () => openLines(all, today, age) },
       ],
     },
   ];

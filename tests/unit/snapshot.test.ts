@@ -86,10 +86,10 @@ describe("snapshot figures equal the Overview's", () => {
         financeKpis(ytd),
         financeKpis(previousYear(ytd)),
         stockPosition([], TODAY),
-        pendingKpis([], TODAY),
+        pendingKpis([], TODAY, "2y"),
         arSummary(TODAY, []),
         apSplit(TODAY, []),
-        openBookKpis([], TODAY),
+        openBookKpis([], TODAY, "2y"),
         deadStock([], 6, TODAY),
         reorderAlerts([]),
       ]);
@@ -102,12 +102,12 @@ describe("snapshot figures equal the Overview's", () => {
       ["Net profit, year to date", formatAed(finance.netProfit)],
       ["Net margin %, year to date", formatPct(finance.netMarginPct)],
       ["Stock value", formatAed(stock.stockValue)],
-      ["Pending PO value", formatAed(pending.pendingValue)],
-      ["Overdue %", formatPct(pending.overduePct)],
+      ["Pending PO value, orders from the last 2 years", formatAed(pending.pendingValue)],
+      ["Overdue %, orders from the last 2 years", formatPct(pending.overduePct)],
       ["AR outstanding", formatAed(ar.balance)],
       ["Share over 90 days", formatPct(ar.over90Pct)],
       ["AP outstanding", formatAed(ap.summary.balance)],
-      ["Open order value", formatAed(book.openValue)],
+      ["Open order value, orders from the last 2 years", formatAed(book.openValue)],
       ["Overdue PO value", formatAed(pending.overdueValue)],
       ["AR over 90 days", formatAed(ar.over90)],
       ["Dead stock (6 months)", formatAed(dead.value)],
@@ -120,6 +120,10 @@ describe("snapshot figures equal the Overview's", () => {
     expect(email.text).toContain(`vs ${formatAed(salesYtdLy.netRevenue)} last year`);
     expect(email.text).toContain(`vs ${formatAed(financeLy.netProfit)} last year`);
     expect(email.text).toContain(AP_CURRENCY_NOTE);
+    // The sample has older open lines, so the default order age really leaves something out.
+    expect(pending.hiddenLines).toBeGreaterThan(0);
+    expect(book.hiddenLines).toBeGreaterThan(0);
+    expect(email.text).toContain(`past PO date + 84 days, orders from the last 2 years`);
     expect(email.text).toMatch(/Net revenue, yesterday \(\d{1,2} \w{3} \d{4}\): (-?AED [\d,]+)/);
   });
 

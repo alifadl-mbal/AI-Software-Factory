@@ -1,6 +1,7 @@
 import "server-only";
 
 import { addDays, daysBetween, monthsInRange, previousYear, shiftMonth, type Filters } from "@/lib/filters";
+import { orderAgeCutoff, type OrderAge } from "@/lib/order-age";
 
 import { run } from "../db";
 import { ALL_OTHER, companyWhere, filterWhere, labelOrUnassigned, num } from "../sql";
@@ -22,6 +23,11 @@ import type { Binds, Query } from "../types";
  *   expected date is in the future, else overdue by `today - expected date` days, bucketed as
  *   0-90 / 90-180 / 180-365 / 365+ (lower bound inclusive). The bucket edges are computed here as
  *   dates and bound, because date arithmetic isn't portable to sample mode.
+ *
+ * - Order age (`lib/order-age.ts`): by default only lines with `PO_DATE` in the last 2 years count,
+ *   because older open lines are almost all received or cancelled without being closed. Every
+ *   pending query goes through `pendingLines`, which applies the cut-off. The KPI query keeps the
+ *   older lines and flags them instead (`in_scope`), so one round trip also says what is left out.
  *
  * Receipts, `MBALI.ZF_CPR_BI`, one row per goods-receipt line, dated `CPR_DATE`; follows both
  * filters.
@@ -93,16 +99,32 @@ function pendingWhere(companies: readonly string[]): { sql: string; binds: Binds
     : { sql: PENDING_LINE, binds: {} };
 }
 
-/** Pending lines with their value and bucket, as a subquery to aggregate over. */
-function pendingLines(companies: readonly string[], today: string, columns: string[] = []): Query {
+/** `PO_DATE` on or after the order-age cut-off, which is worked out in TypeScript and bound. */
+const IN_SCOPE = "PO_DATE >= TO_DATE(:since_date, 'YYYY-MM-DD')";
+
+/**
+ * Pending lines with their value and bucket, as a subquery to aggregate over. Lines on orders older
+ * than the `age` cut-off are left out, or with `flagScope` kept and flagged `in_scope = 0`.
+ */
+function pendingLines(
+  companies: readonly string[],
+  today: string,
+  age: OrderAge,
+  columns: string[] = [],
+  { flagScope = false }: { flagScope?: boolean } = {},
+): Query {
   const where = pendingWhere(companies);
   const bucket = bucketCase(today);
+  const cutoff = orderAgeCutoff(age, today);
+  const select = [...columns, `${PENDING_VALUE} AS pend_value`, `${bucket.sql} AS bucket`];
+  if (flagScope)
+    select.push(cutoff ? `CASE WHEN ${IN_SCOPE} THEN 1 ELSE 0 END AS in_scope` : "1 AS in_scope");
   return {
     sql: `
-    SELECT ${[...columns, `${PENDING_VALUE} AS pend_value`, `${bucket.sql} AS bucket`].join(",\n        ")}
+    SELECT ${select.join(",\n        ")}
     FROM ${PENDING_VIEW}
-    WHERE ${where.sql}`,
-    binds: { ...where.binds, ...bucket.binds },
+    WHERE ${where.sql}${cutoff && !flagScope ? ` AND ${IN_SCOPE}` : ""}`,
+    binds: { ...where.binds, ...bucket.binds, ...(cutoff ? { since_date: cutoff } : {}) },
   };
 }
 
@@ -135,6 +157,9 @@ export interface PendingKpis {
   overdueLines: number;
   /** Fraction of the pending value that is overdue; `null` with nothing pending. */
   overduePct: number | null;
+  /** Pending lines on orders placed before the order-age cut-off: left out of the figures above. */
+  hiddenLines: number;
+  hiddenValue: number;
 }
 
 export interface LabelValue {
@@ -155,21 +180,24 @@ export interface OverdueLine {
   pendingValue: number;
 }
 
-export function pendingKpiQuery(companies: readonly string[], today: string): Query {
-  const lines = pendingLines(companies, today);
+export function pendingKpiQuery(companies: readonly string[], today: string, age: OrderAge): Query {
+  const lines = pendingLines(companies, today, age, [], { flagScope: true });
   return {
     sql: `
-SELECT SUM(pend_value) AS pending_value, COUNT(*) AS open_lines,
-    SUM(CASE WHEN bucket <> '${ON_TIME}' THEN pend_value ELSE 0 END) AS overdue_value,
-    SUM(CASE WHEN bucket <> '${ON_TIME}' THEN 1 ELSE 0 END) AS overdue_lines
+SELECT SUM(CASE WHEN in_scope = 1 THEN pend_value ELSE 0 END) AS pending_value,
+    SUM(in_scope) AS open_lines,
+    SUM(CASE WHEN in_scope = 1 AND bucket <> '${ON_TIME}' THEN pend_value ELSE 0 END) AS overdue_value,
+    SUM(CASE WHEN in_scope = 1 AND bucket <> '${ON_TIME}' THEN 1 ELSE 0 END) AS overdue_lines,
+    SUM(CASE WHEN in_scope = 0 THEN pend_value ELSE 0 END) AS hidden_value,
+    SUM(1 - in_scope) AS hidden_lines
 FROM (${lines.sql}
 ) lines`,
     binds: lines.binds,
   };
 }
 
-export function pendingByBucketQuery(companies: readonly string[], today: string): Query {
-  const lines = pendingLines(companies, today);
+export function pendingByBucketQuery(companies: readonly string[], today: string, age: OrderAge): Query {
+  const lines = pendingLines(companies, today, age);
   return {
     sql: `
 SELECT bucket AS label, SUM(pend_value) AS amount, COUNT(*) AS line_count
@@ -180,8 +208,13 @@ GROUP BY bucket`,
   };
 }
 
-export function pendingBySupplierQuery(companies: readonly string[], today: string, topN = TOP_N): Query {
-  const lines = pendingLines(companies, today, [`${labelOrUnassigned("PO_SUPP_NAME")} AS label`]);
+export function pendingBySupplierQuery(
+  companies: readonly string[],
+  today: string,
+  age: OrderAge,
+  topN = TOP_N,
+): Query {
+  const lines = pendingLines(companies, today, age, [`${labelOrUnassigned("PO_SUPP_NAME")} AS label`]);
   const grouped = `
             SELECT label, SUM(pend_value) AS amount
             FROM (${lines.sql}
@@ -190,8 +223,8 @@ export function pendingBySupplierQuery(companies: readonly string[], today: stri
   return foldTopN(grouped, lines.binds, topN);
 }
 
-export function pendingByCompanyQuery(companies: readonly string[], today: string): Query {
-  const lines = pendingLines(companies, today, ["PO_COMP_CODE AS company_code"]);
+export function pendingByCompanyQuery(companies: readonly string[], today: string, age: OrderAge): Query {
+  const lines = pendingLines(companies, today, age, ["PO_COMP_CODE AS company_code"]);
   return {
     sql: `
 SELECT company_code, SUM(pend_value) AS amount
@@ -207,9 +240,10 @@ ORDER BY amount DESC, company_code`,
 export function overdueLinesQuery(
   companies: readonly string[],
   today: string,
+  age: OrderAge,
   limit = OVERDUE_ROW_LIMIT,
 ): Query {
-  const lines = pendingLines(companies, today, [
+  const lines = pendingLines(companies, today, age, [
     "PO_COMP_CODE AS company_code",
     "PO_TXN_CODE AS txn_code",
     "PO_TXN_NO AS txn_no",
@@ -234,9 +268,13 @@ ORDER BY rn`,
   };
 }
 
-/** Headline pending-PO figures, as of `today`. */
-export async function pendingKpis(companies: readonly string[], today: string): Promise<PendingKpis> {
-  const [row] = await run(pendingKpiQuery(companies, today));
+/** Headline pending-PO figures as of `today`, on orders placed since the `age` cut-off. */
+export async function pendingKpis(
+  companies: readonly string[],
+  today: string,
+  age: OrderAge,
+): Promise<PendingKpis> {
+  const [row] = await run(pendingKpiQuery(companies, today, age));
   const pendingValue = num(row?.pending_value);
   const overdueValue = num(row?.overdue_value);
   return {
@@ -245,12 +283,18 @@ export async function pendingKpis(companies: readonly string[], today: string): 
     overdueValue,
     overdueLines: num(row?.overdue_lines),
     overduePct: pendingValue ? overdueValue / pendingValue : null,
+    hiddenLines: num(row?.hidden_lines),
+    hiddenValue: num(row?.hidden_value),
   };
 }
 
 /** Pending value in every bucket, in bucket order; empty buckets are zero. */
-export async function pendingByBucket(companies: readonly string[], today: string): Promise<LabelValue[]> {
-  const rows = await run(pendingByBucketQuery(companies, today));
+export async function pendingByBucket(
+  companies: readonly string[],
+  today: string,
+  age: OrderAge,
+): Promise<LabelValue[]> {
+  const rows = await run(pendingByBucketQuery(companies, today, age));
   const byBucket = new Map(rows.map((row) => [String(row.label), num(row.amount)]));
   return BUCKET_ORDER.map((label) => ({ label, value: byBucket.get(label) ?? 0 }));
 }
@@ -259,24 +303,30 @@ export async function pendingByBucket(companies: readonly string[], today: strin
 export async function pendingBySupplier(
   companies: readonly string[],
   today: string,
+  age: OrderAge,
   topN = TOP_N,
 ): Promise<LabelValue[]> {
-  const rows = await run(pendingBySupplierQuery(companies, today, topN));
+  const rows = await run(pendingBySupplierQuery(companies, today, age, topN));
   return rows.map((row) => ({ label: String(row.label), value: num(row.amount) }));
 }
 
 /** Pending value per company code, largest first. */
-export async function pendingByCompany(companies: readonly string[], today: string): Promise<LabelValue[]> {
-  const rows = await run(pendingByCompanyQuery(companies, today));
+export async function pendingByCompany(
+  companies: readonly string[],
+  today: string,
+  age: OrderAge,
+): Promise<LabelValue[]> {
+  const rows = await run(pendingByCompanyQuery(companies, today, age));
   return rows.map((row) => ({ label: String(row.company_code), value: num(row.amount) }));
 }
 
 export async function overdueLines(
   companies: readonly string[],
   today: string,
+  age: OrderAge,
   limit = OVERDUE_ROW_LIMIT,
 ): Promise<OverdueLine[]> {
-  const rows = await run(overdueLinesQuery(companies, today, limit));
+  const rows = await run(overdueLinesQuery(companies, today, age, limit));
   return rows.map((row) => {
     const poDate = String(row.po_date);
     return {

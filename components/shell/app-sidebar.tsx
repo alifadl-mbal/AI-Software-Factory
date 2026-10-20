@@ -61,7 +61,11 @@ export function AppSidebar({ sourceLabel }: { sourceLabel: string }) {
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map((item) => {
-                const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
+                // Whole path segments only: /sales must not light up on /sales-orders.
+                const active =
+                  item.href === "/"
+                    ? pathname === "/"
+                    : pathname === item.href || pathname.startsWith(`${item.href}/`);
                 const Icon = item.icon;
                 return (
                   <SidebarMenuItem key={item.href}>

@@ -9,6 +9,7 @@ import { ErrorCard } from "@/components/dashboard/error-card";
 import { KpiCard } from "@/components/dashboard/kpi-card";
 import { ReportAsOf } from "@/components/shell/shell-context";
 import { AGING_BUCKETS } from "@/lib/aging";
+import { customerHref } from "@/lib/customers";
 import { formatAed, formatInt, formatPct } from "@/lib/format";
 import { AP_CURRENCY_NOTE } from "@/lib/notes";
 import { dataAsOf } from "@/lib/server/db";
@@ -21,7 +22,7 @@ import {
   type ApBalance,
   type Balance,
 } from "@/lib/server/queries/ar-ap";
-import { ALL_OTHER } from "@/lib/server/sql";
+import { ALL_OTHER, UNASSIGNED } from "@/lib/server/sql";
 
 /**
  * Seven cards in two rows on wide screens (receivables, then payables and the net position), two
@@ -33,6 +34,8 @@ export const AR_AP_KPI_GRID =
 interface Scope {
   asOf: string;
   companies: string[];
+  /** The page query string (filters), kept on links to customer pages. */
+  search?: string;
 }
 
 /** The headline balances. None of them has a last-year comparison: they are as of today. */
@@ -165,10 +168,10 @@ export async function ArBySalesperson({ asOf, companies }: Scope) {
   );
 }
 
-export async function ArTopCustomers({ asOf, companies }: Scope) {
+export async function ArTopCustomers({ asOf, companies, search = "" }: Scope) {
   const result = await load(() => arBalances(asOf, companies, "customer"));
   const columns: ColumnSpec[] = [
-    { key: "label", header: "Customer" },
+    { key: "label", header: "Customer", linkKey: "href" },
     { key: "balance", header: "Outstanding", format: "aed", sum: true },
     { key: "over90", header: "Over 90 days", format: "aed", sum: true },
     { key: "pdc", header: "PDCs", format: "aed", sum: true },
@@ -193,6 +196,8 @@ export async function ArTopCustomers({ asOf, companies }: Scope) {
           pageSize={TOP_N}
           rows={result.data.slice(0, TOP_N).map((row) => ({
             label: row.label,
+            // Grouped by customer code (the AR sub-account), so every row knows its page.
+            href: row.key === UNASSIGNED ? null : customerHref(row.key, search),
             balance: row.balance,
             over90: row.over90,
             pdc: row.pdc,

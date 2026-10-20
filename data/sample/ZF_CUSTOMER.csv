@@ -1,46 +1,46 @@
-CUST_CODE,CUST_NAME
-SC0001,Al Noor Hospital 42
-SC0002,Al Noor Hotel 16
-SC0003,Al Noor Hotel 30
-SC0004,Al Noor Retail 11
-SC0005,Blue Gulf Contracting 24
-SC0006,Blue Gulf Retail 26
-SC0007,Cedar Contracting 22
-SC0008,Cedar Contracting 36
-SC0009,Cedar Hotel 21
-SC0010,Cedar Hotel 35
-SC0011,Crescent Contracting 39
-SC0012,Crescent Hospital 4
-SC0013,Crescent Hotel 33
-SC0014,Crescent Retail 14
-SC0015,Crescent Retail 18
-SC0016,Desert Star Hospital 17
-SC0017,Desert Star Hospital 2
-SC0018,Desert Star Hospital 5
-SC0019,Desert Star Hotel 32
-SC0020,Desert Star Retail 34
-SC0021,Falcon Clinic 20
-SC0022,Harbor Contracting 15
-SC0023,Harbor Contracting 23
-SC0024,Harbor Hotel 3
-SC0025,Harbor Retail 41
-SC0026,Horizon Contracting 29
-SC0027,Horizon Contracting 37
-SC0028,Horizon Retail 31
-SC0029,Oasis Hospital 44
-SC0030,Oasis Hospital 45
-SC0031,Oasis Hospital 6
-SC0032,Oasis Hotel 12
-SC0033,Oasis Hotel 13
-SC0034,Oasis Trading 1
-SC0035,Pearl Clinic 19
-SC0036,Pearl Clinic 25
-SC0037,Pearl Contracting 27
-SC0038,Pearl Contracting 40
-SC0039,Pearl Hospital 7
-SC0040,Pearl Hotel 8
-SC0041,Pearl Retail 9
-SC0042,Summit Clinic 10
-SC0043,Summit Clinic 28
-SC0044,Summit Hospital 43
-SC0045,Summit Retail 38
+CUST_CODE,CUST_NAME,CUST_SHORT_NAME,CUST_FRZ_FLAG_NUM,CUST_PARENT_NAME,CUST_TYPE_NAME,CUST_CAT_NAME,CUST_CITY_NAME,CUST_COUNTRY_NAME
+C0001,Horizon Contracting 1,Horizon Contracting 1,2,Horizon Contracting 1,Contracting,Key Account,DUBAI,UNITED ARAB EMIRATES
+C0002,Desert Star Clinic 2,Desert Star Clinic 2,2,Desert Star Clinic 2,Clinic,Not Applicable,ABU DHABI,UNITED ARAB EMIRATES
+C0003,Oasis Hospital 3,Oasis Hospital 3,2,Oasis Hospital 3,Hospital,Not Applicable,SHARJAH,UNITED ARAB EMIRATES
+C0004,Pearl Trading 4,Pearl Trading 4,2,Pearl Trading 4,Trading,Key Account,AL AIN,UNITED ARAB EMIRATES
+C0005,Blue Gulf Trading 5,Blue Gulf Trading 5,2,Blue Gulf Group,Trading,Not Applicable,RAS AL KHAIMA,UNITED ARAB EMIRATES
+C0006,Falcon Hotel 6,Falcon Hotel 6,2,Falcon Hotel 6,Hotel,Not Applicable,DUBAI,UNITED ARAB EMIRATES
+C0007,Oasis Trading 7,Oasis Trading 7,2,Oasis Trading 7,Trading,Key Account,ABU DHABI,UNITED ARAB EMIRATES
+C0008,Crescent Hospital 8,Crescent Hospital 8,2,Crescent Hospital 8,Hospital,Not Applicable,SHARJAH,UNITED ARAB EMIRATES
+C0009,Oasis Clinic 9,Oasis Clinic 9,2,Oasis Clinic 9,Clinic,Not Applicable,AL AIN,UNITED ARAB EMIRATES
+C0010,Oasis Clinic 10,Oasis Clinic 10,2,Oasis Clinic 10,Clinic,Key Account,RAS AL KHAIMA,UNITED ARAB EMIRATES
+C0011,Cedar Contracting 11,Cedar Contracting 11,2,Cedar Contracting 11,Contracting,Not Applicable,DUBAI,UNITED ARAB EMIRATES
+C0012,Falcon Clinic 12,Falcon Clinic 12,2,Falcon Clinic 12,Clinic,Not Applicable,ABU DHABI,UNITED ARAB EMIRATES
+C0013,Pearl Clinic 13,Pearl Clinic 13,2,Pearl Clinic 13,Clinic,Key Account,SHARJAH,UNITED ARAB EMIRATES
+C0014,Desert Star Hospital 14,Desert Star Hospital 14,2,Desert Star Group,Hospital,Not Applicable,AL AIN,UNITED ARAB EMIRATES
+C0015,Summit Hospital 15,Summit Hospital 15,1,Summit Hospital 15,Hospital,Not Applicable,RAS AL KHAIMA,UNITED ARAB EMIRATES
+C0016,Oasis Clinic 16,Oasis Clinic 16,2,Oasis Clinic 16,Clinic,Key Account,DUBAI,UNITED ARAB EMIRATES
+C0017,Al Noor Contracting 17,Al Noor Contracting 17,2,Al Noor Contracting 17,Contracting,Not Applicable,ABU DHABI,UNITED ARAB EMIRATES
+C0018,Crescent Contracting 18,Crescent Contracting 18,2,Crescent Contracting 18,Contracting,Not Applicable,SHARJAH,UNITED ARAB EMIRATES
+C0019,Horizon Trading 19,Horizon Trading 19,2,Horizon Trading 19,Trading,Key Account,AL AIN,UNITED ARAB EMIRATES
+C0020,Oasis Hotel 20,Oasis Hotel 20,2,Oasis Hotel 20,Hotel,Not Applicable,RAS AL KHAIMA,UNITED ARAB EMIRATES
+C0021,Al Noor Trading 21,Al Noor Trading 21,2,Al Noor Trading 21,Trading,Not Applicable,DUBAI,UNITED ARAB EMIRATES
+C0022,Crescent Clinic 22,Crescent Clinic 22,2,Crescent Clinic 22,Clinic,Key Account,ABU DHABI,UNITED ARAB EMIRATES
+C0023,Summit Hotel 23,Summit Hotel 23,2,Summit Group,Hotel,Not Applicable,SHARJAH,UNITED ARAB EMIRATES
+C0024,Al Noor Contracting 24,Al Noor Contracting 24,2,Al Noor Contracting 24,Contracting,Not Applicable,AL AIN,UNITED ARAB EMIRATES
+C0025,Summit Clinic 25,Summit Clinic 25,2,Summit Clinic 25,Clinic,Key Account,RAS AL KHAIMA,UNITED ARAB EMIRATES
+C0026,Falcon Trading 26,Falcon Trading 26,2,Falcon Trading 26,Trading,Not Applicable,DUBAI,UNITED ARAB EMIRATES
+C0027,Blue Gulf Trading 27,Blue Gulf Trading 27,2,Blue Gulf Trading 27,Trading,Not Applicable,ABU DHABI,UNITED ARAB EMIRATES
+C0028,Pearl Contracting 28,Pearl Contracting 28,2,Pearl Contracting 28,Contracting,Key Account,SHARJAH,UNITED ARAB EMIRATES
+C0029,Crescent Clinic 29,Crescent Clinic 29,2,Crescent Clinic 29,Clinic,Not Applicable,AL AIN,UNITED ARAB EMIRATES
+C0030,Horizon Hospital 30,Horizon Hospital 30,1,Horizon Hospital 30,Hospital,Not Applicable,RAS AL KHAIMA,UNITED ARAB EMIRATES
+C0031,Oasis Clinic 31,Oasis Clinic 31,2,Oasis Clinic 31,Clinic,Key Account,DUBAI,UNITED ARAB EMIRATES
+C0032,Blue Gulf Contracting 32,Blue Gulf Contracting 32,2,Blue Gulf Group,Contracting,Not Applicable,ABU DHABI,UNITED ARAB EMIRATES
+C0033,Blue Gulf Trading 33,Blue Gulf Trading 33,2,Blue Gulf Trading 33,Trading,Not Applicable,SHARJAH,UNITED ARAB EMIRATES
+C0034,Summit Hotel 34,Summit Hotel 34,2,Summit Hotel 34,Hotel,Key Account,AL AIN,UNITED ARAB EMIRATES
+C0035,Al Noor Trading 35,Al Noor Trading 35,2,Al Noor Trading 35,Trading,Not Applicable,RAS AL KHAIMA,UNITED ARAB EMIRATES
+C0036,Crescent Hotel 36,Crescent Hotel 36,2,Crescent Hotel 36,Hotel,Not Applicable,DUBAI,UNITED ARAB EMIRATES
+C0037,Summit Clinic 37,Summit Clinic 37,2,Summit Clinic 37,Clinic,Key Account,ABU DHABI,UNITED ARAB EMIRATES
+C0038,Crescent Contracting 38,Crescent Contracting 38,2,Crescent Contracting 38,Contracting,Not Applicable,SHARJAH,UNITED ARAB EMIRATES
+C0039,Horizon Hotel 39,Horizon Hotel 39,2,Horizon Hotel 39,Hotel,Not Applicable,AL AIN,UNITED ARAB EMIRATES
+C0040,Horizon Contracting 40,Horizon Contracting 40,2,Horizon Contracting 40,Contracting,Key Account,RAS AL KHAIMA,UNITED ARAB EMIRATES
+C0041,Harbor Hospital 41,Harbor Hospital 41,2,Harbor Group,Hospital,Not Applicable,DUBAI,UNITED ARAB EMIRATES
+C0042,Desert Star Contracting 42,Desert Star Contracting 42,2,Desert Star Contracting 42,Contracting,Not Applicable,ABU DHABI,UNITED ARAB EMIRATES
+C0043,Cedar Hospital 43,Cedar Hospital 43,2,Cedar Hospital 43,Hospital,Key Account,SHARJAH,UNITED ARAB EMIRATES
+C0044,Blue Gulf Hospital 44,Blue Gulf Hospital 44,2,Blue Gulf Hospital 44,Hospital,Not Applicable,AL AIN,UNITED ARAB EMIRATES
+C0045,Cedar Hotel 45,Cedar Hotel 45,1,Cedar Hotel 45,Hotel,Not Applicable,RAS AL KHAIMA,UNITED ARAB EMIRATES

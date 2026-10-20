@@ -148,7 +148,44 @@ test("dark mode renders", async ({ page }) => {
   await expect(page.locator("html")).toHaveClass(/dark/);
   await waitForData(page);
   await expect(page.getByTestId("kpi-card").first()).toBeVisible();
+  await expect(page.getByTestId("theme-toggle")).toHaveAttribute("aria-label", "Switch to light mode");
   expect(errors).toEqual([]);
+});
+
+test("dark mode from the OS on a first visit hydrates cleanly", async ({ page }) => {
+  await page.emulateMedia({ colorScheme: "dark" });
+  const errors = watchConsole(page);
+  await page.goto("/sales");
+  await page.evaluate(() => localStorage.clear());
+  await page.reload();
+  await expect(page.locator("html")).toHaveClass(/dark/);
+  await waitForData(page);
+  await expect(page.getByTestId("theme-toggle")).toHaveAttribute("aria-label", "Switch to light mode");
+  expect(errors).toEqual([]);
+});
+
+test("negative bar values don't overlap their category labels", async ({ page }) => {
+  // Equipment nets out negative for these companies this quarter in the sample data.
+  await page.goto("/sales?range=qtd&company=101,102");
+  await waitForData(page);
+  const charts = page.locator(".recharts-wrapper");
+  const labels = charts.getByTestId("bar-value-label");
+  await expect(labels.first()).toBeVisible();
+  for (const label of await labels.all()) {
+    const text = (await label.textContent()) ?? "";
+    const box = (await label.boundingBox())!;
+    const chart = label.locator("xpath=ancestor::*[contains(@class,'recharts-wrapper')][1]");
+    const ticks = chart.locator(".recharts-yAxis .recharts-cartesian-axis-tick-value");
+    for (const tick of await ticks.all()) {
+      const tickBox = (await tick.boundingBox())!;
+      const overlaps =
+        box.x < tickBox.x + tickBox.width &&
+        tickBox.x < box.x + box.width &&
+        box.y < tickBox.y + tickBox.height &&
+        tickBox.y < box.y + box.height;
+      expect(overlaps, `"${text}" overlaps "${await tick.textContent()}"`).toBe(false);
+    }
+  }
 });
 
 for (const theme of ["light", "dark"] as const) {

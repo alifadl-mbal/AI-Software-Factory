@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { Suspense } from "react";
+import { Suspense, useSyncExternalStore } from "react";
 import { useTheme } from "next-themes";
 import { Database, Loader2, Moon, RefreshCw, Sun } from "lucide-react";
 
@@ -22,15 +22,30 @@ function formatTime(iso: string): string {
   return new Date(iso).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
 }
 
+const noopSubscribe = () => () => {};
+
+/** False during SSR and hydration, true afterwards: the theme is only known on the client. */
+function useMounted(): boolean {
+  return useSyncExternalStore(
+    noopSubscribe,
+    () => true,
+    () => false,
+  );
+}
+
 function ThemeToggle() {
   const { resolvedTheme, setTheme } = useTheme();
+  const mounted = useMounted();
   const dark = resolvedTheme === "dark";
+  // The server can't know the theme, so the label stays neutral until hydration is over; the icon
+  // swap is pure CSS and needs no guard.
+  const label = !mounted ? "Toggle theme" : dark ? "Switch to light mode" : "Switch to dark mode";
   return (
     <Button
       variant="ghost"
       size="icon"
       onClick={() => setTheme(dark ? "light" : "dark")}
-      aria-label={dark ? "Switch to light mode" : "Switch to dark mode"}
+      aria-label={label}
       data-testid="theme-toggle"
     >
       <Sun className="hidden dark:block" aria-hidden />

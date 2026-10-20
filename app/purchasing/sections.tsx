@@ -1,5 +1,6 @@
 import "server-only";
 
+import { Suspense } from "react";
 import { AlertTriangle } from "lucide-react";
 
 import { BarBreakdown } from "@/components/dashboard/bar-breakdown";
@@ -9,11 +10,14 @@ import { DataTable, type ColumnSpec } from "@/components/dashboard/data-table";
 import { EmptyState } from "@/components/dashboard/empty-state";
 import { ErrorCard } from "@/components/dashboard/error-card";
 import { KpiCard } from "@/components/dashboard/kpi-card";
+import { OrderAgeNote } from "@/components/dashboard/order-age-note";
+import { OrderAgeToggle } from "@/components/dashboard/order-age-toggle";
 import { KPI_GRID } from "@/components/dashboard/skeletons";
 import { TrendChart } from "@/components/dashboard/trend-chart";
 import { ReportAsOf } from "@/components/shell/shell-context";
-import { previousYear, type Filters } from "@/lib/filters";
+import { filtersToSearch, previousYear, type Filters } from "@/lib/filters";
 import { formatAed, formatInt, formatNumber, formatPct } from "@/lib/format";
+import { orderAgeCutoff, orderAgeScope, withOrderAge, type OrderAge } from "@/lib/order-age";
 import { dataAsOf } from "@/lib/server/db";
 import { load } from "@/lib/server/errors";
 import { companies } from "@/lib/server/queries/common";
@@ -32,10 +36,19 @@ import {
   type LabelValue,
 } from "@/lib/server/queries/purchasing";
 
-/** Pending POs are as of `today`; receipts follow the date filter. Both follow the company filter. */
+/**
+ * Pending POs are as of `today` and follow the order-age choice; receipts follow the date filter.
+ * Both follow the company filter.
+ */
 interface SectionProps {
   filters: Filters;
   today: string;
+  age: OrderAge;
+}
+
+/** "As of today, orders from the last 2 years" */
+function asOfToday(age: OrderAge): string {
+  return `As of today, ${orderAgeScope(age)}`;
 }
 
 /** Company code → name, from the company list; unknown codes show as the code. */
@@ -65,10 +78,10 @@ function bars(title: string, rows: LabelValue[]) {
 }
 
 /** Four pending-PO cards (as of today) and receipts spend for the period vs last year. */
-export async function PurchasingKpis({ filters, today }: SectionProps) {
+export async function PurchasingKpis({ filters, today, age }: SectionProps) {
   const result = await load(() =>
     Promise.all([
-      pendingKpis(filters.companies, today),
+      pendingKpis(filters.companies, today, age),
       receiptsKpis(filters),
       receiptsKpis(previousYear(filters)),
       receiptsMonthly(filters),
@@ -80,7 +93,11 @@ export async function PurchasingKpis({ filters, today }: SectionProps) {
   return (
     <div className={KPI_GRID} data-testid="purchasing-kpis">
       <ReportAsOf iso={dataAsOf().toISOString()} />
-      <KpiCard label="Pending PO value" value={pending.pendingValue} hint="Open PO lines, as of today" />
+      <KpiCard
+        label="Pending PO value"
+        value={pending.pendingValue}
+        hint={`Open PO lines on ${orderAgeScope(age)}`}
+      />
       <KpiCard
         label="Open PO lines"
         value={pending.openLines}
@@ -104,14 +121,44 @@ export async function PurchasingKpis({ filters, today }: SectionProps) {
   );
 }
 
-export async function PendingByBucket({ filters, today }: SectionProps) {
+/**
+ * The order-age toggle for pending POs, and what it leaves out. The toggle shows at once; the note
+ * streams in with the KPI query (same loader and arguments, so the same cache entry).
+ */
+export function OrderAgeBar({ pendingKey, ...props }: SectionProps & { pendingKey: string }) {
+  return (
+    <div className="flex scroll-mt-20 flex-wrap items-center gap-x-4 gap-y-2" id="order-age">
+      <OrderAgeToggle value={props.age} />
+      <Suspense key={`hidden${pendingKey}`} fallback={null}>
+        <HiddenPendingNote {...props} />
+      </Suspense>
+    </div>
+  );
+}
+
+async function HiddenPendingNote({ filters, today, age }: SectionProps) {
+  const cutoff = orderAgeCutoff(age, today);
+  if (cutoff === null) return null;
+  const result = await load(() => pendingKpis(filters.companies, today, age));
+  if (!result.ok) return null;
+  return (
+    <OrderAgeNote
+      hiddenLines={result.data.hiddenLines}
+      hiddenValue={result.data.hiddenValue}
+      cutoff={cutoff}
+      showAllHref={`/purchasing${withOrderAge(filtersToSearch(filters), "all")}`}
+    />
+  );
+}
+
+export async function PendingByBucket({ filters, today, age }: SectionProps) {
   const title = "Pending value by aging";
-  const result = await load(() => pendingByBucket(filters.companies, today));
+  const result = await load(() => pendingByBucket(filters.companies, today, age));
   const total = result.ok ? totalOf(result.data) : 0;
   return (
     <ChartCard
       title={title}
-      description="As of today. Expected date = PO date + 84 days."
+      description={`${asOfToday(age)}. Expected date = PO date + 84 days.`}
       action={result.ok && total !== 0 ? <Total value={total} /> : undefined}
     >
       {!result.ok ? (
@@ -124,7 +171,7 @@ export async function PendingByBucket({ filters, today }: SectionProps) {
       ) : (
         <div className="flex flex-col gap-4">
           {bars(title, result.data)}
-          <StalePoNote buckets={result.data} total={total} />
+          <StalePoNote buckets={result.data} total={total} age={age} />
         </div>
       )}
     </ChartCard>
@@ -139,7 +186,7 @@ const STALE_SHARE = 0.25;
  * received or cancelled without the PO line being closed in Orion. On live Orion they are most of
  * the pending value, so the note says so.
  */
-function StalePoNote({ buckets, total }: { buckets: LabelValue[]; total: number }) {
+function StalePoNote({ buckets, total, age }: { buckets: LabelValue[]; total: number; age: OrderAge }) {
   const stale = buckets.find((bucket) => bucket.label === AGING_BUCKETS.at(-1)!.label)?.value ?? 0;
   if (total <= 0 || stale / total < STALE_SHARE) return null;
   return (
@@ -148,19 +195,22 @@ function StalePoNote({ buckets, total }: { buckets: LabelValue[]; total: number 
       title={`${formatPct(stale / total)} of pending value is more than a year overdue`}
     >
       (<span className="tabular">{formatAed(stale)}</span>). Lines this old are usually received or cancelled
-      without the PO line being closed in Orion, so pending value and overdue % above include them. Closing
-      them in Orion makes these figures mean what they say.
+      without the PO line being closed in Orion, so pending value and overdue % above include them.{" "}
+      {age === "all"
+        ? "“Orders placed: last 2 years” above leaves the oldest out."
+        : "“Orders placed: 12 months” above leaves more of them out."}{" "}
+      Closing them in Orion makes these figures mean what they say.
     </DataQualityNote>
   );
 }
 
-export async function PendingBySupplier({ filters, today }: SectionProps) {
+export async function PendingBySupplier({ filters, today, age }: SectionProps) {
   const title = "Pending value by supplier";
-  const result = await load(() => pendingBySupplier(filters.companies, today));
+  const result = await load(() => pendingBySupplier(filters.companies, today, age));
   return (
     <ChartCard
       title={title}
-      description={`As of today. Top ${TOP_N} suppliers; the rest are grouped as “All other”`}
+      description={`${asOfToday(age)}. Top ${TOP_N} suppliers; the rest are grouped as “All other”`}
       action={result.ok && result.data.length > 0 ? <Total value={totalOf(result.data)} /> : undefined}
     >
       {!result.ok ? (
@@ -177,16 +227,18 @@ export async function PendingBySupplier({ filters, today }: SectionProps) {
   );
 }
 
-export async function PendingByCompany({ filters, today }: SectionProps) {
+export async function PendingByCompany({ filters, today, age }: SectionProps) {
   const title = "Pending value by company";
-  const result = await load(() => Promise.all([pendingByCompany(filters.companies, today), companyNames()]));
+  const result = await load(() =>
+    Promise.all([pendingByCompany(filters.companies, today, age), companyNames()]),
+  );
   const rows = result.ok
     ? result.data[0].map((row) => ({ label: result.data[1].get(row.label) ?? row.label, value: row.value }))
     : [];
   return (
     <ChartCard
       title={title}
-      description="As of today"
+      description={asOfToday(age)}
       action={rows.length > 0 ? <Total value={totalOf(rows)} /> : undefined}
     >
       {!result.ok ? (
@@ -215,22 +267,22 @@ const OVERDUE_COLUMNS: ColumnSpec[] = [
 ];
 
 /** Overdue PO lines, largest first, capped at OVERDUE_ROW_LIMIT. */
-export async function OverdueLinesTable({ filters, today }: SectionProps) {
+export async function OverdueLinesTable({ filters, today, age }: SectionProps) {
   const title = "Overdue PO lines";
   const result = await load(() =>
     Promise.all([
-      overdueLines(filters.companies, today),
-      pendingKpis(filters.companies, today),
+      overdueLines(filters.companies, today, age),
+      pendingKpis(filters.companies, today, age),
       companyNames(),
     ]),
   );
-  let description = "As of today: open lines past PO date + 84 days";
+  let description = `${asOfToday(age)}: open lines past PO date + 84 days`;
   if (result.ok) {
     const [lines, kpis] = result.data;
     description =
       kpis.overdueLines > lines.length
         ? `Showing the ${formatInt(lines.length)} largest of ${formatInt(kpis.overdueLines)} overdue lines by pending value. Export has the same ${formatInt(lines.length)}.`
-        : `${formatInt(lines.length)} open lines past PO date + 84 days, as of today`;
+        : `${formatInt(lines.length)} open lines past PO date + 84 days. ${asOfToday(age)}.`;
   }
   return (
     <ChartCard title={title} description={description}>

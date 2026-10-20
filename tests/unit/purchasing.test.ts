@@ -29,8 +29,11 @@ import {
   overdueLines,
   overdueLinesQuery,
   pendingByBucket,
+  pendingByBucketQuery,
   pendingByCompany,
+  pendingByCompanyQuery,
   pendingBySupplier,
+  pendingBySupplierQuery,
   pendingKpiQuery,
   pendingKpis,
   receiptsBySupplier,
@@ -52,16 +55,16 @@ afterAll(() => setRunnerForTests(undefined));
 
 describe("pending PO filters", () => {
   it("leaves out fully received lines (PO_PEND_QTY = 0) and closed lines", async () => {
-    const kpis = await pendingKpis(ALL, TODAY);
+    const kpis = await pendingKpis(ALL, TODAY, "all");
     expect(kpis.openLines).toBe(8);
     expect(kpis.pendingValue).toBeCloseTo(3700);
-    const lines = await overdueLines(ALL, TODAY);
+    const lines = await overdueLines(ALL, TODAY, "all");
     expect(lines.map((line) => line.poNumber)).not.toContain("LPO-5005");
     expect(lines.map((line) => line.poNumber)).not.toContain("LPO-5006");
   });
 
   it("compares PO_CLO_STATUS as a number and requires a pending quantity", () => {
-    const { sql } = pendingKpiQuery(ALL, TODAY);
+    const { sql } = pendingKpiQuery(ALL, TODAY, "all");
     expect(sql).toContain("PO_CLO_STATUS = 0");
     expect(sql).toContain("PO_PEND_QTY > 0");
     // 'O' on a NUMBER column raises ORA-01722 on Orion.
@@ -69,28 +72,78 @@ describe("pending PO filters", () => {
   });
 
   it("the company filter applies, and the date filter doesn't", async () => {
-    expect((await pendingKpis(["101"], TODAY)).pendingValue).toBeCloseTo(2500);
-    const { binds } = pendingKpiQuery(["101"], TODAY);
+    expect((await pendingKpis(["101"], TODAY, "all")).pendingValue).toBeCloseTo(2500);
+    const { binds } = pendingKpiQuery(["101"], TODAY, "all");
     expect(binds).toMatchObject({ company_0: "101" });
     expect(Object.keys(binds)).not.toContain("start_date");
   });
 
   it("splits overdue from on time", async () => {
-    const kpis = await pendingKpis(ALL, TODAY);
+    const kpis = await pendingKpis(ALL, TODAY, "all");
     expect(kpis.overdueValue).toBeCloseTo(2700);
     expect(kpis.overdueLines).toBe(7);
     expect(kpis.overduePct).toBeCloseTo(2700 / 3700);
   });
 
   it("nothing pending gives zeros", async () => {
-    const kpis = await pendingKpis(["999"], TODAY);
+    const kpis = await pendingKpis(["999"], TODAY, "all");
     expect(kpis).toEqual({
       pendingValue: 0,
       openLines: 0,
       overdueValue: 0,
       overdueLines: 0,
       overduePct: null,
+      hiddenLines: 0,
+      hiddenValue: 0,
     });
+  });
+});
+
+/**
+ * Order age as of 2025-06-30. Every pending line is from the last 2 years (from 2023-06-30); the
+ * last 12 months (from 2024-06-30) leave out LPO-6003 (250) and LPO-6004 (150), both overdue.
+ */
+describe("order age", () => {
+  it("binds the cut-off as a date on PO_DATE, and nothing for all", () => {
+    for (const query of [
+      pendingByBucketQuery(ALL, TODAY, "2y"),
+      pendingBySupplierQuery(ALL, TODAY, "2y"),
+      pendingByCompanyQuery(ALL, TODAY, "2y"),
+      overdueLinesQuery(ALL, TODAY, "2y"),
+    ]) {
+      expect(query.binds.since_date).toBe("2023-06-30");
+      expect(query.sql).toContain("AND PO_DATE >= TO_DATE(:since_date, 'YYYY-MM-DD')");
+    }
+    expect(pendingByBucketQuery(ALL, TODAY, "12m").binds.since_date).toBe("2024-06-30");
+    expect(pendingByBucketQuery(ALL, TODAY, "all").binds).not.toHaveProperty("since_date");
+    expect(pendingByBucketQuery(ALL, TODAY, "all").sql).not.toContain("since_date");
+  });
+
+  it("the KPI query keeps older lines and counts them separately", async () => {
+    const { sql, binds } = pendingKpiQuery(ALL, TODAY, "12m");
+    expect(binds.since_date).toBe("2024-06-30");
+    expect(sql).not.toContain("AND PO_DATE >=");
+    expect(await pendingKpis(ALL, TODAY, "2y")).toEqual(await pendingKpis(ALL, TODAY, "all"));
+    const kpis = await pendingKpis(ALL, TODAY, "12m");
+    expect(kpis).toMatchObject({ openLines: 6, overdueLines: 5, hiddenLines: 2 });
+    expect(kpis.pendingValue).toBeCloseTo(3300);
+    expect(kpis.overdueValue).toBeCloseTo(2300);
+    expect(kpis.hiddenValue).toBeCloseTo(400);
+    expect(kpis.overduePct).toBeCloseTo(2300 / 3300);
+  });
+
+  it("every breakdown follows it and adds up to the KPI", async () => {
+    const kpis = await pendingKpis(ALL, TODAY, "12m");
+    const sum = (rows: { value: number }[]) => rows.reduce((total, row) => total + row.value, 0);
+    const buckets = await pendingByBucket(ALL, TODAY, "12m");
+    expect(sum(buckets)).toBeCloseTo(kpis.pendingValue);
+    expect(buckets.find((bucket) => bucket.label === "180-365 Days Overdue")!.value).toBeCloseTo(300);
+    expect(buckets.find((bucket) => bucket.label === "365+ Days Overdue")!.value).toBe(0);
+    expect(sum(await pendingBySupplier(ALL, TODAY, "12m"))).toBeCloseTo(kpis.pendingValue);
+    expect(sum(await pendingByCompany(ALL, TODAY, "12m"))).toBeCloseTo(kpis.pendingValue);
+    const lines = await overdueLines(ALL, TODAY, "12m");
+    expect(lines).toHaveLength(kpis.overdueLines);
+    expect(lines.map((line) => line.poNumber)).not.toContain("LPO-6003");
   });
 });
 
@@ -110,7 +163,7 @@ describe("aging buckets", () => {
   });
 
   it("the SQL puts each line in the same bucket, at the 89/90/180/365 boundaries", async () => {
-    const buckets = await pendingByBucket(ALL, TODAY);
+    const buckets = await pendingByBucket(ALL, TODAY, "all");
     expect(buckets).toEqual([
       { label: "On Time", value: 1000 },
       { label: "0-90 Days Overdue", value: 1500 },
@@ -118,7 +171,7 @@ describe("aging buckets", () => {
       { label: "180-365 Days Overdue", value: 550 },
       { label: "365+ Days Overdue", value: 150 },
     ]);
-    const lines = await overdueLines(ALL, TODAY);
+    const lines = await overdueLines(ALL, TODAY, "all");
     for (const line of lines) {
       expect(
         buckets.find((bucket) => bucket.label === agingBucket(line.poDate, TODAY))!.value,
@@ -127,7 +180,7 @@ describe("aging buckets", () => {
   });
 
   it("every bucket is listed in order, even empty ones", async () => {
-    const buckets = await pendingByBucket(["101"], TODAY);
+    const buckets = await pendingByBucket(["101"], TODAY, "all");
     expect(buckets.map((bucket) => bucket.label)).toEqual([...BUCKET_ORDER]);
     expect(buckets.find((bucket) => bucket.label === "365+ Days Overdue")!.value).toBe(0);
   });
@@ -135,20 +188,20 @@ describe("aging buckets", () => {
 
 describe("pending breakdowns", () => {
   it("by supplier, blanks as Unassigned, top N folds the rest", async () => {
-    expect(await pendingBySupplier(ALL, TODAY)).toEqual([
+    expect(await pendingBySupplier(ALL, TODAY, "all")).toEqual([
       { label: "Supplier One", value: 2000 },
       { label: "Supplier Two", value: 1050 },
       { label: "Supplier Three", value: 500 },
       { label: UNASSIGNED, value: 150 },
     ]);
-    expect(await pendingBySupplier(ALL, TODAY, 1)).toEqual([
+    expect(await pendingBySupplier(ALL, TODAY, "all", 1)).toEqual([
       { label: "Supplier One", value: 2000 },
       { label: ALL_OTHER, value: 1700 },
     ]);
   });
 
   it("by company", async () => {
-    expect(await pendingByCompany(ALL, TODAY)).toEqual([
+    expect(await pendingByCompany(ALL, TODAY, "all")).toEqual([
       { label: "101", value: 2500 },
       { label: "102", value: 1200 },
     ]);
@@ -157,7 +210,7 @@ describe("pending breakdowns", () => {
 
 describe("overdue lines", () => {
   it("lists overdue lines only, largest first, with days open", async () => {
-    const lines = await overdueLines(ALL, TODAY);
+    const lines = await overdueLines(ALL, TODAY, "all");
     expect(lines.map((line) => line.poNumber)).toEqual([
       "LPO-5002",
       "FPO-6001",
@@ -183,8 +236,8 @@ describe("overdue lines", () => {
   });
 
   it("is capped at the row limit", async () => {
-    expect(await overdueLines(ALL, TODAY, 2)).toHaveLength(2);
-    expect(overdueLinesQuery(ALL, TODAY).binds.row_limit).toBe(1000);
+    expect(await overdueLines(ALL, TODAY, "all", 2)).toHaveLength(2);
+    expect(overdueLinesQuery(ALL, TODAY, "all").binds.row_limit).toBe(1000);
   });
 });
 

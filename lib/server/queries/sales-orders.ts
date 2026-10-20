@@ -2,6 +2,7 @@ import "server-only";
 
 import { AGING_BUCKETS } from "@/lib/aging";
 import { daysBetween, monthsInRange, previousYear, shiftMonth, type Filters } from "@/lib/filters";
+import { orderAgeCutoff, type OrderAge } from "@/lib/order-age";
 import { orionDateSql, parseOrionDate } from "@/lib/orion-date";
 
 import { run } from "../db";
@@ -54,8 +55,9 @@ import { agingBinds, bucketCase } from "./ar-ap";
  * - Repair & service workorders (`R01`) are sales orders in this view too: 16,618 open lines, nearly
  *   all with zero value. They are counted as open lines but add almost nothing to the value.
  *
- * The open book is **as of today** and follows only the company filter; "booked" figures follow
- * both filters. Order age uses the shared ladder in `lib/aging.ts` on `H_DT`, with the cut-offs
+ * The open book is **as of today** and follows only the company filter and the order-age choice
+ * (`lib/order-age.ts`: by default orders placed in the last 2 years, on `H_DT`); "booked" figures
+ * follow both filters and ignore order age. Order age uses the shared ladder in `lib/aging.ts` on `H_DT`, with the cut-offs
  * bound as dates (the same `CASE` as receivables).
  */
 
@@ -87,33 +89,51 @@ export function pendingValue(netValue: number, orderedQty: number, deliveredQty:
 }
 
 /**
+ * `H_DT` on or after the order-age cut-off (`lib/order-age.ts`), worked out in TypeScript and bound.
+ * A predicate on the base column, unlike the computed ones `OPEN_AED_VALUE` warns about.
+ */
+const IN_SCOPE = "H_DT >= TO_DATE(:since_date, 'YYYY-MM-DD')";
+
+/**
  * Lines of open orders with something still to deliver or to invoice, each with its pending and
  * not-invoiced quantity and value, currency flag, expected delivery (`YYYY-MM-DD`) and age bucket.
  * Aggregation happens outside: Oracle rejects a GROUP BY on an expression with a bind (ORA-00979).
+ * Orders placed before the `age` cut-off are left out, or with `flagScope` kept and flagged
+ * `in_scope = 0`, so the KPI query can say what the cut-off hides in the same round trip.
  */
-function bookLines(companies: readonly string[], today: string, columns: string[] = []): Query {
+function bookLines(
+  companies: readonly string[],
+  today: string,
+  age: OrderAge,
+  columns: string[] = [],
+  { flagScope = false }: { flagScope?: boolean } = {},
+): Query {
   const company = companyWhere(companies, "H_COMP_CODE");
   // Order age has no "over 90 days" figure; an unused bind is an error on both sources.
   const ageBinds = Object.fromEntries(
     Object.entries(agingBinds(today)).filter(([name]) => name !== "age_90d"),
   );
+  const cutoff = orderAgeCutoff(age, today);
+  const select = [
+    ...columns,
+    `${ORDER_KEY} AS order_key`,
+    `CASE WHEN H_CURR_CODE = '${AED}' THEN 1 ELSE 0 END AS is_aed`,
+    `${PENDING_QTY} AS pend_qty`,
+    `${NET_VALUE} * ${PENDING_QTY} / D_QTY AS pend_value`,
+    `${UNINVOICED_QTY} AS uninv_qty`,
+    `${NET_VALUE} * ${UNINVOICED_QTY} / D_QTY AS uninv_value`,
+    `${orionDateSql("H_DEL_DT")} AS del_date`,
+    `${bucketCase("H_DT")} AS bucket`,
+  ];
+  if (flagScope)
+    select.push(cutoff ? `CASE WHEN ${IN_SCOPE} THEN 1 ELSE 0 END AS in_scope` : "1 AS in_scope");
   return {
     sql: `
-    SELECT ${[
-      ...columns,
-      `${ORDER_KEY} AS order_key`,
-      `CASE WHEN H_CURR_CODE = '${AED}' THEN 1 ELSE 0 END AS is_aed`,
-      `${PENDING_QTY} AS pend_qty`,
-      `${NET_VALUE} * ${PENDING_QTY} / D_QTY AS pend_value`,
-      `${UNINVOICED_QTY} AS uninv_qty`,
-      `${NET_VALUE} * ${UNINVOICED_QTY} / D_QTY AS uninv_value`,
-      `${orionDateSql("H_DEL_DT")} AS del_date`,
-      `${bucketCase("H_DT")} AS bucket`,
-    ].join(",\n        ")}
+    SELECT ${select.join(",\n        ")}
     FROM ${VIEW}
     WHERE ${NOT_CLOSED} AND D_QTY > 0
-      AND (${PENDING_QTY} > 0 OR ${UNINVOICED_QTY} > 0)${company ? `\n      AND ${company.sql}` : ""}`,
-    binds: { ...ageBinds, ...company?.binds },
+      AND (${PENDING_QTY} > 0 OR ${UNINVOICED_QTY} > 0)${company ? `\n      AND ${company.sql}` : ""}${cutoff && !flagScope ? `\n      AND ${IN_SCOPE}` : ""}`,
+    binds: { ...ageBinds, ...company?.binds, ...(cutoff ? { since_date: cutoff } : {}) },
   };
 }
 
@@ -164,6 +184,10 @@ export interface OpenBookKpis {
   /** AED orders: pending value whose expected delivery date has passed. */
   overdueValue: number;
   overdueLines: number;
+  /** Open lines (any currency) on orders placed before the order-age cut-off, left out above. */
+  hiddenLines: number;
+  /** AED orders: pending value of those lines. */
+  hiddenValue: number;
 }
 
 export interface LabelValue {
@@ -196,27 +220,29 @@ export interface OpenLine {
   daysOverdue: number | null;
 }
 
-export function openKpiQuery(companies: readonly string[], today: string): Query {
-  const lines = bookLines(companies, today);
+export function openKpiQuery(companies: readonly string[], today: string, age: OrderAge): Query {
+  const lines = bookLines(companies, today, age, [], { flagScope: true });
   return {
     sql: `
 SELECT
-    SUM(CASE WHEN ${OPEN_AED} THEN pend_value ELSE 0 END) AS open_value,
-    COUNT(DISTINCT CASE WHEN pend_qty > 0 THEN order_key END) AS open_orders,
-    SUM(CASE WHEN pend_qty > 0 THEN 1 ELSE 0 END) AS open_lines,
-    SUM(CASE WHEN ${OPEN_AED} THEN 1 ELSE 0 END) AS open_aed_lines,
-    SUM(CASE WHEN uninv_qty > 0 AND is_aed = 1 THEN uninv_value ELSE 0 END) AS uninv_value,
-    SUM(CASE WHEN uninv_qty > 0 THEN 1 ELSE 0 END) AS uninv_lines,
-    SUM(CASE WHEN ${OPEN_AED} AND del_date < :today THEN pend_value ELSE 0 END) AS overdue_value,
-    SUM(CASE WHEN pend_qty > 0 AND del_date < :today THEN 1 ELSE 0 END) AS overdue_lines
+    SUM(CASE WHEN in_scope = 1 AND ${OPEN_AED} THEN pend_value ELSE 0 END) AS open_value,
+    COUNT(DISTINCT CASE WHEN in_scope = 1 AND pend_qty > 0 THEN order_key END) AS open_orders,
+    SUM(CASE WHEN in_scope = 1 AND pend_qty > 0 THEN 1 ELSE 0 END) AS open_lines,
+    SUM(CASE WHEN in_scope = 1 AND ${OPEN_AED} THEN 1 ELSE 0 END) AS open_aed_lines,
+    SUM(CASE WHEN in_scope = 1 AND uninv_qty > 0 AND is_aed = 1 THEN uninv_value ELSE 0 END) AS uninv_value,
+    SUM(CASE WHEN in_scope = 1 AND uninv_qty > 0 THEN 1 ELSE 0 END) AS uninv_lines,
+    SUM(CASE WHEN in_scope = 1 AND ${OPEN_AED} AND del_date < :today THEN pend_value ELSE 0 END) AS overdue_value,
+    SUM(CASE WHEN in_scope = 1 AND pend_qty > 0 AND del_date < :today THEN 1 ELSE 0 END) AS overdue_lines,
+    SUM(CASE WHEN in_scope = 0 AND pend_qty > 0 THEN 1 ELSE 0 END) AS hidden_lines,
+    SUM(CASE WHEN in_scope = 0 AND ${OPEN_AED} THEN pend_value ELSE 0 END) AS hidden_value
 FROM (${lines.sql}
 ) book`,
     binds: { ...lines.binds, today },
   };
 }
 
-export function openByAgeQuery(companies: readonly string[], today: string): Query {
-  const lines = bookLines(companies, today);
+export function openByAgeQuery(companies: readonly string[], today: string, age: OrderAge): Query {
+  const lines = bookLines(companies, today, age);
   return {
     sql: `
 SELECT bucket, SUM(${OPEN_AED_VALUE}) AS amount
@@ -227,8 +253,14 @@ GROUP BY bucket`,
   };
 }
 
-function openByLabelQuery(column: string, companies: readonly string[], today: string, topN: number): Query {
-  const lines = bookLines(companies, today, [`${labelOrUnassigned(column)} AS label`]);
+function openByLabelQuery(
+  column: string,
+  companies: readonly string[],
+  today: string,
+  age: OrderAge,
+  topN: number,
+): Query {
+  const lines = bookLines(companies, today, age, [`${labelOrUnassigned(column)} AS label`]);
   const grouped = `
             SELECT label, SUM(${OPEN_AED_VALUE}) AS amount
             FROM (${lines.sql}
@@ -238,8 +270,13 @@ function openByLabelQuery(column: string, companies: readonly string[], today: s
   return foldTopN(grouped, lines.binds, topN);
 }
 
-export function openBySalespersonQuery(companies: readonly string[], today: string, topN = TOP_SALESPEOPLE) {
-  return openByLabelQuery("H_SM_NAME", companies, today, topN);
+export function openBySalespersonQuery(
+  companies: readonly string[],
+  today: string,
+  age: OrderAge,
+  topN = TOP_SALESPEOPLE,
+) {
+  return openByLabelQuery("H_SM_NAME", companies, today, age, topN);
 }
 
 /**
@@ -250,9 +287,10 @@ export function openBySalespersonQuery(companies: readonly string[], today: stri
 export function openByCustomerQuery(
   companies: readonly string[],
   today: string,
+  age: OrderAge,
   topN = TOP_CUSTOMERS,
 ): Query {
-  const lines = bookLines(companies, today, ["H_CUST_CODE AS cust_code"]);
+  const lines = bookLines(companies, today, age, ["H_CUST_CODE AS cust_code"]);
   const grouped = `
             SELECT ${labelOrUnassigned("c.CUST_NAME")} AS label, SUM(by_code.amount) AS amount
             FROM (
@@ -267,9 +305,9 @@ export function openByCustomerQuery(
   return foldTopN(grouped, lines.binds, topN);
 }
 
-export function openByCurrencyQuery(companies: readonly string[], today: string): Query {
+export function openByCurrencyQuery(companies: readonly string[], today: string, age: OrderAge): Query {
   const OPEN_OTHER = "pend_qty > 0 AND is_aed = 0";
-  const lines = bookLines(companies, today, [`${labelOrUnassigned("H_CURR_CODE")} AS currency`]);
+  const lines = bookLines(companies, today, age, [`${labelOrUnassigned("H_CURR_CODE")} AS currency`]);
   return {
     sql: `
 SELECT currency, SUM(CASE WHEN ${OPEN_OTHER} THEN 1 ELSE 0 END) AS line_count,
@@ -284,8 +322,13 @@ ORDER BY line_count DESC, currency`,
 }
 
 /** The largest open AED lines by pending value, at most `limit`. */
-export function openLinesQuery(companies: readonly string[], today: string, limit = OPEN_ROW_LIMIT): Query {
-  const lines = bookLines(companies, today, [
+export function openLinesQuery(
+  companies: readonly string[],
+  today: string,
+  age: OrderAge,
+  limit = OPEN_ROW_LIMIT,
+): Query {
+  const lines = bookLines(companies, today, age, [
     "H_COMP_CODE AS company_code",
     "H_TXN_CODE AS txn_code",
     "H_TXN_NO AS txn_no",
@@ -321,9 +364,13 @@ function text(value: unknown): string {
   return value === null || value === undefined ? "" : String(value);
 }
 
-/** Headline open-book figures, as of `today`. */
-export async function openBookKpis(companies: readonly string[], today: string): Promise<OpenBookKpis> {
-  const [row] = await run(openKpiQuery(companies, today));
+/** Headline open-book figures as of `today`, on orders placed since the `age` cut-off. */
+export async function openBookKpis(
+  companies: readonly string[],
+  today: string,
+  age: OrderAge,
+): Promise<OpenBookKpis> {
+  const [row] = await run(openKpiQuery(companies, today, age));
   return {
     openValue: num(row?.open_value),
     openOrders: num(row?.open_orders),
@@ -333,12 +380,18 @@ export async function openBookKpis(companies: readonly string[], today: string):
     uninvoicedLines: num(row?.uninv_lines),
     overdueValue: num(row?.overdue_value),
     overdueLines: num(row?.overdue_lines),
+    hiddenLines: num(row?.hidden_lines),
+    hiddenValue: num(row?.hidden_value),
   };
 }
 
 /** Open AED value over the aging ladder, in ladder order; empty buckets are zero. */
-export async function openByAge(companies: readonly string[], today: string): Promise<number[]> {
-  const rows = await run(openByAgeQuery(companies, today));
+export async function openByAge(
+  companies: readonly string[],
+  today: string,
+  age: OrderAge,
+): Promise<number[]> {
+  const rows = await run(openByAgeQuery(companies, today, age));
   const byBucket = new Map(rows.map((row) => [num(row.bucket), num(row.amount)]));
   return AGING_BUCKETS.map((_, index) => byBucket.get(index + 1) ?? 0);
 }
@@ -349,18 +402,32 @@ async function labelValues(query: Query): Promise<LabelValue[]> {
 }
 
 /** Open AED value of the top salespeople; the last row may be 'All other'. */
-export function openBySalesperson(companies: readonly string[], today: string, topN = TOP_SALESPEOPLE) {
-  return labelValues(openBySalespersonQuery(companies, today, topN));
+export function openBySalesperson(
+  companies: readonly string[],
+  today: string,
+  age: OrderAge,
+  topN = TOP_SALESPEOPLE,
+) {
+  return labelValues(openBySalespersonQuery(companies, today, age, topN));
 }
 
 /** Open AED value of the top customers; the last row may be 'All other'. */
-export function openByCustomer(companies: readonly string[], today: string, topN = TOP_CUSTOMERS) {
-  return labelValues(openByCustomerQuery(companies, today, topN));
+export function openByCustomer(
+  companies: readonly string[],
+  today: string,
+  age: OrderAge,
+  topN = TOP_CUSTOMERS,
+) {
+  return labelValues(openByCustomerQuery(companies, today, age, topN));
 }
 
 /** Open lines of non-AED orders per currency, left out of the AED figures. */
-export async function openByCurrency(companies: readonly string[], today: string): Promise<CurrencyBook[]> {
-  const rows = await run(openByCurrencyQuery(companies, today));
+export async function openByCurrency(
+  companies: readonly string[],
+  today: string,
+  age: OrderAge,
+): Promise<CurrencyBook[]> {
+  const rows = await run(openByCurrencyQuery(companies, today, age));
   return rows.map((row) => ({
     currency: String(row.currency),
     lines: num(row.line_count),
@@ -371,9 +438,10 @@ export async function openByCurrency(companies: readonly string[], today: string
 export async function openLines(
   companies: readonly string[],
   today: string,
+  age: OrderAge,
   limit = OPEN_ROW_LIMIT,
 ): Promise<OpenLine[]> {
-  const rows = await run(openLinesQuery(companies, today, limit));
+  const rows = await run(openLinesQuery(companies, today, age, limit));
   return rows.map((row) => {
     const expectedDate = parseOrionDate(row.del_text);
     const overdue = expectedDate === null ? null : daysBetween(expectedDate, today);

@@ -10,6 +10,7 @@ import {
   pctChange,
 } from "@/lib/format";
 import { AP_CURRENCY_NOTE, salesOrderCurrencyNote } from "@/lib/notes";
+import { DEFAULT_ORDER_AGE, orderAgeScope } from "@/lib/order-age";
 
 import type { Loaded } from "../errors";
 import { DEFAULT_DEAD_STOCK_MONTHS } from "../queries/inventory";
@@ -27,6 +28,9 @@ import type { OverviewFigures, VsLastYear } from "../overview";
  */
 
 export const NOT_AVAILABLE = "Not available today";
+
+/** Pending POs and the order book count the dashboards' default order age. */
+const ORDER_SCOPE = orderAgeScope(DEFAULT_ORDER_AGE);
 
 export interface SnapshotEmail {
   subject: string;
@@ -191,9 +195,13 @@ function groups(figures: OverviewFigures, url: (path: string) => string): Group[
           title: "Purchasing",
           href: url("/purchasing"),
           metrics: metricsOf(figures.purchasing, (pending) => [
-            { label: "Pending PO value", value: formatAed(pending.pendingValue), note: "Open PO lines" },
             {
-              label: "Overdue %",
+              label: `Pending PO value, ${ORDER_SCOPE}`,
+              value: formatAed(pending.pendingValue),
+              note: "Open PO lines",
+            },
+            {
+              label: `Overdue %, ${ORDER_SCOPE}`,
               value: formatPct(pending.overduePct),
               note: `${formatAed(pending.overdueValue)} past PO date + 84 days`,
             },
@@ -231,12 +239,12 @@ function groups(figures: OverviewFigures, url: (path: string) => string): Group[
           href: url("/sales-orders"),
           metrics: metricsOf(figures.salesOrders, ({ book }) => [
             {
-              label: "Open order value",
+              label: `Open order value, ${ORDER_SCOPE}`,
               value: formatAed(book.openValue),
               note: "AED orders, still to deliver",
             },
             {
-              label: "Open orders",
+              label: `Open orders, ${ORDER_SCOPE}`,
               value: formatInt(book.openOrders),
               note: `${plural(book.openLines, "line", "lines")} still to deliver`,
             },
@@ -262,7 +270,7 @@ function groups(figures: OverviewFigures, url: (path: string) => string): Group[
               url("/purchasing#overdue-po-lines"),
               (po) => ({
                 value: formatAed(po.overdueValue),
-                note: `${plural(po.overdueLines, "line", "lines")} past PO date + 84 days`,
+                note: `${plural(po.overdueLines, "line", "lines")} past PO date + 84 days, ${ORDER_SCOPE}`,
               }),
             ),
             attentionMetric(

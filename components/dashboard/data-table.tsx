@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import {
   flexRender,
@@ -37,6 +38,11 @@ export interface ColumnSpec {
   format?: ValueFormat;
   /** Add the column up in the totals row. Leave off for ratios like margin %. */
   sum?: boolean;
+  /**
+   * The row field holding a link for this cell, such as a customer page. Rows where it is empty
+   * (an "All other" row, a name without a code) show plain text. Links are left out of the CSV.
+   */
+  linkKey?: string;
 }
 
 export type TableRowData = Record<string, string | number | null>;
@@ -102,7 +108,20 @@ export function DataTable({
         header: column.header,
         sortDescFirst: isNumeric(column.format),
         enableGlobalFilter: !isNumeric(column.format),
-        cell: (context) => formatValue(column.format ?? "text", context.getValue()),
+        cell: (context) => {
+          const text = formatValue(column.format ?? "text", context.getValue());
+          const href = column.linkKey ? context.row.original[column.linkKey] : null;
+          return typeof href === "string" && href ? (
+            <Link
+              href={href}
+              className="font-medium text-primary underline-offset-4 hover:underline focus-visible:underline"
+            >
+              {text}
+            </Link>
+          ) : (
+            text
+          );
+        },
       })),
     [columns],
   );

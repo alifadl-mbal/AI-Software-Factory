@@ -5,7 +5,7 @@ import { PageHeader } from "@/components/dashboard/page-header";
 import { ChartCardSkeleton, KpiRowSkeleton } from "@/components/dashboard/skeletons";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DASHBOARDS } from "@/lib/dashboards";
-import { parseFilters, todayIso } from "@/lib/filters";
+import { filtersToSearch, parseFilters, todayIso } from "@/lib/filters";
 
 import {
   ApAging,
@@ -28,7 +28,7 @@ export default async function ReceivablesPayablesPage({ searchParams }: PageProp
   const today = todayIso();
   const filters = parseFilters(await searchParams, today);
   // Balances are as of today: only the company filter applies.
-  const scope = { asOf: today, companies: filters.companies };
+  const scope = { asOf: today, companies: filters.companies, search: filtersToSearch(filters) };
   // A new key per company selection, so each section shows its skeleton while new figures stream in.
   const key = `${today}|${filters.companies.join(",") || "all"}`;
 

@@ -11,12 +11,14 @@ import { KpiCard } from "@/components/dashboard/kpi-card";
 import { TrendChart } from "@/components/dashboard/trend-chart";
 import { ReportAsOf } from "@/components/shell/shell-context";
 import { AGING_BUCKETS } from "@/lib/aging";
+import { customerHref } from "@/lib/customers";
 import { previousYear, type Filters } from "@/lib/filters";
 import { formatAed, formatAedCompact, formatInt, formatPct } from "@/lib/format";
 import { salesOrderCurrencyNote } from "@/lib/notes";
 import { dataAsOf } from "@/lib/server/db";
 import { load } from "@/lib/server/errors";
 import { companies } from "@/lib/server/queries/common";
+import { customerCodesByName } from "@/lib/server/queries/customers";
 import {
   bookedKpis,
   bookedMonthly,
@@ -193,7 +195,7 @@ export async function OpenBySalesperson({ filters, today }: SectionProps) {
 }
 
 const CUSTOMER_COLUMNS: ColumnSpec[] = [
-  { key: "label", header: "Customer" },
+  { key: "label", header: "Customer", linkKey: "href" },
   { key: "value", header: "Open value", format: "aed", sum: true },
   { key: "share", header: "Share", format: "pct" },
 ];
@@ -202,6 +204,10 @@ export async function OpenByCustomer({ filters, today }: SectionProps) {
   const title = "Top customers by open value";
   const result = await load(() => openByCustomer(filters.companies, today));
   const total = result.ok ? totalOf(result.data) : 0;
+  // Grouped by name (codes sharing a name add up); a name links when only one code carries it.
+  const codes = result.ok
+    ? await customerCodesByName(result.data.map((row) => row.label)).catch(() => new Map<string, string>())
+    : new Map<string, string>();
   return (
     <ChartCard
       title={title}
@@ -215,6 +221,7 @@ export async function OpenByCustomer({ filters, today }: SectionProps) {
           columns={CUSTOMER_COLUMNS}
           rows={result.data.map((row) => ({
             label: row.label,
+            href: codes.has(row.label) ? customerHref(codes.get(row.label)!, filters) : null,
             value: row.value,
             share: total ? row.value / total : null,
           }))}
@@ -256,7 +263,7 @@ const LINE_COLUMNS: ColumnSpec[] = [
   { key: "company", header: "Company" },
   { key: "orderNumber", header: "Order no" },
   { key: "orderDate", header: "Order date", format: "date" },
-  { key: "customer", header: "Customer" },
+  { key: "customer", header: "Customer", linkKey: "customerHref" },
   { key: "salesperson", header: "Salesperson" },
   { key: "item", header: "Item" },
   { key: "orderedQty", header: "Ordered", format: "qty" },
@@ -299,6 +306,7 @@ export async function OpenLinesTable({ filters, today }: SectionProps) {
               orderNumber: line.orderNumber,
               orderDate: line.orderDate,
               customer: line.customer,
+              customerHref: line.customerCode ? customerHref(line.customerCode, filters) : null,
               salesperson: line.salesperson,
               item: line.item,
               orderedQty: line.orderedQty,

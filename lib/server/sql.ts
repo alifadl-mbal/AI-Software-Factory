@@ -32,14 +32,29 @@ export function filterWhere(
     start_date: filters.start,
     end_date_exclusive: addDays(filters.end, 1),
   };
-  if (filters.companies.length > 0) {
-    const names = filters.companies.map((_, index) => `company_${index}`);
-    clauses.push(`${companyColumn} IN (${names.map((name) => `:${name}`).join(", ")})`);
-    names.forEach((name, index) => {
-      binds[name] = filters.companies[index];
-    });
+  const company = companyWhere(filters.companies, companyColumn);
+  if (company) {
+    clauses.push(company.sql);
+    Object.assign(binds, company.binds);
   }
   return { sql: clauses.join(" AND "), binds };
+}
+
+/**
+ * The `WHERE` fragment for the company filter alone, for dashboards whose figures are balances as
+ * of today and so ignore the date range. `undefined` when every company is selected.
+ */
+export function companyWhere(
+  companies: readonly string[],
+  companyColumn: string,
+): { sql: string; binds: Binds } | undefined {
+  if (companies.length === 0) return undefined;
+  const names = companies.map((_, index) => `company_${index}`);
+  const binds: Binds = {};
+  names.forEach((name, index) => {
+    binds[name] = companies[index];
+  });
+  return { sql: `${companyColumn} IN (${names.map((name) => `:${name}`).join(", ")})`, binds };
 }
 
 /** Numeric column from a result row; `NULL` (an empty SUM) counts as 0. */

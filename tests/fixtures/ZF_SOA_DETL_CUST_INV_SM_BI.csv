@@ -1,0 +1,22 @@
+SDR_COMP_CODE,SDR_COMP_NAME,SDR_DOC_DT,SDR_FIN_TRAN_CODE,SDR_DOC_NO,SDR_INV_SM_CODE,SDR_INV_SM_NAME,SDR_CUST_SM_CODE,SDR_CUST_SM_NAME,SDR_FIN_SM_CODE,SDR_FIN_SM_NAME,SDR_SUB_ACNT_CODE,SDR_CUST_NAME,SDR_CURR_CODE,SDR_ORG_FC_AMT,SDR_ORG_LC_AMT,SDR_TOT_PDC,SDR_TOT_BAL,SDR_NET_BAL
+101,Alpha Trading,2025-06-20,CIN,1,X9,Xavier,S1,Sara,F1,Fadi,C1,Customer One,AED,1000,1000,0,1000,1000
+101,Alpha Trading,2025-01-15,CIN,2,X9,Xavier,S1,Sara,F1,Fadi,C1,Customer One,AED,2000,2000,500,1500,1000
+101,Alpha Trading,2024-03-01,CIN,3,X9,Xavier,S1,Sara,F1,Fadi,C1,Customer One,AED,5000,5000,0,0,0
+101,Alpha Trading,2023-01-01,CIN,4,X9,Xavier,S1,Sara,F1,Fadi,C1,Customer One,USD,816.89,3000,0,0.6,0.6
+101,Alpha Trading,2025-05-15,CIN,5,X9,Xavier,S2,Sam,F1,Fadi,C2,Customer Two,AED,4000,4000,4000,4000,0
+101,Alpha Trading,2024-10-10,CIN,6,X9,Xavier,S2,Sam,,,C2,Customer Two,AED,800,800,0,800,800
+101,Alpha Trading,2025-06-25,CRN,7,X9,Xavier,S2,Sam,F1,Fadi,C2,Customer Two,AED,300,300,0,-300,-300
+102,Beta Medical,2025-06-01,CIN,8,X9,Xavier,S2,Sam,F2,Farah,C3,Customer Three,AED,50,50,0,50,50
+201,Boundary Co,2025-06-01,CIN,101,,,S3,Selma,F3,Fatima,B01,Boundary 29 days,AED,1,1,0,1,1
+201,Boundary Co,2025-05-31,CIN,102,,,S3,Selma,F3,Fatima,B02,Boundary 30 days,AED,2,2,0,2,2
+201,Boundary Co,2025-05-01,CIN,103,,,S3,Selma,F3,Fatima,B03,Boundary under 2 months,AED,4,4,0,4,4
+201,Boundary Co,2025-04-30,CIN,104,,,S3,Selma,F3,Fatima,B04,Boundary 2 months,AED,8,8,0,8,8
+201,Boundary Co,2025-04-01,CIN,105,,,S3,Selma,F3,Fatima,B05,Boundary 90 days,AED,4096,4096,0,4096,4096
+201,Boundary Co,2025-03-31,CIN,106,,,S3,Selma,F3,Fatima,B06,Boundary under 3 months,AED,16,16,0,16,16
+201,Boundary Co,2025-03-30,CIN,107,,,S3,Selma,F3,Fatima,B07,Boundary 3 months,AED,32,32,0,32,32
+201,Boundary Co,2024-12-31,CIN,108,,,S3,Selma,F3,Fatima,B08,Boundary under 6 months,AED,64,64,0,64,64
+201,Boundary Co,2024-12-30,CIN,109,,,S3,Selma,F3,Fatima,B09,Boundary 6 months,AED,128,128,0,128,128
+201,Boundary Co,2024-07-01,CIN,110,,,S3,Selma,F3,Fatima,B10,Boundary under 12 months,AED,256,256,0,256,256
+201,Boundary Co,2024-06-30,CIN,111,,,S3,Selma,F3,Fatima,B11,Boundary 12 months,AED,512,512,0,512,512
+201,Boundary Co,2023-07-01,CIN,112,,,S3,Selma,F3,Fatima,B12,Boundary under 24 months,AED,1024,1024,0,1024,1024
+201,Boundary Co,2023-06-30,CIN,113,,,S3,Selma,F3,Fatima,B13,Boundary 24 months,AED,2048,2048,0,2048,2048

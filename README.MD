@@ -7,10 +7,11 @@ Stack: Next.js 16 (App Router) · React 19 · TypeScript (strict) · Tailwind CS
 (Radix) · lucide-react · Recharts · TanStack Table · node-oracledb (thin mode, no Instant Client)
 · Vitest + Testing Library · Playwright + axe · ESLint + Prettier · GitHub Actions.
 
-| Page     | Route    | View        | What it shows                                                                                                                                                                               |
-| -------- | -------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Overview | `/`      |             | Headline sales figures and a card for each dashboard                                                                                                                                        |
-| Sales    | `/sales` | `ZF_CSL_BI` | Net revenue, gross margin, margin %, invoices, returns (vs last year, with sparklines); monthly trend vs last year; revenue by company, item group, salesperson; top 20 customers and items |
+| Page      | Route        | View                                              | What it shows                                                                                                                                                                                                                                  |
+| --------- | ------------ | ------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Overview  | `/`          |                                                   | Headline sales figures and a card for each dashboard                                                                                                                                                                                           |
+| Sales     | `/sales`     | `ZF_CSL_BI`                                       | Net revenue, gross margin, margin %, invoices, returns (vs last year, with sparklines); monthly trend vs last year; revenue by company, item group, salesperson; top 20 customers and items                                                    |
+| Inventory | `/inventory` | `ZF_CURR_STK_BI`, `ZF_STK_MTH_SUMM_BI`, `ZF_ITEM` | Stock value, available and reserved value, stocked items and change vs last month-end, as of today; month-end trend (24 periods); stock value by company, item group, location and grade; dead stock (3/6/12 months, `?dead=`); reorder alerts |
 
 ## Setup
 
@@ -35,6 +36,8 @@ every page shows a **Sample data** badge in the top bar. Every name in them is i
 The same Oracle SQL runs on an in-memory SQLite database (Node's built-in `node:sqlite`) loaded
 from the CSVs, so sample mode exercises the real queries. Sample dates are shifted by whole years
 so the newest fixture year is the current year, so "year to date" always has something to show.
+Month-end periods (`*_PERIOD`, `YYYYMM`) are shifted by whole months so the newest is the current
+month.
 
 ### Oracle mode (live Orion)
 
@@ -110,7 +113,7 @@ lib/
     oracle.ts           node-oracledb pool
     sample.ts           SQLite sample source with Oracle shims
     sql.ts              filterWhere (binds), labelOrUnassigned, UNASSIGNED/ALL_OTHER
-    queries/            one module per Orion domain (common.ts, sales.ts)
+    queries/            one module per Orion domain (common.ts, sales.ts, inventory.ts)
 data/sample/            sample fixtures, one CSV per view
 tests/unit, tests/e2e   Vitest and Playwright; tests/fixtures has the hand-checked CSV
 ```
@@ -137,6 +140,8 @@ Rules for query code:
   `filterWhere(filters, dateColumn, companyColumn)` for the shared filters. Dates are bound as
   `YYYY-MM-DD` strings and wrapped in `TO_DATE(:bind, 'YYYY-MM-DD')`.
 - **Aggregate in SQL.** Never pull a fact table into JavaScript.
+- Use `companyWhere(companies, companyColumn)` on views the date filter doesn't apply to (live
+  stock). Registry entries for such dashboards set `dateFilter: false`, which hides the date picker.
 - Show blank dimension values as `'Unassigned'` with `labelOrUnassigned(column)`; fold long tails
   into `'All other'` so totals still add up.
 - Keep builders (`*Query(filters)` returning `{ sql, binds }`) separate from loaders, so tests can
@@ -209,3 +214,19 @@ Say, Inventory on `ZF_CURR_STK_BI`:
 - `CSL_GROSS_SL_VALUE` (pre-discount) is never used as revenue.
 - Invoices = distinct `INV` documents with a non-zero net value (zero-value delivery notes excluded).
 - Blank customers, salespeople, item groups etc. show as **Unassigned**.
+
+## Business rules (Inventory)
+
+- Live stock (`ZF_CURR_STK_BI`) has no `CS_AVAILABLE_QTY` / `CS_TOTAL_WAC*` columns; those are
+  aliases from the old BI extract. Stock value = `CS_VAL`; available qty = `CS_UNCONF_QTY −
+CS_RESV_QTY`; available value = available qty × `CS_WAC`; reserved value = the difference.
+- `CS_GRADE` is space-padded: always `TRIM()` it.
+- Item master (`ZF_ITEM`) joins on `(IM_COMP_CODE, IM_ITEM_CODE)` and is always a LEFT JOIN: about
+  1% of stock keys have no item row and still count. `IM_FRZ_FLAG` is `Active` / `Freeze`;
+  reorder alerts cover `Active` items with `IM_RORD_LVL > 0` whose available qty at a location is
+  at or below it. `IM_ABC` is unmaintained and not used.
+- Month-end stock (`ZF_STK_MTH_SUMM_BI`): `ZSL_PERIOD` is `YYYYMM` (`CHAR(6)`). The view has no
+  opening quantity, so movement is closing qty minus the previous period's closing qty. The
+  current month is provisional.
+- Dead stock for N months = a company × location × item whose closing qty is the same, and above
+  zero, in each of the newest N + 1 periods. Value at risk is their closing value.

@@ -1,8 +1,10 @@
 import { expect, type Page } from "@playwright/test";
 
+/** Every page, with its headline KPI card: the console, mobile and axe checks run on each. */
 export const PAGES = [
-  { path: "/", heading: "Overview" },
-  { path: "/sales", heading: "Sales" },
+  { path: "/", heading: "Overview", headline: "Net revenue" },
+  { path: "/sales", heading: "Sales", headline: "Net revenue" },
+  { path: "/inventory", heading: "Inventory", headline: "Stock value" },
 ] as const;
 
 /** Collect console errors and uncaught exceptions for the life of the page. */

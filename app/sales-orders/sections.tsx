@@ -3,6 +3,7 @@ import "server-only";
 import { AgingChart } from "@/components/dashboard/aging-chart";
 import { BarBreakdown } from "@/components/dashboard/bar-breakdown";
 import { ChartCard } from "@/components/dashboard/chart-card";
+import { DataQualityNote } from "@/components/dashboard/data-quality-note";
 import { DataTable, type ColumnSpec } from "@/components/dashboard/data-table";
 import { EmptyState } from "@/components/dashboard/empty-state";
 import { ErrorCard } from "@/components/dashboard/error-card";
@@ -135,13 +136,38 @@ export async function OpenByAge({ filters, today }: SectionProps) {
       ) : total === 0 ? (
         <EmptyState title="Nothing open" message={NOTHING_OPEN} />
       ) : (
-        <AgingChart
-          values={result.data}
-          label="Open value"
-          ariaLabel={`${title}: ${AGING_BUCKETS.map((bucket, index) => `${bucket} ${formatAed(result.data[index])}`).join(", ")}`}
-        />
+        <div className="flex flex-col gap-4">
+          <AgingChart
+            values={result.data}
+            label="Open value"
+            ariaLabel={`${title}: ${AGING_BUCKETS.map((bucket, index) => `${bucket} ${formatAed(result.data[index])}`).join(", ")}`}
+          />
+          <StaleOrderNote oldest={result.data.at(-1) ?? 0} total={total} />
+        </div>
       )}
     </ChartCard>
+  );
+}
+
+/** Share of open value above which orders over two years old get a data-quality note. */
+const STALE_SHARE = 0.25;
+
+/**
+ * Orders over two years old with something "still to deliver" are rarely live: they were usually
+ * delivered, invoiced directly or cancelled without the order being closed in Orion. On live Orion
+ * they are most of the open value, so the note says so.
+ */
+function StaleOrderNote({ oldest, total }: { oldest: number; total: number }) {
+  if (total <= 0 || oldest / total < STALE_SHARE) return null;
+  return (
+    <DataQualityNote
+      testId="stale-order-note"
+      title={`${formatPct(oldest / total)} of open value is on orders more than two years old`}
+    >
+      (<span className="tabular">{formatAed(oldest)}</span>). Orders this old are usually delivered, invoiced
+      directly or cancelled without being closed in Orion, so open order value and overdue value above include
+      them. Closing them in Orion makes these figures mean what they say.
+    </DataQualityNote>
   );
 }
 

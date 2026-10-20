@@ -153,6 +153,11 @@ describe("POST /api/cron/warm", () => {
     await post(`Bearer ${SECRET}`);
     const first = reads.length;
     reads = [];
+    // The next run starts later than every result of the first one. Without moving the clock on, a
+    // run starting in the same millisecond as the first run's last query would count that result as
+    // fresh and this test would depend on how fast the machine is.
+    const now = Date.now();
+    vi.spyOn(Date, "now").mockReturnValue(now + 1000);
     await post(`Bearer ${SECRET}`);
     expect(reads.length).toBe(first);
   });

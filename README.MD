@@ -1,139 +1,211 @@
-# MBAL BI dashboards
+# MBAL BI
 
 Business-intelligence dashboards for MBAL, built on **Orion**, MBAL's Oracle ERP. Orion is read
 through the `MBALI.ZF_*_BI` views and is **read-only** for this app.
 
-Stack: Python 3.12 · Streamlit (multipage) · python-oracledb (thin mode, no Instant Client) ·
-pandas · Plotly · pytest · ruff · GitHub Actions.
+Stack: Next.js 16 (App Router) · React 19 · TypeScript (strict) · Tailwind CSS 4 · shadcn/ui
+(Radix) · lucide-react · Recharts · TanStack Table · node-oracledb (thin mode, no Instant Client)
+· Vitest + Testing Library · Playwright + axe · ESLint + Prettier · GitHub Actions.
 
-Dashboards so far:
-
-| Page | View | What it shows |
-|---|---|---|
-| Sales | `MBALI.ZF_CSL_BI` | Net revenue, gross margin, margin %, invoices, returns (vs last year); monthly trend; revenue by company, customer, item, salesperson and item group |
+| Page     | Route    | View        | What it shows                                                                                                                                                                               |
+| -------- | -------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Overview | `/`      |             | Headline sales figures and a card for each dashboard                                                                                                                                        |
+| Sales    | `/sales` | `ZF_CSL_BI` | Net revenue, gross margin, margin %, invoices, returns (vs last year, with sparklines); monthly trend vs last year; revenue by company, item group, salesperson; top 20 customers and items |
 
 ## Setup
 
+Needs Node 22 LTS (or newer) and npm.
+
 ```bash
-python -m venv .venv
-# Windows: .venv\Scripts\activate    macOS/Linux: source .venv/bin/activate
-pip install -r requirements.txt
+npm ci
+npm run dev            # http://localhost:3000, or $PORT if set
 ```
 
-## Running
+`PORT=4000 npm run dev` serves on port 4000 (PowerShell: `$env:PORT=4000; npm run dev`).
+
+For production: `npm run build && npm start` (also honours `$PORT`).
+
+## Data sources
 
 ### Sample mode (default)
 
-No network or credentials needed. Data comes from synthetic CSV fixtures in
-`mbal_bi/sample_data/`, and every page shows a **Sample data** banner.
+No network or credentials needed. Data comes from synthetic CSV fixtures in `data/sample/`, and
+every page shows a **Sample data** badge in the top bar. Every name in them is invented.
 
-```bash
-streamlit run app.py --server.port 8501 --server.headless true
-```
-
-Sample dates are shifted by whole years so the newest fixture year is the current year, so
-"year to date" always has something to show.
+The same Oracle SQL runs on an in-memory SQLite database (Node's built-in `node:sqlite`) loaded
+from the CSVs, so sample mode exercises the real queries. Sample dates are shifted by whole years
+so the newest fixture year is the current year, so "year to date" always has something to show.
 
 ### Oracle mode (live Orion)
 
-Needs the office network or VPN. Set the variables below in your shell or service environment.
-The app reads real environment variables and does not load `.env` files itself.
+Needs the office network or VPN. Set the variables below in `.env.local` (git-ignored) or in the
+service environment, then start the app as usual:
 
 ```bash
-export MBAL_DATA_SOURCE=oracle
-export ORACLE_USER=...
-export ORACLE_PASSWORD=...
-export ORACLE_DSN=host:port/service_name
-streamlit run app.py --server.port 8501 --server.headless true
+MBAL_DATA_SOURCE=oracle
+ORACLE_USER=...
+ORACLE_PASSWORD=...
+ORACLE_DSN=host:port/service_name
 ```
 
-PowerShell: `$env:MBAL_DATA_SOURCE = "oracle"` and so on.
-
-If Orion can't be reached, or a query fails, the page shows a short error message instead of a
-stack trace; full details go to the server log. The connect timeout is 15 seconds.
+The app uses a connection pool with a 15 s connect timeout. If Orion can't be reached, or a query
+fails, each section shows a short, friendly error with a **Retry** button instead of a stack
+trace; details (Oracle error codes) go to the server log. An unreachable host shows the error in
+about 17 s.
 
 ## Environment variables
 
-| Variable | Required | Meaning |
-|---|---|---|
-| `MBAL_DATA_SOURCE` | no | `sample` (default) or `oracle` |
-| `ORACLE_USER` | oracle mode | Orion user |
-| `ORACLE_PASSWORD` | oracle mode | Orion password |
-| `ORACLE_DSN` | oracle mode | Easy Connect string, `host:port/service_name` |
+| Variable           | Required    | Meaning                                       |
+| ------------------ | ----------- | --------------------------------------------- |
+| `MBAL_DATA_SOURCE` | no          | `sample` (default) or `oracle`                |
+| `ORACLE_USER`      | oracle mode | Orion user                                    |
+| `ORACLE_PASSWORD`  | oracle mode | Orion password                                |
+| `ORACLE_DSN`       | oracle mode | Easy Connect string, `host:port/service_name` |
+| `PORT`             | no          | Port for `npm run dev` / `npm start`          |
 
-There are no built-in defaults for the Oracle settings. See `.env.example`. Never commit a `.env`
-file, a password or an internal host name.
+There are no fallbacks for the Oracle settings: a missing one is reported on screen. They are read
+on the server only (`import "server-only"`) and never reach the browser bundle. See
+`.env.example`; never commit a real `.env`.
+
+## Scripts
+
+| Script              | What it does                                                |
+| ------------------- | ----------------------------------------------------------- |
+| `npm run dev`       | Dev server on `$PORT` (default 3000)                        |
+| `npm run build`     | Production build                                            |
+| `npm start`         | Serve the production build                                  |
+| `npm run lint`      | ESLint                                                      |
+| `npm run format`    | Prettier (`format:check` in CI)                             |
+| `npm run typecheck` | Generate route types, then `tsc --noEmit`                   |
+| `npm test`          | Vitest unit tests (guard, SQL numbers, binds, formatting)   |
+| `npm run test:e2e`  | Playwright against the production build (run `build` first) |
+
+`test:e2e` starts two servers: sample mode on `E2E_PORT` (default 3100), and oracle mode with an
+unreachable DSN on `E2E_ORACLE_PORT` (default `E2E_PORT + 1`) to check the error card.
+`E2E_SUITE=sample` or `E2E_SUITE=oracle` runs only one. CI runs everything in sample mode on every
+push and pull request.
 
 ## How it fits together
 
 ```
-app.py                     home page: dashboard list + headline sales figures
-pages/1_Sales.py           Sales dashboard (one file per dashboard)
-mbal_bi/
-  config.py                MBAL_DATA_SOURCE, Oracle env vars, cache TTL
-  db.py                    Oracle connection + the read-only guard
-  datasource.py            run_query(): picks sample or oracle, caches, friendly errors
-  filters.py               Filters (date range, companies) -> SQL fragment + bind variables
-  formatting.py            AED / number / percent formatting
-  ui.py                    page_setup, sidebar_filters, load, KPI tiles, charts
-  dashboards.py            the list the home page shows
-  queries/                 SQL per domain (sales.py, common.py)
-  sample_data/             synthetic fixtures, one CSV per view, real column names
-scripts/generate_sample_data.py   regenerates the sample CSVs (deterministic)
-tests/                     unit tests + AppTest smoke tests
+app/
+  layout.tsx            shell: sidebar + top bar (filters, refresh, theme, sample badge)
+  page.tsx              Overview
+  sales/page.tsx        Sales page: Suspense sections, one per card/chart/table
+  sales/sections.tsx    async server components that load data and render the components
+  actions.ts            Refresh server action (clears the cache)
+components/
+  dashboard/            KpiCard, ChartCard, TrendChart, BarBreakdown, DataTable, EmptyState,
+                        ErrorCard, skeletons, PageHeader: reuse these in every dashboard
+  shell/                sidebar, top bar, date-range picker, company select, URL filter state
+  ui/                   shadcn/ui primitives
+lib/
+  dashboards.ts         the dashboard registry (sidebar + Overview are built from it)
+  filters.ts            filters <-> URL query string, date presets, previous-year period
+  format.ts             AED, number, percent and delta formatting
+  server/               server-only data layer
+    db.ts               runQuery(sql, binds): guard -> cache -> oracle or sample
+    guard.ts            read-only SQL guard
+    errors.ts           DataSourceError and friendly Oracle error messages
+    oracle.ts           node-oracledb pool
+    sample.ts           SQLite sample source with Oracle shims
+    sql.ts              filterWhere (binds), labelOrUnassigned, UNASSIGNED/ALL_OTHER
+    queries/            one module per Orion domain (common.ts, sales.ts)
+data/sample/            sample fixtures, one CSV per view
+tests/unit, tests/e2e   Vitest and Playwright; tests/fixtures has the hand-checked CSV
 ```
 
-Rules every query follows:
+### The data layer
 
-- **Read-only.** All SQL goes through `run_query`, which only accepts a single `SELECT` or `WITH`
-  statement and rejects `;` and DML/DDL keywords (`INSERT`, `UPDATE`, `DELETE`, `MERGE`, `DROP`,
-  ...). The check is textual: those words are refused even inside string literals or comments.
-- **Bind variables** for every filter value (`:start_date`, `:company_0`, ...). Never format
-  values into SQL text.
-- **Aggregate in Oracle** (`GROUP BY`, top-N with `ROW_NUMBER()`). Never pull a whole fact table
-  into pandas.
-- **Same SQL in both modes.** Sample mode loads the CSVs into in-memory SQLite as `MBALI.<VIEW>`
-  and runs the Oracle SQL unchanged, with small shims for `NVL` and `TO_CHAR(date, 'YYYY-MM')`.
-  Stick to portable SQL (`CASE`, `COALESCE`, `NULLIF`, `TRIM`, window functions), or add a shim
-  in `datasource.py`.
-- Results are cached for 15 minutes (`st.cache_data`); the sidebar's **Refresh data** clears it.
-- Blank dimension values show as **Unassigned**, never dropped (`label_or_unassigned`).
+Every query goes through `runQuery(sql, binds)` in `lib/server/db.ts`:
 
-Business rules for Orion (signs, statuses, traps) are in the `mbal-db` Claude skill,
-`references/business-rules.md` and `references/schema.md`. The Sales rules are summarised at the
-top of `mbal_bi/queries/sales.py`.
+1. **Read-only guard.** Only a single `SELECT` or `WITH` statement passes. No `;`, and none of
+   `INSERT UPDATE DELETE MERGE DROP CREATE ALTER TRUNCATE GRANT ...` anywhere in the text, even in
+   comments or string literals. Reword the query or use a bind variable.
+2. **Cache.** Results are cached in server memory for 15 minutes, keyed by data source + SQL +
+   binds. Failures are never cached. **Refresh** in the top bar clears the cache; the top bar shows
+   when the data on screen was read ("Data as of").
+3. **Source.** `oracle` (pooled node-oracledb) or `sample` (SQLite). Column names come back
+   lower-cased either way.
+
+Errors come out as `DataSourceError` with a `userMessage` that is safe to show. Sections use
+`load(() => ...)` from `lib/server/errors.ts` and render `<ErrorCard message=... />` on failure.
+
+Rules for query code:
+
+- **Bind variables only.** Every user-chosen value (dates, companies, top N) is a bind. Use
+  `filterWhere(filters, dateColumn, companyColumn)` for the shared filters. Dates are bound as
+  `YYYY-MM-DD` strings and wrapped in `TO_DATE(:bind, 'YYYY-MM-DD')`.
+- **Aggregate in SQL.** Never pull a fact table into JavaScript.
+- Show blank dimension values as `'Unassigned'` with `labelOrUnassigned(column)`; fold long tails
+  into `'All other'` so totals still add up.
+- Keep builders (`*Query(filters)` returning `{ sql, binds }`) separate from loaders, so tests can
+  check the SQL and binds.
+
+### Portable SQL
+
+Queries are written once in Oracle SQL and must also run on SQLite in sample mode. Stay within:
+
+- `SELECT ... FROM MBALI.<VIEW> WHERE ... GROUP BY ... ORDER BY ...`, subqueries in `FROM` (give
+  them an alias), `WITH`;
+- `SUM`, `COUNT`, `COUNT(DISTINCT ...)`, `MIN`, `MAX`, `AVG`; `CASE WHEN`; `COALESCE`, `NULLIF`,
+  `TRIM`; `||` for concatenation; `ROW_NUMBER() OVER (ORDER BY ...)` and other window functions;
+- `NVL(x, y)`, `TO_CHAR(date, 'YYYY-MM-DD' | 'YYYY-MM' | 'YYYY')` and
+  `TO_DATE(:bind, 'YYYY-MM-DD')` (shimmed in `lib/server/sample.ts`);
+- named binds (`:start_date`).
+
+Avoid: `DECODE`, `TRUNC(date)`, `ADD_MONTHS`, `SYSDATE`, `ROWNUM`, `FETCH FIRST`, `DUAL`, and
+`GROUP BY` on an expression that contains a bind (Oracle raises ORA-00979; compute it in a subquery
+and group by the alias). If a dashboard really needs another Oracle function, add a shim next to
+the existing ones and a unit test.
+
+### Filters and the URL
+
+Filters live in the query string, so links are shareable and the back button works:
+
+```
+/sales?range=qtd&company=101,107
+/sales?range=custom&from=2026-01-01&to=2026-03-31
+```
+
+`range` is `mtd`, `qtd`, `ytd` (default, left out of the URL), `12m` or `custom`. `company` is a
+comma-separated list of company codes; absent means all. "Today" is today in Asia/Dubai. Pages read
+them with `parseFilters(await searchParams, todayIso())`; client components use `useShell()`.
+
+### Formatting
+
+All money is AED (`lib/format.ts`): compact on cards and chart axes (`AED 1.2M`, `-AED 845K`), full
+in tooltips and tables (`AED 1,234,567`). Negatives always carry a leading minus and tables colour
+them. Changes vs last year are sign-aware: `-120` vs `-100` returns is shown as a fall.
+
+Colours come from CSS variables in `app/globals.css` (`--chart-1..5`, `--positive`,
+`--negative`, and the shadcn tokens), with separate light and dark values.
 
 ## Adding a dashboard
 
-1. **Queries.** Create `mbal_bi/queries/<domain>.py`. Write `*_query(filters) -> Query` builders
-   (SQL + binds) and loader functions that call `.run()`. Use `filters.where(DATE_COLUMN,
-   COMPANY_COLUMN)` for the shared filters.
-2. **Sample data.** Add the view's columns to a CSV named after the view, e.g.
-   `mbal_bi/sample_data/ZF_F_T_DETAIL_BI.csv` (real Oracle column names, dates as `YYYY-MM-DD`,
-   synthetic values only). Extend `scripts/generate_sample_data.py` to produce it.
-3. **Page.** Create `pages/<n>_<Name>.py`:
+Say, Inventory on `ZF_CURR_STK_BI`:
 
-   ```python
-   import streamlit as st
-   from mbal_bi import ui
-   from mbal_bi.queries import finance
+1. **Queries:** `lib/server/queries/inventory.ts`, starting with `import "server-only"`. Write
+   `*Query(filters)` builders returning `{ sql, binds }` (use `filterWhere`, stay within the
+   portable SQL above) and loaders that call `run(query)` and return typed rows.
+2. **Fixture:** add `data/sample/ZF_CURR_STK_BI.csv` with the real column names and invented
+   values. It becomes the table `MBALI.ZF_CURR_STK_BI` in sample mode. For unit tests, add a tiny
+   hand-checked CSV to `tests/fixtures/` and test the loaders against hand-computed numbers (see
+   `tests/unit/sales.test.ts`).
+3. **Registry:** add one entry to `DASHBOARDS` in `lib/dashboards.ts` (slug, title, description,
+   lucide icon, source view). The sidebar and Overview pick it up.
+4. **Page:** `app/inventory/page.tsx` and `app/inventory/sections.tsx`, copying the Sales pattern:
+   parse filters, wrap each section in `<Suspense key=... fallback={<...Skeleton />}>`, load with
+   `load(...)`, render `KpiCard`, `ChartCard` + `TrendChart`/`BarBreakdown`, `DataTable`,
+   `EmptyState` and `ErrorCard`.
+5. **Tests:** add the route to `PAGES` in `tests/e2e/helpers.ts` so it gets the console-error,
+   mobile and axe checks.
 
-   ui.page_setup("Finance", ":material/account_balance:")
-   filters = ui.sidebar_filters()
-   totals = ui.load(finance.totals, filters)   # friendly error + stop on failure
-   ...
-   ```
+## Business rules (Sales)
 
-4. **Home page.** Add a `Dashboard(...)` entry to `mbal_bi/dashboards.py`.
-5. **Tests.** Add hand-computed tests for the numbers (a small fixture in `tests/fixtures/` plus the
-   `fixture_source` pytest fixture) and bind-variable tests. The smoke test in
-   `tests/test_app_smoke.py` loads every registered page automatically.
-
-## Checks
-
-```bash
-ruff check .
-pytest
-```
-
-CI (`.github/workflows/ci.yml`) runs both on every push and pull request, in sample mode.
+- Net revenue = `SUM(NVL(CSL_NET_SL_VALUE, 0))` over `CSL_TXN_TYPE IN ('INV', 'SARTN')`. Returns
+  (`SARTN`) are already negative; the `SARTN` part of the sum is the returns figure.
+- Cost = `SUM(NVL(CSL_WAC_VALUE, 0))` over the same rows; gross margin = net revenue − cost.
+- `CSL_GROSS_SL_VALUE` (pre-discount) is never used as revenue.
+- Invoices = distinct `INV` documents with a non-zero net value (zero-value delivery notes excluded).
+- Blank customers, salespeople, item groups etc. show as **Unassigned**.

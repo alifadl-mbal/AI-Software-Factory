@@ -4,6 +4,7 @@ import { AlertTriangle } from "lucide-react";
 
 import { BarBreakdown } from "@/components/dashboard/bar-breakdown";
 import { ChartCard } from "@/components/dashboard/chart-card";
+import { DataQualityNote } from "@/components/dashboard/data-quality-note";
 import { DataTable, type ColumnSpec } from "@/components/dashboard/data-table";
 import { EmptyState } from "@/components/dashboard/empty-state";
 import { ErrorCard } from "@/components/dashboard/error-card";
@@ -12,11 +13,12 @@ import { KPI_GRID } from "@/components/dashboard/skeletons";
 import { TrendChart } from "@/components/dashboard/trend-chart";
 import { ReportAsOf } from "@/components/shell/shell-context";
 import { previousYear, type Filters } from "@/lib/filters";
-import { formatAed, formatInt, formatNumber } from "@/lib/format";
+import { formatAed, formatInt, formatNumber, formatPct } from "@/lib/format";
 import { dataAsOf } from "@/lib/server/db";
 import { load } from "@/lib/server/errors";
 import { companies } from "@/lib/server/queries/common";
 import {
+  AGING_BUCKETS,
   overdueLines,
   pendingByBucket,
   pendingByCompany,
@@ -120,9 +122,35 @@ export async function PendingByBucket({ filters, today }: SectionProps) {
           message="Nothing is waiting to be received for these companies."
         />
       ) : (
-        bars(title, result.data)
+        <div className="flex flex-col gap-4">
+          {bars(title, result.data)}
+          <StalePoNote buckets={result.data} total={total} />
+        </div>
       )}
     </ChartCard>
+  );
+}
+
+/** Share of pending value above which the year-plus-overdue lines get a data-quality note. */
+const STALE_SHARE = 0.25;
+
+/**
+ * Lines more than a year past their expected date are rarely still coming: they were usually
+ * received or cancelled without the PO line being closed in Orion. On live Orion they are most of
+ * the pending value, so the note says so.
+ */
+function StalePoNote({ buckets, total }: { buckets: LabelValue[]; total: number }) {
+  const stale = buckets.find((bucket) => bucket.label === AGING_BUCKETS.at(-1)!.label)?.value ?? 0;
+  if (total <= 0 || stale / total < STALE_SHARE) return null;
+  return (
+    <DataQualityNote
+      testId="stale-po-note"
+      title={`${formatPct(stale / total)} of pending value is more than a year overdue`}
+    >
+      (<span className="tabular">{formatAed(stale)}</span>). Lines this old are usually received or cancelled
+      without the PO line being closed in Orion, so pending value and overdue % above include them. Closing
+      them in Orion makes these figures mean what they say.
+    </DataQualityNote>
   );
 }
 

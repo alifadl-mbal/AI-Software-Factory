@@ -90,7 +90,7 @@ describe("snapshot figures equal the Overview's", () => {
         arSummary(TODAY, []),
         apSplit(TODAY, []),
         openBookKpis([], TODAY),
-        deadStock([], 6),
+        deadStock([], 6, TODAY),
         reorderAlerts([]),
       ]);
     expect(salesYtd.netRevenue).toBeGreaterThan(0);

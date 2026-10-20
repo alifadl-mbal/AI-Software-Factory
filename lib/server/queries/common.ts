@@ -8,15 +8,18 @@ export interface Company {
   name: string;
 }
 
-// Companies come from the sales view: it carries both code and name for every trading company.
+// Companies come from Orion's company master, `MBALI.FM_COMPANY` (one row per company). It used to
+// be the distinct companies of the sales view, which took 7 s on live Orion (a full scan of 3.7M
+// lines, on every page that names companies) and left out companies that never sold anything but
+// do have postings, stock or POs, so the filter couldn't select them.
 export function companiesQuery(): Query {
   return {
     sql: `
-SELECT CSL_COMP_CODE AS code, MAX(CSL_COMP_NAME) AS name
-FROM MBALI.ZF_CSL_BI
-WHERE CSL_COMP_CODE IS NOT NULL
-GROUP BY CSL_COMP_CODE
-ORDER BY CSL_COMP_CODE`,
+SELECT TRIM(COMP_CODE) AS code, MAX(TRIM(COMP_NAME)) AS name
+FROM MBALI.FM_COMPANY
+WHERE COMP_CODE IS NOT NULL
+GROUP BY TRIM(COMP_CODE)
+ORDER BY TRIM(COMP_CODE)`,
     binds: {},
   };
 }

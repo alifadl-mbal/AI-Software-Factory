@@ -65,7 +65,7 @@ export interface StockPosition {
 }
 
 export async function stockPosition(companies: string[], today: string = todayIso()): Promise<StockPosition> {
-  const [kpis, months] = await Promise.all([inventoryKpis(companies), monthEndTrend(companies)]);
+  const [kpis, months] = await Promise.all([inventoryKpis(companies), monthEndTrend(companies, today)]);
   const closed = lastClosed(months, today);
   return {
     stockValue: kpis.stockValue,
@@ -156,7 +156,7 @@ export async function overviewFigures(today: string = todayIso()): Promise<Overv
         return { summary: split.summary, vendorsOwed: split.owed.length };
       }),
       load(() => orderBook(companies, today)),
-      load(() => deadStock(companies, DEFAULT_DEAD_STOCK_MONTHS)),
+      load(() => deadStock(companies, DEFAULT_DEAD_STOCK_MONTHS, today)),
       load(() => reorderAlerts(companies)),
     ]);
 

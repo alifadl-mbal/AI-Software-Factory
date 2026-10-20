@@ -49,6 +49,8 @@ import { agingBinds, bucketCase } from "./ar-ap";
  *   is overdue once that date is before today.
  * - Blank salesperson (`H_SM_NAME`) or customer (`H_CUST_NAME`) shows as Unassigned. Customer is the
  *   account name (`H_CUST_NAME`, e.g. one chain), not the branch on the document (`H_DOC_CUST_NAME`).
+ *   Orion fills `H_CUST_NAME` with a lookup on `ZF_CUSTOMER` by `H_CUST_CODE` for every row, which
+ *   is slow to group by, so the customer breakdown groups by code and joins the names afterwards.
  * - Repair & service workorders (`R01`) are sales orders in this view too: 16,618 open lines, nearly
  *   all with zero value. They are counted as open lines but add almost nothing to the value.
  *
@@ -58,6 +60,8 @@ import { agingBinds, bucketCase } from "./ar-ap";
  */
 
 const VIEW = "MBALI.ZF_SO_BI";
+/** Customer master, unique on `CUST_CODE`; `ZF_SO_BI.H_CUST_NAME` is its `CUST_NAME`. */
+const CUSTOMER_VIEW = "MBALI.ZF_CUSTOMER";
 
 /** Orders cancelled or short-closed in Orion. */
 export const CLOSED_STATUS = "Closed";
@@ -115,6 +119,14 @@ function bookLines(companies: readonly string[], today: string, columns: string[
 
 /** Open AED lines (something left to deliver), for the value breakdowns. */
 const OPEN_AED = "pend_qty > 0 AND is_aed = 1";
+/**
+ * Pending value of open AED lines, 0 for the other book lines. The breakdowns sum this rather than
+ * filter on `OPEN_AED` in a `WHERE`: on live Orion a `WHERE` on these computed columns made the first
+ * run of every new query text take ~5 s (Oracle's first plan for the view is poor and is only
+ * corrected on the next run), against ~0.8 s for the same figures summed conditionally.
+ */
+const OPEN_AED_VALUE = `CASE WHEN ${OPEN_AED} THEN pend_value ELSE 0 END`;
+const OPEN_AED_LINE = `CASE WHEN ${OPEN_AED} THEN 1 ELSE 0 END`;
 
 /** Rank `grouped` (label, amount) by value and fold everything past `topN` into 'All other'. */
 function foldTopN(grouped: string, binds: Binds, topN: number): Query {
@@ -207,10 +219,9 @@ export function openByAgeQuery(companies: readonly string[], today: string): Que
   const lines = bookLines(companies, today);
   return {
     sql: `
-SELECT bucket, SUM(pend_value) AS amount
+SELECT bucket, SUM(${OPEN_AED_VALUE}) AS amount
 FROM (${lines.sql}
 ) book
-WHERE ${OPEN_AED}
 GROUP BY bucket`,
     binds: lines.binds,
   };
@@ -219,11 +230,11 @@ GROUP BY bucket`,
 function openByLabelQuery(column: string, companies: readonly string[], today: string, topN: number): Query {
   const lines = bookLines(companies, today, [`${labelOrUnassigned(column)} AS label`]);
   const grouped = `
-            SELECT label, SUM(pend_value) AS amount
+            SELECT label, SUM(${OPEN_AED_VALUE}) AS amount
             FROM (${lines.sql}
             ) book
-            WHERE ${OPEN_AED}
-            GROUP BY label`;
+            GROUP BY label
+            HAVING SUM(${OPEN_AED_LINE}) > 0`;
   return foldTopN(grouped, lines.binds, topN);
 }
 
@@ -231,19 +242,42 @@ export function openBySalespersonQuery(companies: readonly string[], today: stri
   return openByLabelQuery("H_SM_NAME", companies, today, topN);
 }
 
-export function openByCustomerQuery(companies: readonly string[], today: string, topN = TOP_CUSTOMERS) {
-  return openByLabelQuery("H_CUST_NAME", companies, today, topN);
+/**
+ * `H_CUST_NAME` is a per-row lookup inside Orion's view: grouping 50K open lines by it took 9-38 s
+ * live. So lines are grouped by `H_CUST_CODE` (under 1 s) and the ~2K codes are then named from
+ * `MBALI.ZF_CUSTOMER`, the table that lookup reads. Codes sharing a name still add up under it.
+ */
+export function openByCustomerQuery(
+  companies: readonly string[],
+  today: string,
+  topN = TOP_CUSTOMERS,
+): Query {
+  const lines = bookLines(companies, today, ["H_CUST_CODE AS cust_code"]);
+  const grouped = `
+            SELECT ${labelOrUnassigned("c.CUST_NAME")} AS label, SUM(by_code.amount) AS amount
+            FROM (
+                SELECT cust_code, SUM(${OPEN_AED_VALUE}) AS amount
+                FROM (${lines.sql}
+                ) book
+                GROUP BY cust_code
+                HAVING SUM(${OPEN_AED_LINE}) > 0
+            ) by_code
+            LEFT JOIN ${CUSTOMER_VIEW} c ON c.CUST_CODE = by_code.cust_code
+            GROUP BY ${labelOrUnassigned("c.CUST_NAME")}`;
+  return foldTopN(grouped, lines.binds, topN);
 }
 
 export function openByCurrencyQuery(companies: readonly string[], today: string): Query {
+  const OPEN_OTHER = "pend_qty > 0 AND is_aed = 0";
   const lines = bookLines(companies, today, [`${labelOrUnassigned("H_CURR_CODE")} AS currency`]);
   return {
     sql: `
-SELECT currency, COUNT(*) AS line_count, SUM(pend_value) AS open_value
+SELECT currency, SUM(CASE WHEN ${OPEN_OTHER} THEN 1 ELSE 0 END) AS line_count,
+    SUM(CASE WHEN ${OPEN_OTHER} THEN pend_value ELSE 0 END) AS open_value
 FROM (${lines.sql}
 ) book
-WHERE pend_qty > 0 AND is_aed = 0
 GROUP BY currency
+HAVING SUM(CASE WHEN ${OPEN_OTHER} THEN 1 ELSE 0 END) > 0
 ORDER BY line_count DESC, currency`,
     binds: lines.binds,
   };
@@ -270,13 +304,14 @@ export function openLinesQuery(companies: readonly string[], today: string, limi
     sql: `
 SELECT ${columns}
 FROM (
-    SELECT ${columns},
-        ROW_NUMBER() OVER (ORDER BY pend_value DESC, order_date, company_code, txn_code, txn_no, item) AS rn
+    SELECT ${columns}, ${OPEN_AED_LINE} AS is_open,
+        ROW_NUMBER() OVER (
+            ORDER BY ${OPEN_AED_LINE} DESC, pend_value DESC, order_date, company_code, txn_code, txn_no, item
+        ) AS rn
     FROM (${lines.sql}
     ) book
-    WHERE ${OPEN_AED}
 ) ranked
-WHERE rn <= :row_limit
+WHERE rn <= :row_limit AND is_open = 1
 ORDER BY rn`,
     binds: { ...lines.binds, row_limit: limit },
   };

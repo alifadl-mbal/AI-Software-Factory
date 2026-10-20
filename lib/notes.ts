@@ -6,9 +6,8 @@ import { formatInt, formatNumber } from "./format";
  */
 
 export const AP_CURRENCY_NOTE =
-  "Orion’s payables view has no AED column, so each vendor’s balance is in its account currency as booked " +
-  "(AED for most vendors). Vendors are netted per company before splitting into what we owe and what we " +
-  "have prepaid.";
+  "All amounts are in AED: Orion’s payables view converts every line, whatever the currency of the invoice. " +
+  "Vendors are netted per company before splitting into what we owe and what we have prepaid.";
 
 export interface ForeignCurrencyBook {
   currency: string;

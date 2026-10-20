@@ -34,8 +34,10 @@ import type { Binds, Query } from "../types";
  *   per company and sub-account (payments are often booked in AED against USD invoices, so their
  *   lines only cancel at vendor level). Owed vendors make up AP outstanding and its aging; prepaid
  *   vendors are reported separately and never netted into it.
- * - The AP view has no AED column: amounts are in the account's currency as booked. Most vendors are
- *   in AED; a foreign-currency vendor's balance is summed as recorded.
+ * - Amounts are AED, whatever `SOAP_CURR_CODE` says: Orion builds the view from the open-item ledger's
+ *   local-currency (`*_LC_*`) columns, as it does the AR view, and the totals tie to the AP control
+ *   accounts in the GL (checked live 2026-10-20). About 7% of open lines carry a foreign currency code (USD,
+ *   EUR, legacy DEM/ITL and a few odd codes); their amounts are AED too.
  *
  * Aging uses the ladder in `lib/aging.ts` on the document date (`SDR_DOC_DT`, `SOAP_DOC_DT`). The
  * cut-off dates are worked out in TypeScript and bound, so the SQL needs no date arithmetic and runs
@@ -45,7 +47,7 @@ import type { Binds, Query } from "../types";
 const AR_VIEW = "MBALI.ZF_SOA_DETL_CUST_INV_SM_BI";
 const AP_VIEW = "MBALI.ZF_SOAP_DETL_BI";
 
-/** Below this (AED for AR, account currency for AP) a line is settled; the rest is FX rounding. */
+/** Below this (AED) a line is settled; the rest is FX rounding. */
 export const SETTLED_BELOW = 1;
 
 /** Rows in the top customers and top vendors tables. */

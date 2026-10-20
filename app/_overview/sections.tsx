@@ -10,7 +10,7 @@ import { KpiCard } from "@/components/dashboard/kpi-card";
 import { PnlChart } from "@/components/dashboard/pnl-chart";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ReportAsOf } from "@/components/shell/shell-context";
-import type { Filters } from "@/lib/filters";
+import { todayIso, type Filters } from "@/lib/filters";
 import { formatAed, formatAedCompact, formatDeltaPct, formatInt, formatMonth, pctChange } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { dataAsOf } from "@/lib/server/db";
@@ -307,7 +307,7 @@ export async function ArOver90Attention({ companies, today, href }: AsOfScope & 
 }
 
 export async function DeadStockAttention({ companies, href }: { companies: string[]; href: string }) {
-  const result = await load(() => deadStock(companies, DEFAULT_DEAD_STOCK_MONTHS));
+  const result = await load(() => deadStock(companies, DEFAULT_DEAD_STOCK_MONTHS, todayIso()));
   if (!result.ok) return <ErrorCard message={result.message} />;
   const { value, count } = result.data;
   return (

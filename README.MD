@@ -269,7 +269,7 @@ lib/
     snapshot/           snapshot email builder (email.ts), file and Graph transports, token check
     queries/            one module per Orion domain (common.ts, sales.ts, inventory.ts, finance.ts,
                         purchasing.ts, ar-ap.ts, sales-orders.ts)
-data/sample/            sample fixtures, one CSV per view
+data/sample/            sample fixtures, one CSV per view (plus FM_COMPANY and ZF_CUSTOMER)
 deploy/snapshot-task.ps1  registers the daily snapshot as a Windows scheduled task
 data/chart-of-accounts.csv  GL main account -> level_0/1/2 (finance owns it)
 tests/unit, tests/e2e   Vitest and Playwright; tests/fixtures has the hand-checked CSV
@@ -305,6 +305,18 @@ Rules for query code:
   into `'All other'` so totals still add up.
 - Keep builders (`*Query(filters)` returning `{ sql, binds }`) separate from loaders, so tests can
   check the SQL and binds.
+
+Speed on live Orion (from the live check in `docs/live-check.md`; aim for under 5 s per section):
+
+- Several `ZF_*` columns are per-row lookups inside Orion's views (`ZF_SO_BI.H_CUST_NAME`, for
+  one). Group by the code and attach names afterwards (from `MBALI.ZF_CUSTOMER`, `MBALI.FM_COMPANY`).
+- Bound scans of the big views with a bind on the column itself (`ZSL_PERIOD >= :from_period`,
+  `D_DT >= TO_DATE(:start_date, ...)`), never a function around the column.
+- Don't filter a subquery's computed columns in an outer `WHERE` on `ZF_SO_BI`: Oracle's first plan
+  for a new query text is then slow (~5 s, corrected only on the next run). Sum conditionally
+  (`SUM(CASE WHEN ... THEN x ELSE 0 END)` with a `HAVING`) instead.
+- The AR view (`ZF_SOA_DETL_CUST_INV_SM_BI`) takes 8-12 s whatever the query: it rebuilds every
+  balance from the open-item ledger. Its sections stream in last.
 
 ### Portable SQL
 
@@ -418,7 +430,8 @@ Balances as of today; the company filter applies, the date filter doesn't. Both 
   settled lines keep stray amounts and part-paid lines show the full amount.
 - Vendors are netted per company and sub-account. Vendors above zero make up AP outstanding and its
   aging; vendors below zero are **prepayments**, listed and totalled separately, never netted in.
-- The AP view has no AED column: vendor balances are in the account currency as booked.
+- AP amounts are AED: the view is built from the ledger's local-currency columns, whatever the line's
+  currency code (checked against the GL control accounts on live Orion).
 - **Aging** on the document date (`SDR_DOC_DT`, `SOAP_DOC_DT`), always in this order:
   `<30 D` · `1-2 M` · `2-3 M` · `3-6 M` · `6-12 M` · `1-2 Y` · `2+ Y`. Under 30 days by days since
   the document, then whole calendar months (`lib/aging.ts`). "Over 90 days" = more than 90 days old.
@@ -438,6 +451,9 @@ CS_RESV_QTY`; available value = available qty × `CS_WAC`; reserved value = the 
   current month is provisional.
 - Dead stock for N months = a company × location × item whose closing qty is the same, and above
   zero, in each of the newest N + 1 periods. Value at risk is their closing value.
+- Month-end queries read only from a period bound worked out from today (the periods needed plus
+  three months of slack), not the whole 8M-row view. Month-end lines below zero stay in the closing
+  value and are noted under the trend.
 
 ## Business rules (Sales orders)
 
@@ -467,6 +483,8 @@ D_INVOICED_QTY`, each only when above zero (lines with `D_QTY > 0`). The quantit
   date before today) is worked out in SQL. In sample mode those dates move with the anchored ones.
 - Order age uses the shared aging ladder on the order date. Blank salespeople and customers show as
   **Unassigned**.
+- Open value by customer groups by `H_CUST_CODE` and takes the name from `ZF_CUSTOMER`
+  (`H_CUST_NAME` is that same name, looked up per row, and too slow to group by).
 
 ## Business rules (Purchasing)
 

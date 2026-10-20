@@ -2,6 +2,7 @@ import "server-only";
 
 import { BarBreakdown } from "@/components/dashboard/bar-breakdown";
 import { ChartCard } from "@/components/dashboard/chart-card";
+import { DataQualityNote } from "@/components/dashboard/data-quality-note";
 import { DataTable, type ColumnSpec } from "@/components/dashboard/data-table";
 import { EmptyState } from "@/components/dashboard/empty-state";
 import { ErrorCard } from "@/components/dashboard/error-card";
@@ -27,6 +28,7 @@ import {
   TREND_PERIODS,
   type DeadStockMonths,
   type InventoryDimension,
+  type MonthEnd,
 } from "@/lib/server/queries/inventory";
 
 import { DeadStockToggle } from "./dead-stock-toggle";
@@ -38,7 +40,9 @@ function currentMonth(): string {
 
 /** The five headline cards: live stock as of today, and the change since the last month-end. */
 export async function InventoryKpis({ companies }: { companies: string[] }) {
-  const result = await load(() => Promise.all([inventoryKpis(companies), monthEndTrend(companies)]));
+  const result = await load(() =>
+    Promise.all([inventoryKpis(companies), monthEndTrend(companies, todayIso())]),
+  );
   if (!result.ok) return <ErrorCard message={result.message} />;
   const [kpis, months] = result.data;
   const closed = lastClosed(months);
@@ -135,7 +139,7 @@ export async function StockBreakdownChart({
 
 /** Closing stock value for the last 24 month-ends; the current month is provisional. */
 export async function MonthEndTrend({ companies }: { companies: string[] }) {
-  const result = await load(() => monthEndTrend(companies));
+  const result = await load(() => monthEndTrend(companies, todayIso()));
   const current = currentMonth();
   const closed = result.ok ? lastClosed(result.data) : undefined;
   return (
@@ -155,18 +159,35 @@ export async function MonthEndTrend({ companies }: { companies: string[] }) {
       ) : result.data.every((month) => month.closeValue === 0) ? (
         <EmptyState title="No month-end stock for these companies" message="Try more companies." />
       ) : (
-        <MonthEndChart
-          data={result.data.map((month) => ({
-            month: month.month,
-            value: month.closeValue,
-            provisional: month.month >= current,
-          }))}
-          ariaLabel={`Month-end stock value from ${formatMonth(result.data[0].month)} to ${formatMonth(
-            result.data.at(-1)!.month,
-          )}${closed ? `; ${formatMonth(closed.month)} closed at ${formatAed(closed.closeValue)}` : ""}`}
-        />
+        <div className="flex flex-col gap-4">
+          <MonthEndChart
+            data={result.data.map((month) => ({
+              month: month.month,
+              value: month.closeValue,
+              provisional: month.month >= current,
+            }))}
+            ariaLabel={`Month-end stock value from ${formatMonth(result.data[0].month)} to ${formatMonth(
+              result.data.at(-1)!.month,
+            )}${closed ? `; ${formatMonth(closed.month)} closed at ${formatAed(closed.closeValue)}` : ""}`}
+          />
+          {closed && closed.negativeLines > 0 ? <NegativeStockNote month={closed} /> : null}
+        </div>
       )}
     </ChartCard>
+  );
+}
+
+/** Month-end lines below zero are in the closing value, and so in the change vs last month-end. */
+function NegativeStockNote({ month }: { month: MonthEnd }) {
+  return (
+    <DataQualityNote
+      testId="negative-stock-note"
+      title={`${formatInt(month.negativeLines)} stock ${month.negativeLines === 1 ? "line" : "lines"} below zero at the ${formatMonth(month.month)} close`}
+    >
+      Their value, <span className="tabular">{formatAed(month.negativeValue)}</span>, is in that month&rsquo;s
+      closing value and so in the change vs last month-end. Orion let these items go below zero at month-end;
+      live stock never does.
+    </DataQualityNote>
   );
 }
 
@@ -187,7 +208,7 @@ export async function DeadStockSection({
   companies: string[];
   months: DeadStockMonths;
 }) {
-  const result = await load(() => deadStock(companies, months));
+  const result = await load(() => deadStock(companies, months, todayIso()));
   const asOf = result.ok && result.data.asOfMonth ? formatMonth(result.data.asOfMonth) : null;
   return (
     <ChartCard

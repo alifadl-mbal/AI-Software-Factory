@@ -42,6 +42,9 @@ import type { Binds, Query } from "../types";
  * Aging uses the ladder in `lib/aging.ts` on the document date (`SDR_DOC_DT`, `SOAP_DOC_DT`). The
  * cut-off dates are worked out in TypeScript and bound, so the SQL needs no date arithmetic and runs
  * unchanged on SQLite. The company filter applies; the date filter does not (these are balances).
+ *
+ * The customer page narrows AR to one `SDR_SUB_ACNT_CODE`, the code space of `ZF_CUSTOMER.CUST_CODE`.
+ * Without a customer the SQL is exactly the dashboard's.
  */
 
 const AR_VIEW = "MBALI.ZF_SOA_DETL_CUST_INV_SM_BI";
@@ -126,9 +129,12 @@ function openLines(
   { balanceColumn, pdcColumn, dateColumn, companyColumn, balanceSign, columns }: LineSpec,
   asOf: string,
   companies: readonly string[],
+  /** Narrow to one sub-account, bound as `cust_code`. */
+  subAccount?: { column: string; code: string },
 ): { sql: string; binds: Binds } {
   const company = companyWhere(companies, companyColumn);
   const sign = balanceSign === -1 ? "-" : "";
+  const account = subAccount ? `\n      AND ${subAccount.column} = :cust_code` : "";
   return {
     sql: `
     SELECT ${columns.join(", ")},
@@ -137,8 +143,8 @@ function openLines(
         ${bucketCase(dateColumn)} AS bucket,
         CASE WHEN ${dateColumn} < TO_DATE(:age_90d, 'YYYY-MM-DD') THEN 1 ELSE 0 END AS over_90
     FROM ${view}
-    WHERE ABS(NVL(${balanceColumn}, 0)) >= ${SETTLED_BELOW}${company ? `\n      AND ${company.sql}` : ""}`,
-    binds: { ...agingBinds(asOf), ...company?.binds },
+    WHERE ABS(NVL(${balanceColumn}, 0)) >= ${SETTLED_BELOW}${company ? `\n      AND ${company.sql}` : ""}${account}`,
+    binds: { ...agingBinds(asOf), ...company?.binds, ...(subAccount && { cust_code: subAccount.code }) },
   };
 }
 
@@ -152,6 +158,9 @@ interface LineSpec {
   /** Extra columns the outer query groups by, as `expression AS alias`. */
   columns: string[];
 }
+
+/** The customer on an AR line: the AR sub-account, the same code as `ZF_CUSTOMER.CUST_CODE`. */
+const AR_CUSTOMER_COLUMN = "SDR_SUB_ACNT_CODE";
 
 const AR_LINES: Omit<LineSpec, "columns"> = {
   balanceColumn: "SDR_TOT_BAL",
@@ -172,7 +181,13 @@ export const AR_GROUPS = {
 
 export type ArGroup = keyof typeof AR_GROUPS;
 
-export function arBalancesQuery(asOf: string, companies: readonly string[], group: ArGroup): Query {
+/** With `customer`, only that customer's open lines (`SDR_SUB_ACNT_CODE`). */
+export function arBalancesQuery(
+  asOf: string,
+  companies: readonly string[],
+  group: ArGroup,
+  customer?: string,
+): Query {
   const { code, name } = AR_GROUPS[group];
   const lines = openLines(
     AR_VIEW,
@@ -186,6 +201,7 @@ export function arBalancesQuery(asOf: string, companies: readonly string[], grou
     },
     asOf,
     companies,
+    customer === undefined ? undefined : { column: AR_CUSTOMER_COLUMN, code: customer },
   );
   return {
     sql: `
@@ -248,13 +264,17 @@ function toBalance(row: Record<string, unknown>, key: string, label: string): Ba
   };
 }
 
-/** Open AR as of `asOf`, one row per customer or salesperson, largest balance first. */
+/**
+ * Open AR as of `asOf`, one row per customer or salesperson, largest balance first. With
+ * `customer`, only that customer's lines: one row when grouped by customer, or none.
+ */
 export async function arBalances(
   asOf: string,
   companies: readonly string[],
   group: ArGroup,
+  customer?: string,
 ): Promise<ArBalance[]> {
-  const rows = await run(arBalancesQuery(asOf, companies, group));
+  const rows = await run(arBalancesQuery(asOf, companies, group, customer));
   return rows.map((row) => {
     const key = text(row.group_key);
     const name = text(row.group_name);
@@ -333,5 +353,131 @@ export async function apSplit(asOf: string, companies: readonly string[]): Promi
     prepaid,
     summary: summarize(owed),
     prepayments: prepaid.reduce((sum, vendor) => sum - vendor.balance, 0),
+  };
+}
+
+// ---------------------------------------------------------------------------------------------
+// One customer's open documents, for the customer page
+
+/** The open-documents table shows at most this many (the largest balances). */
+export const DOCUMENT_ROW_LIMIT = 200;
+
+export interface ArDocument {
+  companyCode: string;
+  /** `FIN_TRAN_CODE-DOC_NO`. */
+  document: string;
+  /** YYYY-MM-DD; `null` if undated. */
+  date: string | null;
+  currency: string;
+  /** The document's original amount in AED. */
+  amount: number;
+  /** Outstanding net of PDCs, as in `Balance.balance`. */
+  balance: number;
+  pdc: number;
+  /** Ladder index. */
+  bucket: number;
+}
+
+/** One customer's open AR lines, largest balance first, at most `limit`. */
+export function arDocumentsQuery(
+  asOf: string,
+  companies: readonly string[],
+  customer: string,
+  limit = DOCUMENT_ROW_LIMIT,
+): Query {
+  const lines = openLines(
+    AR_VIEW,
+    {
+      ...AR_LINES,
+      columns: [
+        "SDR_COMP_CODE AS company_code",
+        "SDR_FIN_TRAN_CODE AS txn_code",
+        "SDR_DOC_NO AS doc_no",
+        "TO_CHAR(SDR_DOC_DT, 'YYYY-MM-DD') AS doc_date",
+        `${labelOrUnassigned("SDR_CURR_CODE")} AS currency`,
+        "NVL(SDR_ORG_LC_AMT, 0) AS amount",
+      ],
+    },
+    asOf,
+    companies,
+    { column: AR_CUSTOMER_COLUMN, code: customer },
+  );
+  const columns = "company_code, txn_code, doc_no, doc_date, currency, amount, balance, pdc, bucket";
+  return {
+    sql: `
+SELECT ${columns}
+FROM (
+    SELECT ${columns},
+        ROW_NUMBER() OVER (ORDER BY balance DESC, doc_date, company_code, txn_code, doc_no) AS rn
+    FROM (${lines.sql}
+    ) open_lines
+) ranked
+WHERE rn <= :row_limit
+ORDER BY rn`,
+    binds: { ...lines.binds, row_limit: limit },
+  };
+}
+
+/** One customer's open AR documents as of `asOf`, largest balance first. */
+export async function arDocuments(
+  asOf: string,
+  companies: readonly string[],
+  customer: string,
+  limit = DOCUMENT_ROW_LIMIT,
+): Promise<ArDocument[]> {
+  const rows = await run(arDocumentsQuery(asOf, companies, customer, limit));
+  return rows.map((row) => ({
+    companyCode: text(row.company_code),
+    document: `${text(row.txn_code)}-${text(row.doc_no)}`,
+    date: row.doc_date ? text(row.doc_date) : null,
+    currency: text(row.currency),
+    amount: num(row.amount),
+    balance: num(row.balance),
+    pdc: num(row.pdc),
+    bucket: num(row.bucket) - 1,
+  }));
+}
+
+export interface ArProfile {
+  /** The customer's own salesperson on their open lines (`SDR_CUST_SM_NAME`); `null` if none. */
+  salesperson: string | null;
+  /** `SDR_CREDIT_LIMIT`; `null` when Orion has none. 0 is common and means no limit was set. */
+  creditLimit: number | null;
+}
+
+/**
+ * The salesperson and credit limit Orion keeps on the customer's AR lines (`ZF_CUSTOMER` has
+ * neither). On live Orion both are the same on every open line of a customer, bar 5 customers.
+ */
+export function arProfileQuery(asOf: string, companies: readonly string[], customer: string): Query {
+  const lines = openLines(
+    AR_VIEW,
+    {
+      ...AR_LINES,
+      columns: ["TRIM(SDR_CUST_SM_NAME) AS salesperson", "SDR_CREDIT_LIMIT AS credit_limit"],
+    },
+    asOf,
+    companies,
+    { column: AR_CUSTOMER_COLUMN, code: customer },
+  );
+  return {
+    sql: `
+SELECT MAX(salesperson) AS salesperson, MAX(credit_limit) AS credit_limit
+FROM (${lines.sql}
+) open_lines`,
+    binds: lines.binds,
+  };
+}
+
+/** Salesperson and credit limit from the customer's open AR lines; nulls without any. */
+export async function arProfile(
+  asOf: string,
+  companies: readonly string[],
+  customer: string,
+): Promise<ArProfile> {
+  const [row] = await run(arProfileQuery(asOf, companies, customer));
+  return {
+    salesperson: text(row?.salesperson) || null,
+    creditLimit: row?.credit_limit === null || row?.credit_limit === undefined ? null : num(row.credit_limit),
   };
 }

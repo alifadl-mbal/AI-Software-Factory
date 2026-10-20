@@ -33,13 +33,24 @@ export function filterWhere(
     end_date_exclusive: addDays(filters.end, 1),
   };
   if (filters.companies.length > 0) {
-    const names = filters.companies.map((_, index) => `company_${index}`);
-    clauses.push(`${companyColumn} IN (${names.map((name) => `:${name}`).join(", ")})`);
-    names.forEach((name, index) => {
-      binds[name] = filters.companies[index];
-    });
+    const company = companyWhere(filters.companies, companyColumn);
+    clauses.push(company.sql);
+    Object.assign(binds, company.binds);
   }
   return { sql: clauses.join(" AND "), binds };
+}
+
+/**
+ * The `WHERE` fragment for the company filter alone, for views without a date filter (live stock).
+ * No companies means all of them: the fragment is then `1 = 1`.
+ */
+export function companyWhere(companies: string[], companyColumn: string): { sql: string; binds: Binds } {
+  if (companies.length === 0) return { sql: "1 = 1", binds: {} };
+  const names = companies.map((_, index) => `company_${index}`);
+  return {
+    sql: `${companyColumn} IN (${names.map((name) => `:${name}`).join(", ")})`,
+    binds: Object.fromEntries(names.map((name, index) => [name, companies[index]])),
+  };
 }
 
 /** Numeric column from a result row; `NULL` (an empty SUM) counts as 0. */

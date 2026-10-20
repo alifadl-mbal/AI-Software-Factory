@@ -1,5 +1,7 @@
 import "server-only";
 
+import { todayIso } from "@/lib/filters";
+
 import { CACHE_TTL_MS, dataSource, type DataSourceMode } from "./config";
 import { DataSourceError, friendlyMessage } from "./errors";
 import { ensureReadOnly } from "./guard";
@@ -22,7 +24,7 @@ interface CacheEntry {
 type Runner = (sql: string, binds: Binds) => Promise<Row[]>;
 
 const cache = new Map<string, CacheEntry>();
-let sampleSource: { year: number; source: SampleSource } | undefined;
+let sampleSource: { month: string; source: SampleSource } | undefined;
 let runnerOverride: Runner | undefined;
 
 function runner(mode: DataSourceMode): Runner {
@@ -31,9 +33,13 @@ function runner(mode: DataSourceMode): Runner {
     // Imported lazily so sample mode never loads the driver.
     return async (sql, binds) => (await import("./oracle")).queryOracle(sql, binds);
   }
-  const year = new Date().getFullYear();
-  if (sampleSource?.year !== year) {
-    sampleSource = { year, source: new SampleSource({ rebaseToYear: year }) };
+  // Sample dates move with the calendar: rebuilt when the (business) month turns.
+  const month = todayIso().slice(0, 7);
+  if (sampleSource?.month !== month) {
+    sampleSource = {
+      month,
+      source: new SampleSource({ rebaseToYear: Number(month.slice(0, 4)), rebaseToMonth: month }),
+    };
   }
   const source = sampleSource.source;
   return (sql, binds) => source.query(sql, binds);

@@ -62,6 +62,15 @@ export function formatInt(value: Maybe): string {
   return formatNumber(value, 0);
 }
 
+const QTY = new Intl.NumberFormat("en-US", { maximumFractionDigits: 2 });
+
+/** Stock quantity: whole numbers as `1,234`, fractions to at most two places: `12.5`. */
+export function formatQty(value: Maybe): string {
+  if (isMissing(value)) return MISSING;
+  const result = rounded(value, 2);
+  return `${result < 0 ? "-" : ""}${QTY.format(Math.abs(result))}`;
+}
+
 /** `value` is a fraction: 0.1234 → `12.3%`. */
 export function formatPct(value: Maybe, decimals = 1): string {
   if (isMissing(value)) return MISSING;

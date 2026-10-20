@@ -33,11 +33,16 @@ import {
   bookedMonthly,
   openBookKpis,
   openByAge,
+  openByAgeQuery,
   openByCurrency,
+  openByCurrencyQuery,
   openByCustomer,
+  openByCustomerQuery,
   openBySalesperson,
+  openBySalespersonQuery,
   openKpiQuery,
   openLines,
+  openLinesQuery,
   pendingValue,
 } from "@/lib/server/queries/sales-orders";
 import { ALL_OTHER, UNASSIGNED } from "@/lib/server/sql";
@@ -144,6 +149,37 @@ describe("breakdowns add up to the open value", () => {
     const top2 = await openByCustomer(ALL, TODAY, 2);
     expect(top2.at(-1)).toEqual({ label: ALL_OTHER, value: 900 });
     expect(top2.reduce((sum, row) => sum + row.value, 0)).toBeCloseTo(4350);
+  });
+
+  // Live Orion: H_CUST_NAME is a lookup Orion runs per row, and grouping the open book by it took
+  // 9-38 s. Grouping by code and naming the codes from ZF_CUSTOMER takes about a second.
+  it("groups by customer code and names the codes from the customer master", () => {
+    const { sql } = openByCustomerQuery(ALL, TODAY);
+    expect(sql).not.toContain("H_CUST_NAME");
+    expect(sql).toContain("GROUP BY cust_code");
+    expect(sql).toContain("LEFT JOIN MBALI.ZF_CUSTOMER c ON c.CUST_CODE = by_code.cust_code");
+  });
+
+  // Live Orion: a WHERE on the book's computed columns (pend_qty, is_aed) made the first run of each
+  // new query text pick a 5 s plan for the view; summing conditionally keeps it under a second.
+  it("never filters the open book on its computed columns in a WHERE", () => {
+    const queries = [
+      openByAgeQuery(ALL, TODAY),
+      openBySalespersonQuery(ALL, TODAY),
+      openByCustomerQuery(ALL, TODAY),
+      openByCurrencyQuery(ALL, TODAY),
+      openLinesQuery(ALL, TODAY),
+    ];
+    for (const { sql } of queries) {
+      expect(sql).not.toMatch(/WHERE\s+pend_qty/);
+      expect(sql).not.toMatch(/WHERE[^\n]*is_aed\s*=/);
+    }
+  });
+
+  it("adds up two codes that share a customer name, as grouping by name did", async () => {
+    // Customer A is CA (SO5-1001, 1300) and CA2 (SO5-1004, 150) in the fixture.
+    const rows = await openByCustomer(ALL, TODAY);
+    expect(rows.filter((row) => row.label === "Customer A")).toEqual([{ label: "Customer A", value: 1450 }]);
   });
 });
 

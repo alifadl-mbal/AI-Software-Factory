@@ -1,4 +1,4 @@
-import { Boxes, LayoutDashboard, TrendingUp, type LucideIcon } from "lucide-react";
+import { Boxes, Landmark, LayoutDashboard, TrendingUp, type LucideIcon } from "lucide-react";
 
 /**
  * The dashboard registry: the single list the sidebar and the Overview page are built from.
@@ -36,6 +36,14 @@ export const DASHBOARDS: readonly Dashboard[] = [
     icon: Boxes,
     source: "ZF_CURR_STK_BI · ZF_STK_MTH_SUMM_BI · ZF_ITEM",
     dateFilter: false,
+  },
+  {
+    slug: "finance",
+    title: "Finance",
+    description:
+      "P&L from the posted general ledger: revenue, cost of sales, gross and net profit, the P&L statement, costs by account, division and department, and journal-line drill-down.",
+    icon: Landmark,
+    source: "ZF_F_T_DETAIL_BI",
   },
 ];
 

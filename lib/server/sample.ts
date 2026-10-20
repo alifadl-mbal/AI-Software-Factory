@@ -186,10 +186,11 @@ function shiftYear(text: string, offset: number): string {
 }
 
 function loadTable(database: DatabaseSync, name: string, table: Table): void {
-  // Codes like '107' are VARCHAR2 in Orion: keep *_CODE and *_NAME as text, not numbers.
+  // Codes like '107' and GL accounts like '40809' are VARCHAR2 in Orion: keep *_CODE, *_NAME and
+  // *_ACNT as text, not numbers.
   const numeric = table.header.map(
     (column, index) =>
-      !/_(CODE|NAME)$/.test(column) &&
+      !/_(CODE|NAME|ACNT)$/.test(column) &&
       table.rows.some((row) => row[index] !== null) &&
       table.rows.every((row) => row[index] === null || NUMBER_RE.test(row[index])),
   );

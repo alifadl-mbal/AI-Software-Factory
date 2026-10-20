@@ -1,0 +1,447 @@
+main_acnt,main_acnt_name,level_0,level_1,level_2
+10111,Cost - Land,Balance sheet,Assets,Non-current assets
+10112,Cost - Building,Balance sheet,Assets,Non-current assets
+10113,Cost - Machinery & Equipments,Balance sheet,Assets,Non-current assets
+10114,Cost - Vehicles,Balance sheet,Assets,Non-current assets
+10115,Cost - Furniture & Fixtures,Balance sheet,Assets,Non-current assets
+10116,Cost Office Equipments,Balance sheet,Assets,Non-current assets
+10117,Cost Property Equipments,Balance sheet,Assets,Non-current assets
+10118,Cost - Intangible Assets,Balance sheet,Assets,Non-current assets
+10119,Investments Property Cost - Land,Balance sheet,Assets,Non-current assets
+10120,Investments Property Cost - Building,Balance sheet,Assets,Non-current assets
+10121,Investments Property Cost - Others,Balance sheet,Assets,Non-current assets
+10122,Accumulated Depreciation - Building,Balance sheet,Assets,Non-current assets
+10123,Accumulated Depreciation - Mechine & Equipments,Balance sheet,Assets,Non-current assets
+10124,Accumulated Depreciation - Vehicle,Balance sheet,Assets,Non-current assets
+10125,Accumulated Depreciation - Furniture & Fixtures,Balance sheet,Assets,Non-current assets
+10126,Accumulated Depreciation - Office Equipments,Balance sheet,Assets,Non-current assets
+10127,Accumulated Depreciation - Property Equipments,Balance sheet,Assets,Non-current assets
+10128,Accumulate Depr - Intangible Assets,Balance sheet,Assets,Non-current assets
+10129,Investments Property-Accumulated Depreciation - Building,Balance sheet,Assets,Non-current assets
+10131,Capital Work In Progress,Balance sheet,Assets,Non-current assets
+10132,Capital Work in Progress (with SA),Balance sheet,Assets,Non-current assets
+10141,Deffered Reveneu Expenditure,Balance sheet,Assets,Non-current assets
+10142,Provision for Amortization of Deffered Expenses,Balance sheet,Assets,Non-current assets
+10150,Cost - Intangible Assets,Balance sheet,Assets,Non-current assets
+10160,Accumulated Dep - Intangible Assets,Balance sheet,Assets,Non-current assets
+10161,Investment in Limited Liabilities Companies,Balance sheet,Assets,Non-current assets
+10162,Share(s) In Associate Companies,Balance sheet,Assets,Non-current assets
+10163,Shares in Partnership Concern,Balance sheet,Assets,Non-current assets
+10164,Available for Sale Financial Assets,Balance sheet,Assets,Non-current assets
+10165,Shares Fully Owned Companies,Balance sheet,Assets,Non-current assets
+10166,Shares Partner ship Companies,Balance sheet,Assets,Non-current assets
+10167,Shares in Limited Liability Companies,Balance sheet,Assets,Non-current assets
+10169,Provision for fair value of Investment,Balance sheet,Assets,Non-current assets
+10170,Assets Subject to Finance Lease,Balance sheet,Assets,Non-current assets
+10171,Liabilities Subject to Finance Lease,Balance sheet,Assets,Non-current assets
+10172,Accumulated Depreciation - Leased Assets,Balance sheet,Assets,Non-current assets
+10191,Loan to Group Companies,Balance sheet,Assets,Non-current assets
+10192,Long Term Loan - Group Company,Balance sheet,Assets,Non-current assets
+10193,Inter company loan from Malco Capital,Balance sheet,Assets,Non-current assets
+10211,Inventories,Balance sheet,Assets,Current assets
+10212,Property for Resale,Balance sheet,Assets,Current assets
+10213,Import Expenses,Balance sheet,Assets,Current assets
+10214,Inventories For Dubai Ice Plant,Balance sheet,Assets,Current assets
+10215,Inventories ( TNS ),Balance sheet,Assets,Current assets
+10216,Inventories - South Residence,Balance sheet,Assets,Current assets
+10219,Work in Progress - Axon,Balance sheet,Assets,Current assets
+10220,Treasury,Balance sheet,Assets,Current assets
+10221,Group Treasury,Balance sheet,Assets,Current assets
+10222,Facility Reserve,Balance sheet,Assets,Current assets
+10241,Goods In Transit,Balance sheet,Assets,Current assets
+10242,GIT - Non Stock,Balance sheet,Assets,Current assets
+10243,Goods In Transit - Inter Location Transfer,Balance sheet,Assets,Current assets
+10251,Trade Account Receivable,Balance sheet,Assets,Current assets
+10252,Tenants Account,Balance sheet,Assets,Current assets
+10253,Buyers,Balance sheet,Assets,Current assets
+10254,Investment through Meerrill Lynch,Balance sheet,Assets,Current assets
+10255,Advances to Supplier,Balance sheet,Assets,Current assets
+10258,Maintenance Projects Account,Balance sheet,Assets,Current assets
+10259,Investment through InvestCorp,Balance sheet,Assets,Current assets
+10261,Societe Generale Private Banking (Suisse) SA,Balance sheet,Assets,Current assets
+10262,Investment through ETHIS,Balance sheet,Assets,Current assets
+10263,Emirates NBD AMC,Balance sheet,Assets,Current assets
+10264,Jadwa Investment,Balance sheet,Assets,Current assets
+10265,Investment with Malco Capital,Balance sheet,Assets,Current assets
+10266,Societe Generale Ac 2 - 475320,Balance sheet,Assets,Current assets
+10267,Investment inGold through Gilded DMCC,Balance sheet,Assets,Current assets
+10269,Investment with EFG Bank,Balance sheet,Assets,Current assets
+10270,Production Advances,Balance sheet,Assets,Current assets
+10271,Deposits,Balance sheet,Assets,Current assets
+10272,Pre-Payments,Balance sheet,Assets,Current assets
+10273,Recievables - Others,Balance sheet,Assets,Current assets
+10274,Staff Advances,Balance sheet,Assets,Current assets
+10275,Other Receivable,Balance sheet,Assets,Current assets
+10276,Accrued Income,Balance sheet,Assets,Current assets
+10277,Zakat Paid In Advance,Balance sheet,Assets,Current assets
+10278,Dividend Paid In Advance,Balance sheet,Assets,Current assets
+10279,Advance for Purchase of Investment Property,Balance sheet,Assets,Current assets
+10284,VAT Input,Balance sheet,Assets,Current assets
+10285,Investment With GFH Group,Balance sheet,Assets,Current assets
+10286,Investment with Emirates Islamic Private Banking,Balance sheet,Assets,Current assets
+10287,Investment with Binance,Balance sheet,Assets,Current assets
+10291,Petty Cash in Hand - Promotional Expenses Imprest,Balance sheet,Assets,Current assets
+10292,Petty Cash in Hand - Axon Projects,Balance sheet,Assets,Current assets
+10293,Petty Cash in Hand - Axon Petrol Card,Balance sheet,Assets,Current assets
+10294,Petty Cash in Hand - Axon,Balance sheet,Assets,Current assets
+10295,Petty Cash in Hand - Not in Use,Balance sheet,Assets,Current assets
+10296,Petty Cash in Hand - Axon,Balance sheet,Assets,Current assets
+10297,Post Dated Cheque In Hand,Balance sheet,Assets,Current assets
+10298,Petty Cash in Hand - Group,Balance sheet,Assets,Current assets
+10299,Petty Cash In Hand - Villa,Balance sheet,Assets,Current assets
+10300,Petty Cash in Hand - TNS Abu Dhabi,Balance sheet,Assets,Current assets
+10301,Petty Cash in Hand - TNS Sahara,Balance sheet,Assets,Current assets
+10302,Petty Cash in Hand - Bur Juman,Balance sheet,Assets,Current assets
+10305,Petty Cash in Hand - INTELVISION MAL,Balance sheet,Assets,Current assets
+10306,Petty Cash in Hand - TNS ADH BRAUN S/R,Balance sheet,Assets,Current assets
+10309,Petty Cash In Hand - JAVA U Cascade,Balance sheet,Assets,Current assets
+10310,Petty Cash in Hand - Electrical Division,Balance sheet,Assets,Current assets
+10313,Petty Cash in Hand - ED Jabel Ali Warehouse,Balance sheet,Assets,Current assets
+10314,Petty Cash in Hand - Axon Visa and Immigration Expenses,Balance sheet,Assets,Current assets
+10315,Petty Cash in Hand - TNS Visa and Immigration Expenses,Balance sheet,Assets,Current assets
+10316,Petty Cash in Hand - TNS Lifestyle,Balance sheet,Assets,Current assets
+10317,Petty Cash in Hand - MALCO Properties,Balance sheet,Assets,Current assets
+10319,Cash in Hand - AIS - AED,Balance sheet,Assets,Current assets
+10320,Cash in Hand - AIS - Omani Riyal,Balance sheet,Assets,Current assets
+10323,Petty Cash in Hand - Axon AbuDhabi Projects,Balance sheet,Assets,Current assets
+10324,Petty Cash in Hand - MALCO Technical Services,Balance sheet,Assets,Current assets
+10401,Investment through FFA DUBAI,Balance sheet,Assets,Current assets
+10402,Investment through GREEN SANDS STRATEGIST,Balance sheet,Assets,Current assets
+10403,Investment through SHUAA CAPITAL PSC,Balance sheet,Assets,Current assets
+10404,Investment through PROPITEER CAPITAL PLC,Balance sheet,Assets,Current assets
+11101,INTER COMPANY - Mostafa Bin Abdullatif Investments LLC,Balance sheet,Assets,Group and related-party balances
+11103,INTER COMPANY - Malco Technologies LLC,Balance sheet,Assets,Group and related-party balances
+11104,INTER COMPANY - Mostafa Bin Abdullatif LLC,Balance sheet,Assets,Group and related-party balances
+11105,INTER COMPANY - MAL General Trading LLC,Balance sheet,Assets,Group and related-party balances
+11106,INTER COMPANY - The New Store LLC,Balance sheet,Assets,Group and related-party balances
+11107,INTER COMPANY - Axon Business Systems LLC,Balance sheet,Assets,Group and related-party balances
+11113,INTER COMPANY - Boomtown MAL Fz LLC,Balance sheet,Assets,Group and related-party balances
+11121,INTER COMPANY - Property B,Balance sheet,Assets,Group and related-party balances
+11123,INTER COMPANY - Al Barsha Villas,Balance sheet,Assets,Group and related-party balances
+11126,INTER COMPANY - South Residences,Balance sheet,Assets,Group and related-party balances
+11129,INTER COMPANY - Mankhool Plaza,Balance sheet,Assets,Group and related-party balances
+11130,INTER COMPANY - Dubai Ice Plant & Cold Stores LLC,Balance sheet,Assets,Group and related-party balances
+11133,INTER COMPANY - Malco Properties LLC,Balance sheet,Assets,Group and related-party balances
+11135,INTER COMPANY - Malco Capital Investments LLC,Balance sheet,Assets,Group and related-party balances
+11136,INTER COMPANY - Mostafa Bin Abdullatif Real Estate Development Company LLC,Balance sheet,Assets,Group and related-party balances
+11137,INTER COMPANY - Axon Integrated Systems LLC,Balance sheet,Assets,Group and related-party balances
+11138,INTER COMPANY - Axon Signage Industries LLC,Balance sheet,Assets,Group and related-party balances
+11139,INTER COMPANY - Capital M Investments,Balance sheet,Assets,Group and related-party balances
+11141,INTER COMPANY - Malco Technical Services LLC,Balance sheet,Assets,Group and related-party balances
+11142,INTER COMPANY - M3 Trading,Balance sheet,Assets,Group and related-party balances
+11220,M3 Trading,Balance sheet,Assets,Group and related-party balances
+11221,Capital M Investments,Balance sheet,Assets,Group and related-party balances
+11222,Global M Holding Ltd.,Balance sheet,Assets,Group and related-party balances
+11223,Boomtown MAL Global FZ LLC,Balance sheet,Assets,Group and related-party balances
+11229,MALCO Technical Services LLC,Balance sheet,Assets,Group and related-party balances
+11230,South Residence,Balance sheet,Assets,Group and related-party balances
+11231,Axon Integrated Solutions LLC,Balance sheet,Assets,Group and related-party balances
+11232,Yaqoubi Stores,Balance sheet,Assets,Group and related-party balances
+11233,MAL Real Estate Development Co. LLC,Balance sheet,Assets,Group and related-party balances
+11234,Malco Capital Investments LLC,Balance sheet,Assets,Group and related-party balances
+11235,Jumeirah Village Project,Balance sheet,Assets,Group and related-party balances
+11236,MALCO Treasury,Balance sheet,Assets,Group and related-party balances
+11237,MALCO Property Maintenance,Balance sheet,Assets,Group and related-party balances
+11238,MALCO Property Management,Balance sheet,Assets,Group and related-party balances
+11239,Dubai Ice Box,Balance sheet,Assets,Group and related-party balances
+11240,Mostafa Bin Abdullatif Investments LLC,Balance sheet,Assets,Group and related-party balances
+11241,Axon Businness Systems - Dubai,Balance sheet,Assets,Group and related-party balances
+11242,The New Store L.L.C,Balance sheet,Assets,Group and related-party balances
+11243,MAL Property Division - Sector A,Balance sheet,Assets,Group and related-party balances
+11243L,MAL Property Sector A - L,Balance sheet,Assets,Group and related-party balances
+11244,M.A.L. Cigarette Division,Balance sheet,Assets,Group and related-party balances
+11245,MALCO Technologies,Balance sheet,Assets,Group and related-party balances
+11246,MAL General Trading Co. LLC,Balance sheet,Assets,Group and related-party balances
+11247,Axon Business System - Abu Dhabi,Balance sheet,Assets,Group and related-party balances
+11248,MAL Property Division - Sector B,Balance sheet,Assets,Group and related-party balances
+11249,Mostafa Bin Abdullatif LLC - Real Estate,Balance sheet,Assets,Group and related-party balances
+11250,Dubai Ice Plant,Balance sheet,Assets,Group and related-party balances
+11251,MAL Bahrain Butterfly Account,Balance sheet,Assets,Group and related-party balances
+11252,Mirdif Properties,Balance sheet,Assets,Group and related-party balances
+11253,The New Store Villa,Balance sheet,Assets,Group and related-party balances
+11254,Mostafa Bin Abdullatif CT,Balance sheet,Assets,Group and related-party balances
+11255,M.A.L. Cigarette Division (ADH),Balance sheet,Assets,Group and related-party balances
+11256,MAL - Al Barshaa First,Balance sheet,Assets,Group and related-party balances
+11257,MAL - Trading,Balance sheet,Assets,Group and related-party balances
+11258,MAL - Marina Plaza ( CASCADE ),Balance sheet,Assets,Group and related-party balances
+11259,Intellvision & MAL FZ - Current A/C (Facility),Balance sheet,Assets,Group and related-party balances
+11259L,Intellvision - L,Balance sheet,Assets,Group and related-party balances
+11260,EAST GATE,Balance sheet,Assets,Group and related-party balances
+11261,Intellvision & MAL FZ - (Production),Balance sheet,Assets,Group and related-party balances
+11262,Intellvision & MAL FZ - (Commercial),Balance sheet,Assets,Group and related-party balances
+11264,Boomtown MAL Fz LLC,Balance sheet,Assets,Group and related-party balances
+11265,Sante - MAL,Balance sheet,Assets,Group and related-party balances
+11266,MAL - HYPER MARKET PROJECT,Balance sheet,Assets,Group and related-party balances
+11267,MADINAT AL-ISLAM,Balance sheet,Assets,Group and related-party balances
+11268,MBAL HOLDING LLC,Balance sheet,Assets,Group and related-party balances
+11269,TNS RETAIL DIVISION,Balance sheet,Assets,Group and related-party balances
+11270,THE NEW STORE,Balance sheet,Assets,Group and related-party balances
+11271,Java U,Balance sheet,Assets,Group and related-party balances
+11272,Cascade - Maintenance,Balance sheet,Assets,Group and related-party balances
+11273,Mankhool Plaza JV,Balance sheet,Assets,Group and related-party balances
+11274,Jumeirah Lakes Towers,Balance sheet,Assets,Group and related-party balances
+11275,The New Store Retail Division,Balance sheet,Assets,Group and related-party balances
+11276,Java U,Balance sheet,Assets,Group and related-party balances
+11277,Business Bay 8 Appts Joint Venture,Balance sheet,Assets,Group and related-party balances
+11278,Shane Martin,Balance sheet,Assets,Group and related-party balances
+11278L,Shane Martin - L,Balance sheet,Assets,Group and related-party balances
+11279,Alpina Choclate,Balance sheet,Assets,Group and related-party balances
+11280,Term Deposit - Al Hilal Bank,Balance sheet,Assets,Group and related-party balances
+11281,Term Deposit - NBD,Balance sheet,Assets,Group and related-party balances
+11282,Term Deposit - EBIL,Balance sheet,Assets,Group and related-party balances
+11288,Term Deposit - Dubai Islamic,Balance sheet,Assets,Group and related-party balances
+11289,Term Deposit - Abu Dhabi Islamic,Balance sheet,Assets,Group and related-party balances
+11290,Term Deposit - Al Baraka Islamic Bank,Balance sheet,Assets,Group and related-party balances
+11291,Versatile Synergy,Balance sheet,Assets,Group and related-party balances
+11292,Cash at Bank ENBD-USD A/C,Balance sheet,Assets,Group and related-party balances
+11450,INTER COMPANY - Versatile Synergy,Balance sheet,Assets,Group and related-party balances
+11460,INTER COMPANY - M3 Trading (DO NOT USE),Balance sheet,Assets,Group and related-party balances
+12272,BT - Bank Transfer Transit Account,Balance sheet,Assets,Cash and bank
+12273,Cash at Bank - AIS ENBD,Balance sheet,Assets,Cash and bank
+12274,Cash at Bank - AIS NBF,Balance sheet,Assets,Cash and bank
+12275,E-Dirham Account,Balance sheet,Assets,Cash and bank
+12276,Cash at Bank - First Abu Dhabi Bank,Balance sheet,Assets,Cash and bank
+12277,Cash at Bank - DIB - MALCO Gen Trading,Balance sheet,Assets,Cash and bank
+12278,Cash at Bank - NBF AIS,Balance sheet,Assets,Cash and bank
+12279,Cash at Bank - ENBD AIS,Balance sheet,Assets,Cash and bank
+12280,Cash at Bank - Al Hilal Bank,Balance sheet,Assets,Cash and bank
+12281,Cash at Bank - ADIB,Balance sheet,Assets,Cash and bank
+12282,Cash at Bank - ADIB - 2,Balance sheet,Assets,Cash and bank
+12284,ADIB - Vehicle Loan,Balance sheet,Assets,Cash and bank
+12285,ADIB - Bank Guarantee,Balance sheet,Assets,Cash and bank
+12286,Cash at Bank - NBD - AIM,Balance sheet,Assets,Cash and bank
+12288,Cash at Bank - EmiratesNBD Ac2,Balance sheet,Assets,Cash and bank
+12289,Cash at Bank - EmiratesNBD - Abu Dhabi,Balance sheet,Assets,Cash and bank
+12290,Cash at Bank - HB AG ZURICH,Balance sheet,Assets,Cash and bank
+12291,Cash at Bank - EmiratesNBD,Balance sheet,Assets,Cash and bank
+12292,Cash at Bank - EBIL,Balance sheet,Assets,Cash and bank
+12293,Cash at Bank - BBME,Balance sheet,Assets,Cash and bank
+12294,Cash at Bank - Mashreq Bank,Balance sheet,Assets,Cash and bank
+12295,Cash at Bank - HBL,Balance sheet,Assets,Cash and bank
+12296,Cash at Bank - UBL,Balance sheet,Assets,Cash and bank
+12297,Cash at Bank - ABN,Balance sheet,Assets,Cash and bank
+12298,Cash at Bank - Dubai Islamic,Balance sheet,Assets,Cash and bank
+12299,Cash at Bank - Abu Dhabi Islamic Bank,Balance sheet,Assets,Cash and bank
+12300,Cash at Bank - ENBD Islamic,Balance sheet,Assets,Cash and bank
+14291,Cash at Bank - US Dollar - NBD,Balance sheet,Assets,Cash and bank
+14292,Cash at Bank - US Dollar - EBIL,Balance sheet,Assets,Cash and bank
+14293,Cash at Bank - US Dollar - BBME,Balance sheet,Assets,Cash and bank
+14295,Cash at Bank - US Dollar - Habib Bank AG Zurich,Balance sheet,Assets,Cash and bank
+14296,EBIL - AED - Call Account,Balance sheet,Assets,Cash and bank
+15291,Cash at Bank - Pound Sterling -EmiratesNBD,Balance sheet,Assets,Cash and bank
+15292,Cash at Bank - Pound Sterling - EBIL,Balance sheet,Assets,Cash and bank
+16292,Cash at Bank - DM - EBIL,Balance sheet,Assets,Cash and bank
+17295,Cash at Bank - Euro - EmiratesNBD,Balance sheet,Assets,Cash and bank
+17296,Cash at Bank - Euro - EBIL,Balance sheet,Assets,Cash and bank
+17298,Cash at Bank - DKK - EmiratesNBD,Balance sheet,Assets,Cash and bank
+19290,Cash in Hand - AED,Balance sheet,Assets,Cash and bank
+19291,Cash in Hand - US Dollar,Balance sheet,Assets,Cash and bank
+19292,Cash in Hand - Pound Sterling,Balance sheet,Assets,Cash and bank
+19296,Cash in Hand - Bahrain Dinar,Balance sheet,Assets,Cash and bank
+19297,Cash In Hand - Singapore Dollar,Balance sheet,Assets,Cash and bank
+19298,Cash in Hand - Deutsche Mark,Balance sheet,Assets,Cash and bank
+19299,Cash in Hand - Italian Lira,Balance sheet,Assets,Cash and bank
+19300,Currency for Demonstration of Note Counting Machine,Balance sheet,Assets,Cash and bank
+19301,Cash in Hand - S.A.Rand,Balance sheet,Assets,Cash and bank
+19302,Cash in Hand - Euro,Balance sheet,Assets,Cash and bank
+19303,Cash in Hand - Yen,Balance sheet,Assets,Cash and bank
+19305,Abudhabi Islamic Bank OD A/C,Balance sheet,Assets,Cash and bank
+19311,Cash in Hand - AED G Hanz SR,Balance sheet,Assets,Cash and bank
+19312,Cash in Hand - AED Villa,Balance sheet,Assets,Cash and bank
+19313,Cash in Hand - AED ADH,Balance sheet,Assets,Cash and bank
+19314,Cash in Hand - Sahara Center,Balance sheet,Assets,Cash and bank
+19315,Cash in Hand - AED Burjuman,Balance sheet,Assets,Cash and bank
+19316,Cash in Hand - AED Mercato,Balance sheet,Assets,Cash and bank
+19318,Cash in Hand - AED GHANZ AD MALL,Balance sheet,Assets,Cash and bank
+19319,Cash in Hand - AED BRAUN AD MALL,Balance sheet,Assets,Cash and bank
+19324,Cash in Hand - AED Lifestyle (Villa),Balance sheet,Assets,Cash and bank
+20171,Liabilities Subject to Finance Lease,Balance sheet,Liabilities and equity,Liabilities
+20172,Accumulated Depreciation - Leased Assets,Balance sheet,Liabilities and equity,Liabilities
+20201,Bank Facility - Loan Payable,Balance sheet,Liabilities and equity,Liabilities
+20202,Bank Overdraft,Balance sheet,Liabilities and equity,Liabilities
+20311,Trade Account Payable,Balance sheet,Liabilities and equity,Liabilities
+20312,Inter Company Accounts,Balance sheet,Liabilities and equity,Liabilities
+20313,Advances from Customer,Balance sheet,Liabilities and equity,Liabilities
+20314,Payable for Purchase of Land,Balance sheet,Liabilities and equity,Liabilities
+20315,Surplus on Revaluation of Assets,Balance sheet,Liabilities and equity,Liabilities
+20319,UAE Pension Payable,Balance sheet,Liabilities and equity,Liabilities
+20320,Tenants Security Deposits,Balance sheet,Liabilities and equity,Liabilities
+20321,Other Creditors,Balance sheet,Liabilities and equity,Liabilities
+20322,Provisions & Accruals,Balance sheet,Liabilities and equity,Liabilities
+20323,Salaries Payables,Balance sheet,Liabilities and equity,Liabilities
+20324,Commission Payables,Balance sheet,Liabilities and equity,Liabilities
+20325,Accured Expenses,Balance sheet,Liabilities and equity,Liabilities
+20326,Bills Payables ( For Goods Purchased ),Balance sheet,Liabilities and equity,Liabilities
+20327,Chubb Representaion Accounts,Balance sheet,Liabilities and equity,Liabilities
+20328,Post Dated Cheques Issued,Balance sheet,Liabilities and equity,Liabilities
+20329,Tenant Deposit,Balance sheet,Liabilities and equity,Liabilities
+20330,Provision for Doubtful Debits,Balance sheet,Liabilities and equity,Liabilities
+20331,Provision for Slow Moving Stock s,Balance sheet,Liabilities and equity,Liabilities
+20332,Legamaster Representation Account.,Balance sheet,Liabilities and equity,Liabilities
+20333,Modulex Representation Account,Balance sheet,Liabilities and equity,Liabilities
+20334,GBC Representation Account,Balance sheet,Liabilities and equity,Liabilities
+20341,Current Accounts of MAL family Members,Balance sheet,Liabilities and equity,Liabilities
+20375,Provision Against Impairment of Investment Property,Balance sheet,Liabilities and equity,Liabilities
+20391,Zakat - Provision for the Year,Balance sheet,Liabilities and equity,Liabilities
+20392,Dividend Payables,Balance sheet,Liabilities and equity,Liabilities
+20393,Zakat - Account,Balance sheet,Liabilities and equity,Liabilities
+20395,Unpaid Dividend,Balance sheet,Liabilities and equity,Liabilities
+20396,Proposed Dividend,Balance sheet,Liabilities and equity,Liabilities
+20397,VAT Output,Balance sheet,Liabilities and equity,Liabilities
+20398,VAT Reverse Charge,Balance sheet,Liabilities and equity,Liabilities
+20399,VAT Output (Tenants Account),Balance sheet,Liabilities and equity,Liabilities
+20400,VAT Payable,Balance sheet,Liabilities and equity,Liabilities
+20412,Provision for Gratuity,Balance sheet,Liabilities and equity,Liabilities
+20413,ENBD TR Payable A/C,Balance sheet,Liabilities and equity,Liabilities
+20511,Share Capital,Balance sheet,Liabilities and equity,Equity
+20512,Legal Reserves,Balance sheet,Liabilities and equity,Equity
+20513,General Reserves,Balance sheet,Liabilities and equity,Equity
+20514,Contributed Capital,Balance sheet,Liabilities and equity,Equity
+20515,Partners Share Capital,Balance sheet,Liabilities and equity,Equity
+20516,Partners Share Capital,Balance sheet,Liabilities and equity,Equity
+20517,Capital Restructuring Reserve Fund,Balance sheet,Liabilities and equity,Equity
+20518,Capital Redemption Reserve,Balance sheet,Liabilities and equity,Equity
+20521,Interest Equilization Reserve,Balance sheet,Liabilities and equity,Equity
+20522,Other Comprehensive Income (Equity),Balance sheet,Liabilities and equity,Equity
+20523,Revaluation reserve - OCI,Balance sheet,Liabilities and equity,Equity
+20524,Corporate Tax Liability,Balance sheet,Liabilities and equity,Equity
+20551,Retained Profit,Balance sheet,Liabilities and equity,Equity
+20590,Statutory Reserves,Balance sheet,Liabilities and equity,Equity
+20591,P & L Appropriation Account,Balance sheet,Liabilities and equity,Equity
+30611,Gross Sales,Profit and loss,Revenue,Sales
+30614,Gross Sales - Axon,Profit and loss,Revenue,Sales
+30616,Gross Sales (Promotional Returns),Profit and loss,Revenue,Sales
+30617,Sale of Non Stock Goods,Profit and loss,Revenue,Sales
+30618,Sale of Land & Building,Profit and loss,Revenue,Property income
+30620,Rental Income,Profit and loss,Revenue,Property income
+30621,Service Income,Profit and loss,Revenue,Service and other income
+30622,Service Income (NCR),Profit and loss,Revenue,Service and other income
+30624,Maintenance Fee Income,Profit and loss,Revenue,Property income
+30625,Renewal Fees,Profit and loss,Revenue,Property income
+30626,Brokerage Fees,Profit and loss,Revenue,Property income
+30628,External Property Management Income,Profit and loss,Revenue,Property income
+30630,Property management fee income,Profit and loss,Revenue,Property income
+30631,Other Income,Profit and loss,Revenue,Service and other income
+30632,Malco Management Fee Income,Profit and loss,Revenue,Service and other income
+30633,Other Income Subject to VAT,Profit and loss,Revenue,Service and other income
+30634,Profit on Fixed Deposits,Profit and loss,Revenue,Investment income
+30641,Discounts,Profit and loss,Revenue,Sales
+30642,Discounts - Financial,Profit and loss,Revenue,Sales
+30644,Discounts - Axon,Profit and loss,Revenue,Sales
+30686,Revaluation Reserve - OCI,Profit and loss,Revenue,Investment income
+30687,Negative Goodwill on Aquisition,Profit and loss,Revenue,Investment income
+30701,Commission Income - Others,Profit and loss,Revenue,Service and other income
+30702,Share of Profit from Associates,Profit and loss,Revenue,Investment income
+30703,Dividend Income from Shares and Partnership Concern,Profit and loss,Revenue,Investment income
+30704,Profit on intercompany loans,Profit and loss,Revenue,Investment income
+30705,RI - Dividend Income on Investments,Profit and loss,Revenue,Investment income
+30706,RI - Dividend Income on Treasury Shares,Profit and loss,Revenue,Investment income
+30707,Profit on intercompany loans,Profit and loss,Revenue,Investment income
+30708,Profit On Islamic funds,Profit and loss,Revenue,Investment income
+30709,RI - Ware House Rental,Profit and loss,Revenue,Property income
+30710,Profit on sale of shares realized,Profit and loss,Revenue,Investment income
+30711,Dividend income on FVOCI investments,Profit and loss,Revenue,Investment income
+30720,RI - MAL LLC,Profit and loss,Revenue,Property income
+30721,RI - The New Store LLC,Profit and loss,Revenue,Property income
+30722,RI - Axon Business Systems LLC,Profit and loss,Revenue,Property income
+30723,RI - MALCO Technology,Profit and loss,Revenue,Property income
+30724,RI - MALCO Properties,Profit and loss,Revenue,Property income
+30725,RI - MALCO Maintenance,Profit and loss,Revenue,Property income
+30726,RI - Axon Land Rental Income,Profit and loss,Revenue,Property income
+30729,RI - Property A,Profit and loss,Revenue,Property income
+30738,RI - Bahrain Butterfly,Profit and loss,Revenue,Property income
+30740,RI - MAL LLC,Profit and loss,Revenue,Property income
+30741,RI - General Trading,Profit and loss,Revenue,Property income
+30742,RI - South Residences,Profit and loss,Revenue,Property income
+30771,Spare Parts Income,Profit and loss,Revenue,Sales
+30800,Sponsership Fee,Profit and loss,Revenue,Service and other income
+30801,Commission Income NCR,Profit and loss,Revenue,Service and other income
+30921,SALES (PRODUCTION HOUSE) - PRODUCTION,Profit and loss,Revenue,Sales
+40624,Finance Cost - Leases,Profit and loss,General and admin expenses,Finance costs
+40625,Depreciation - Leased Assets,Profit and loss,General and admin expenses,Depreciation and amortisation
+40629,Window Project Expense,Profit and loss,General and admin expenses,Other expenses
+40711,Cost of Sales,Profit and loss,Cost of sales,Cost of sales
+40712,Damaged Items Write-Off,Profit and loss,Cost of sales,Cost of sales
+40713,Stock Provision Write Off,Profit and loss,Cost of sales,Cost of sales
+40714,Spare Consumed by Service centre,Profit and loss,Cost of sales,Cost of sales
+40715,Cost of Sales (Financial),Profit and loss,Cost of sales,Cost of sales
+40716,Cost of Sales - MT,Profit and loss,Cost of sales,Cost of sales
+40717,Cost of Sales - Axon,Profit and loss,Cost of sales,Cost of sales
+40718,Service Cost of Sales P&L - Axon,Profit and loss,Cost of sales,Cost of sales
+40719,Cost of Sales - Rebates to Customer,Profit and loss,Cost of sales,Cost of sales
+40720,Property Maintenance Expenses,Profit and loss,Cost of sales,Cost of sales
+40721,Duty & Taxes,Profit and loss,Cost of sales,Cost of sales
+40722,Management fee - Malco Properties LLC,Profit and loss,Cost of sales,Cost of sales
+40723,Maintenance fee - Malco Properties LLC,Profit and loss,Cost of sales,Cost of sales
+40724,Salary Settlement,Profit and loss,General and admin expenses,Staff costs
+40725,External Property Management Expense,Profit and loss,Cost of sales,Cost of sales
+40726,Management fee - Third party,Profit and loss,Cost of sales,Cost of sales
+40727,Maintenance fee - Third party,Profit and loss,Cost of sales,Cost of sales
+40731,Rechargable Expenses (Misc. Cost of Sales),Profit and loss,Cost of sales,Cost of sales
+40733,NCR SERVICES,Profit and loss,Cost of sales,Cost of sales
+40735,Community Service Charges,Profit and loss,Cost of sales,Cost of sales
+40751,Stock Adjustment,Profit and loss,Cost of sales,Cost of sales
+40807,UAE Pension expense,Profit and loss,General and admin expenses,Staff costs
+40808,UAE Pension,Profit and loss,General and admin expenses,Staff costs
+40809,Salaries & Staff Benefits,Profit and loss,General and admin expenses,Staff costs
+40810,Salaries & Staff Benefits,Profit and loss,General and admin expenses,Staff costs
+40811,Leave Salary & Passage,Profit and loss,General and admin expenses,Staff costs
+40812,Gratuity,Profit and loss,General and admin expenses,Staff costs
+40813,Commission,Profit and loss,General and admin expenses,Selling and distribution
+40814,Rents & Rates,Profit and loss,General and admin expenses,Premises
+40815,Electicity & Water,Profit and loss,General and admin expenses,Premises
+40816,"Postage, Telephone & Fax",Profit and loss,General and admin expenses,Other expenses
+40817,Printing & Stationery,Profit and loss,General and admin expenses,Other expenses
+40818,Management Commission,Profit and loss,General and admin expenses,Selling and distribution
+40819,Repair & Maintenance,Profit and loss,General and admin expenses,Premises
+40820,Car & Conveyance,Profit and loss,General and admin expenses,Vehicles and travel
+40821,Travel & Hotel,Profit and loss,General and admin expenses,Vehicles and travel
+40822,Insurance,Profit and loss,General and admin expenses,Other expenses
+40823,License & Consultancy expenses,Profit and loss,General and admin expenses,Other expenses
+40824,Staff Medical Benefits,Profit and loss,General and admin expenses,Staff costs
+40825,Advertisement & Business Promotion,Profit and loss,General and admin expenses,Selling and distribution
+40826,Free of Cost Item,Profit and loss,General and admin expenses,Selling and distribution
+40827,Delivery Expenses,Profit and loss,General and admin expenses,Selling and distribution
+40828,Vehicle Maintenance & Running,Profit and loss,General and admin expenses,Vehicles and travel
+40829,Fuel Allowance to Salesman,Profit and loss,General and admin expenses,Selling and distribution
+40830,Prior Year Adjustment,Profit and loss,General and admin expenses,Other expenses
+40831,Doubtful Debts - Provision Against,Profit and loss,General and admin expenses,Provisions and write-offs
+40832,Slow Moving Stocks - Provision Against,Profit and loss,General and admin expenses,Provisions and write-offs
+40833,DIC Project Expence,Profit and loss,General and admin expenses,Other expenses
+40834,Cabinet Packing Expenses,Profit and loss,General and admin expenses,Selling and distribution
+40835,Holding Cost,Profit and loss,General and admin expenses,Premises
+40836,Amortization & Depreciation,Profit and loss,General and admin expenses,Depreciation and amortisation
+40837,Profit / Loss on Sale of Investments,Profit and loss,General and admin expenses,Investment gains and losses
+40838,Dealer Trip Expenses,Profit and loss,General and admin expenses,Selling and distribution
+40839,Miscellaneous Expenses,Profit and loss,General and admin expenses,Other expenses
+40840,Financial Expenses,Profit and loss,General and admin expenses,Finance costs
+40841,Foreign Exchange Gain / Loss,Profit and loss,General and admin expenses,Investment gains and losses
+40842,Fair Value of Investment,Profit and loss,General and admin expenses,Investment gains and losses
+40843,Charity,Profit and loss,General and admin expenses,Other expenses
+40844,Dividend Paid,Balance sheet,Liabilities and equity,Equity
+40845,Rent Paid,Profit and loss,General and admin expenses,Premises
+40846,Audit Fee,Profit and loss,General and admin expenses,Other expenses
+40847,Office Expenses,Profit and loss,General and admin expenses,Other expenses
+40848,VAT Expense,Profit and loss,General and admin expenses,Tax and zakat
+40851,Director's Fee,Profit and loss,General and admin expenses,Other expenses
+40852,ZAKAT,Profit and loss,General and admin expenses,Tax and zakat
+40853,Investment Management Fee,Profit and loss,General and admin expenses,Finance costs
+40854,Transaction Fee on Investments,Profit and loss,General and admin expenses,Finance costs
+40860,Proposed Dividend,Balance sheet,Liabilities and equity,Equity
+40862,Capital Work in Progress Written Off,Profit and loss,General and admin expenses,Depreciation and amortisation
+40863,Corporate Tax Expense,Profit and loss,General and admin expenses,Tax and zakat
+40864,Litigation Expenses,Profit and loss,General and admin expenses,Other expenses
+40870,Genaral Expenses,Profit and loss,General and admin expenses,Other expenses
+40871,Production Expenses,Profit and loss,Cost of sales,Cost of sales
+40872,Vehicle Expenses,Profit and loss,General and admin expenses,Vehicles and travel
+40873,Exceptional Items,Profit and loss,General and admin expenses,Other expenses
+40875,Loss (Profit) on Impairment of Investment Property,Profit and loss,General and admin expenses,Provisions and write-offs
+40877,Purchases,Profit and loss,Cost of sales,Cost of sales
+40879,ZAKAT PAYMENTS,Profit and loss,General and admin expenses,Tax and zakat
+40880,Interest Exp. - Bank Loan,Profit and loss,General and admin expenses,Finance costs
+40881,Bad Debts - Write Off,Profit and loss,General and admin expenses,Provisions and write-offs
+40882,IT Expenses,Profit and loss,General and admin expenses,Other expenses
+40883,Write off - Other Receivables,Profit and loss,General and admin expenses,Provisions and write-offs
+40901,COST OF SALE (FACILITY HOUSE) - PRODUCTION HOUSE,Profit and loss,Cost of sales,Cost of sales
+40921,COST OF SALE (PRODUCTION HOUSE) - PRODUCTION,Profit and loss,Cost of sales,Cost of sales
+40923,COST OF SALE (COMMERCIAL) - COMMERCIAL,Profit and loss,Cost of sales,Cost of sales

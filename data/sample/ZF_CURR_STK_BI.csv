@@ -1,0 +1,211 @@
+CS_COMP_CODE,CS_LOCN_CODE,CS_LOCN_NAME,CS_ITEM_CODE,CS_ITEM_NAME,CS_GROUP_CODE,CS_GROUP_NAME,CS_GRADE,CS_UOM,CS_RESV_QTY,CS_UNCONF_QTY,CS_WAC,CS_VAL
+101,L101A,Jebel Ali Warehouse,IT00023,Sample item 023,SPR,Spare Parts,B,PCS,0,1329,28.37,37703.73
+101,L101B,Al Quoz Showroom,IT00023,Sample item 023,SPR,Spare Parts,G,PCS,0,192,28.37,5447.04
+101,L101B,Al Quoz Showroom,IT00007,Sample item 007,,,A,PCS,0,0,173.98,0.0
+101,L101B,Al Quoz Showroom,IT00007,Sample item 007,,,G,PCS,0,0,173.98,0.0
+101,L101A,Jebel Ali Warehouse,IT00007,Sample item 007,,,G,PCS,0,160,173.98,27836.8
+101,L101B,Al Quoz Showroom,IT00048,Sample item 048,CHM,Chemicals,B,PCS,0,22,3474.78,76445.16
+101,L101B,Al Quoz Showroom,IT00076,Sample item 076,CNS,Consumables,A,PCS,0,0,314.41,0.0
+101,L101A,Jebel Ali Warehouse,IT00076,Sample item 076,CNS,Consumables,B,PCS,0,1347,314.41,423510.27
+101,L101B,Al Quoz Showroom,IT00032,Sample item 032,EQP,Equipment,G,PCS,1,2,48.94,97.88
+101,L101A,Jebel Ali Warehouse,IT00011,Sample item 011,CHM,Chemicals,A,PCS,0,0,2212.41,0.0
+101,L101B,Al Quoz Showroom,IT00037,Sample item 037,,,A,PCS,0,0,63.89,0.0
+101,L101A,Jebel Ali Warehouse,IT00063,Sample item 063,CHM,Chemicals,B,PCS,0,0,1604.34,0.0
+101,L101A,Jebel Ali Warehouse,IT00063,Sample item 063,CHM,Chemicals,G,PCS,0,0,1604.34,0.0
+101,L101B,Al Quoz Showroom,IT00063,Sample item 063,CHM,Chemicals,B,PCS,0,139,1604.34,223003.26
+101,L101B,Al Quoz Showroom,IT00015,Sample item 015,CNS,Consumables,A,PCS,0,0,3821.04,0.0
+101,L101A,Jebel Ali Warehouse,IT00034,Sample item 034,PKG,Packaging,B,PCS,66,439,650.27,285468.53
+101,L101B,Al Quoz Showroom,IT00078,Sample item 078,EQP,Equipment,A,PCS,1,11,7.15,78.65
+101,L101B,Al Quoz Showroom,IT00033,Sample item 033,CHM,Chemicals,G,PCS,0,0,64.65,0.0
+101,L101A,Jebel Ali Warehouse,IT00033,Sample item 033,CHM,Chemicals,A,PCS,0,0,64.65,0.0
+101,L101B,Al Quoz Showroom,IT00024,Sample item 024,PKG,Packaging,G,PCS,0,0,490.31,0.0
+101,L101A,Jebel Ali Warehouse,IT00024,Sample item 024,PKG,Packaging,G,PCS,0,36,490.31,17651.16
+101,L101B,Al Quoz Showroom,IT00009,Sample item 009,CHM,Chemicals,A,PCS,0,795,1043.85,829860.75
+101,L101A,Jebel Ali Warehouse,IT00089,Sample item 089,CHM,Chemicals,A,PCS,21,66,486.15,32085.9
+101,L101A,Jebel Ali Warehouse,IT00025,Sample item 025,CNS,Consumables,B,PCS,2,17,1793.21,30484.57
+101,L101B,Al Quoz Showroom,IT00025,Sample item 025,CNS,Consumables,A,PCS,2,6,1793.21,10759.26
+101,L101B,Al Quoz Showroom,IT00019,Sample item 019,EQP,Equipment,G,PCS,0,0,3120.83,0.0
+101,L101A,Jebel Ali Warehouse,IT00019,Sample item 019,EQP,Equipment,A,PCS,0,0,3120.83,0.0
+101,L101B,Al Quoz Showroom,IT00054,Sample item 054,SPR,Spare Parts,G   ,PCS,0,40,3955.92,158236.8
+101,L101B,Al Quoz Showroom,IT00071,Sample item 071,EQP,Equipment,A   ,PCS,0,922,2113.19,1948361.18
+101,L101A,Jebel Ali Warehouse,IT00022,Sample item 022,CHM,Chemicals,B,PCS,0,0,12.29,0.0
+101,L101B,Al Quoz Showroom,IT00022,Sample item 022,CHM,Chemicals,A,PCS,22,106,12.29,1302.74
+101,L101B,Al Quoz Showroom,IT00035,Sample item 035,EQP,Equipment,A,PCS,0,0,68.02,0.0
+101,L101A,Jebel Ali Warehouse,IT00035,Sample item 035,EQP,Equipment,G,PCS,0,449,68.02,30540.98
+101,L101A,Jebel Ali Warehouse,IT00086,Sample item 086,CHM,Chemicals,B,PCS,0,0,53.6,0.0
+101,L101B,Al Quoz Showroom,IT00086,Sample item 086,CHM,Chemicals,G,PCS,0,372,53.6,19939.2
+101,L101B,Al Quoz Showroom,IT00069,Sample item 069,EQP,Equipment,G,PCS,0,0,113.65,0.0
+101,L101A,Jebel Ali Warehouse,IT00056,Sample item 056,CNS,Consumables,B,PCS,0,0,539.18,0.0
+101,L101A,Jebel Ali Warehouse,IT00058,Sample item 058,,,A,PCS,0,2,3815.97,7631.94
+101,L101A,Jebel Ali Warehouse,IT00018,Sample item 018,CNS,Consumables,A,PCS,0,0,3353.02,0.0
+101,L101B,Al Quoz Showroom,IT00065,Sample item 065,EQP,Equipment,G,PCS,0,59,542.71,32019.89
+101,L101A,Jebel Ali Warehouse,IT00065,Sample item 065,EQP,Equipment,B,PCS,0,15,542.71,8140.65
+101,L101B,Al Quoz Showroom,IT00050,Sample item 050,SPR,Spare Parts,B,PCS,0,0,2529.4,0.0
+101,L101A,Jebel Ali Warehouse,IT00081,Sample item 081,CHM,Chemicals,G,PCS,0,0,1745.95,0.0
+101,L101B,Al Quoz Showroom,IT00081,Sample item 081,CHM,Chemicals,B,PCS,0,444,1745.95,775201.8
+101,L101A,Jebel Ali Warehouse,IT00052,Sample item 052,PKG,Packaging,A,PCS,0,0,1987.2,0.0
+101,L101B,Al Quoz Showroom,IT00052,Sample item 052,PKG,Packaging,G,PCS,0,0,1987.2,0.0
+101,L101B,Al Quoz Showroom,IT00053,Sample item 053,PKG,Packaging,A   ,PCS,1,18,40.95,737.1
+101,L101B,Al Quoz Showroom,IT00053,Sample item 053,PKG,Packaging,B,PCS,0,117,40.95,4791.15
+101,L101A,Jebel Ali Warehouse,IT00008,Sample item 008,,,B,PCS,12,44,370.83,16316.52
+101,L101A,Jebel Ali Warehouse,IT00008,Sample item 008,,,A,PCS,0,17,370.83,6304.11
+101,L101B,Al Quoz Showroom,IT00008,Sample item 008,,,A,PCS,0,0,370.83,0.0
+101,L101A,Jebel Ali Warehouse,IT00075,Sample item 075,PKG,Packaging,B,PCS,0,416,68.26,28396.16
+101,L101A,Jebel Ali Warehouse,IT00083,Sample item 083,,,G,PCS,0,1211,519.66,629308.26
+101,L101A,Jebel Ali Warehouse,IT00083,Sample item 083,,,B,PCS,0,0,519.66,0.0
+101,L101B,Al Quoz Showroom,IT00083,Sample item 083,,,B,PCS,0,3,519.66,1558.98
+101,L101A,Jebel Ali Warehouse,IT00055,Sample item 055,EQP,Equipment,G,PCS,0,0,3229.59,0.0
+101,L101B,Al Quoz Showroom,IT00044,Sample item 044,,,B,PCS,285,1459,375.02,547154.18
+101,L101B,Al Quoz Showroom,IT00051,Sample item 051,CNS,Consumables,G,PCS,0,0,278.95,0.0
+101,L101A,Jebel Ali Warehouse,IT00051,Sample item 051,CNS,Consumables,A,PCS,0,16,278.95,4463.2
+101,L101B,Al Quoz Showroom,IT00006,Sample item 006,SPR,Spare Parts,A,PCS,3,11,90.26,992.86
+101,L101A,Jebel Ali Warehouse,IT00039,Sample item 039,CNS,Consumables,G,PCS,0,0,33.96,0.0
+101,L101A,Jebel Ali Warehouse,IT00061,Sample item 061,PKG,Packaging,A,PCS,0,8,3339.54,26716.32
+101,L101A,Jebel Ali Warehouse,IT00061,Sample item 061,PKG,Packaging,G,PCS,0,0,3339.54,0.0
+101,L101B,Al Quoz Showroom,IT00061,Sample item 061,PKG,Packaging,B,PCS,3,11,3339.54,36734.94
+101,L101A,Jebel Ali Warehouse,IT00068,Sample item 068,,,A,PCS,0,108,518.2,55965.6
+101,L101B,Al Quoz Showroom,IT00068,Sample item 068,,,G,PCS,0,0,518.2,0.0
+101,L101B,Al Quoz Showroom,IT00047,Sample item 047,CNS,Consumables,G,PCS,0,1474,74.7,110107.8
+101,L101A,Jebel Ali Warehouse,IT00047,Sample item 047,CNS,Consumables,G,PCS,17,831,74.7,62075.7
+101,L101A,Jebel Ali Warehouse,IT00046,Sample item 046,PKG,Packaging,G,PCS,0,46,41.82,1923.72
+101,L101B,Al Quoz Showroom,IT00046,Sample item 046,PKG,Packaging,G,PCS,20,81,41.82,3387.42
+101,L101B,Al Quoz Showroom,IT00046,Sample item 046,PKG,Packaging,A,PCS,0,0,41.82,0.0
+101,L101A,Jebel Ali Warehouse,IT00070,Sample item 070,PKG,Packaging,B   ,PCS,0,5,368.66,1843.3
+101,L101A,Jebel Ali Warehouse,IT00014,Sample item 014,,,G,PCS,0,0,451.94,0.0
+101,L101B,Al Quoz Showroom,IT00014,Sample item 014,,,G,PCS,0,0,451.94,0.0
+102,L102A,DIP Medical Store,IT00065,Sample item 065,EQP,Equipment,B,PCS,224,1500,458.21,687315.0
+102,L102A,DIP Medical Store,IT00010,Sample item 010,EQP,Equipment,B   ,PCS,0,7,2091.45,14640.15
+102,L102A,DIP Medical Store,IT00055,Sample item 055,EQP,Equipment,B,PCS,0,160,1041.34,166614.4
+102,L102A,DIP Medical Store,IT00034,Sample item 034,PKG,Packaging,G,PCS,0,0,3896.04,0.0
+102,L102A,DIP Medical Store,IT00059,Sample item 059,CHM,Chemicals,G,PCS,0,170,951.5,161755.0
+102,L102A,DIP Medical Store,IT00059,Sample item 059,CHM,Chemicals,B,PCS,0,1393,951.5,1325439.5
+102,L102A,DIP Medical Store,IT00043,Sample item 043,PKG,Packaging,B,PCS,0,63,7.78,490.14
+102,L102A,DIP Medical Store,IT00003,Sample item 003,CNS,Consumables,B   ,PCS,0,0,3844.73,0.0
+102,L102A,DIP Medical Store,IT00060,Sample item 060,CNS,Consumables,G,PCS,2,6,8.16,48.96
+102,L102A,DIP Medical Store,IT00002,Sample item 002,PKG,Packaging,G,PCS,0,182,1271.26,231369.32
+102,L102A,DIP Medical Store,IT00064,Sample item 064,,,G,PCS,0,173,462.91,80083.43
+102,L102A,DIP Medical Store,IT00046,Sample item 046,PKG,Packaging,B,PCS,0,1260,510.48,643204.8
+102,L102A,DIP Medical Store,IT00066,Sample item 066,EQP,Equipment,G   ,PCS,0,0,3838.57,0.0
+102,L102A,DIP Medical Store,IT00077,Sample item 077,EQP,Equipment,G,PCS,119,1325,244.9,324492.5
+102,L102A,DIP Medical Store,IT00013,Sample item 013,PKG,Packaging,G   ,PCS,0,18,29.5,531.0
+102,L102A,DIP Medical Store,IT00081,Sample item 081,CHM,Chemicals,B,PCS,0,0,875.66,0.0
+102,L102A,DIP Medical Store,IT00041,Sample item 041,CNS,Consumables,G,PCS,0,0,61.47,0.0
+102,L102A,DIP Medical Store,IT00073,Sample item 073,,,B,PCS,144,625,18.29,11431.25
+102,L102A,DIP Medical Store,IT00073,Sample item 073,,,G,PCS,0,4,18.29,73.16
+102,L102A,DIP Medical Store,IT00027,Sample item 027,EQP,Equipment,B,PCS,1,98,3934.88,385618.24
+102,L102A,DIP Medical Store,IT00005,Sample item 005,EQP,Equipment,B,PCS,0,80,62.75,5020.0
+102,L102A,DIP Medical Store,IT00006,Sample item 006,SPR,Spare Parts,A,PCS,0,183,17.9,3275.7
+102,L102A,DIP Medical Store,IT00052,Sample item 052,PKG,Packaging,G,PCS,0,0,28.18,0.0
+102,L102A,DIP Medical Store,IT00039,Sample item 039,CNS,Consumables,G,PCS,0,0,483.47,0.0
+102,L102A,DIP Medical Store,IT00039,Sample item 039,CNS,Consumables,B,PCS,0,3,483.47,1450.41
+102,L102A,DIP Medical Store,IT00049,Sample item 049,EQP,Equipment,G,PCS,0,0,1252.84,0.0
+102,L102A,DIP Medical Store,IT00007,Sample item 007,,,G,PCS,0,0,487.13,0.0
+102,L102A,DIP Medical Store,IT00022,Sample item 022,CHM,Chemicals,G,PCS,0,41,3764.1,154328.1
+102,L102A,DIP Medical Store,IT00083,Sample item 083,,,B,PCS,0,0,210.88,0.0
+102,L102A,DIP Medical Store,IT00008,Sample item 008,,,G,PCS,127,390,205.41,80109.9
+102,L102A,DIP Medical Store,IT00025,Sample item 025,CNS,Consumables,G,PCS,7,31,3297.32,102216.92
+102,L102A,DIP Medical Store,IT00025,Sample item 025,CNS,Consumables,A,PCS,0,0,3297.32,0.0
+102,L102A,DIP Medical Store,IT00075,Sample item 075,PKG,Packaging,B,PCS,0,937,2699.06,2529019.22
+102,L102A,DIP Medical Store,IT00085,Sample item 085,PKG,Packaging,A,PCS,0,748,1881.58,1407421.84
+103,L103B,Abu Dhabi Depot,IT00030,Sample item 030,CNS,Consumables,B,PCS,0,1342,3922.82,5264424.44
+103,L103A,Sharjah Yard,IT00030,Sample item 030,CNS,Consumables,A,PCS,0,113,3922.82,443278.66
+103,L103B,Abu Dhabi Depot,IT00021,Sample item 021,EQP,Equipment,G,PCS,0,84,1870.91,157156.44
+103,L103A,Sharjah Yard,IT00015,Sample item 015,CNS,Consumables,A,PCS,0,4,299.59,1198.36
+103,L103B,Abu Dhabi Depot,IT00088,Sample item 088,,,G,PCS,0,0,3438.74,0.0
+103,L103A,Sharjah Yard,IT00068,Sample item 068,,,A,PCS,25,136,56.9,7738.4
+103,L103B,Abu Dhabi Depot,IT00068,Sample item 068,,,G,PCS,2,10,56.9,569.0
+103,L103B,Abu Dhabi Depot,IT00068,Sample item 068,,,B,PCS,0,164,56.9,9331.6
+103,L103A,Sharjah Yard,IT00075,Sample item 075,PKG,Packaging,G,PCS,0,74,2387.17,176650.58
+103,L103B,Abu Dhabi Depot,IT00075,Sample item 075,PKG,Packaging,G   ,PCS,0,0,2387.17,0.0
+103,L103B,Abu Dhabi Depot,IT00080,Sample item 080,EQP,Equipment,G,PCS,0,199,397.63,79128.37
+103,L103A,Sharjah Yard,IT00080,Sample item 080,EQP,Equipment,B,PCS,0,661,397.63,262833.43
+103,L103B,Abu Dhabi Depot,IT00055,Sample item 055,EQP,Equipment,G,PCS,0,0,2067.84,0.0
+103,L103B,Abu Dhabi Depot,IT00055,Sample item 055,EQP,Equipment,B,PCS,0,986,2067.84,2038890.24
+103,L103B,Abu Dhabi Depot,IT00031,Sample item 031,CHM,Chemicals,B,PCS,0,580,3228.57,1872570.6
+103,L103A,Sharjah Yard,IT00081,Sample item 081,CHM,Chemicals,B,PCS,0,7,2812.45,19687.15
+103,L103B,Abu Dhabi Depot,IT00081,Sample item 081,CHM,Chemicals,A,PCS,121,792,2812.45,2227460.4
+103,L103A,Sharjah Yard,IT00039,Sample item 039,CNS,Consumables,A,PCS,0,0,528.86,0.0
+103,L103B,Abu Dhabi Depot,IT00047,Sample item 047,CNS,Consumables,A,PCS,0,0,11.47,0.0
+103,L103A,Sharjah Yard,IT00047,Sample item 047,CNS,Consumables,G,PCS,0,188,11.47,2156.36
+103,L103A,Sharjah Yard,IT00047,Sample item 047,CNS,Consumables,B,PCS,0,136,11.47,1559.92
+103,L103B,Abu Dhabi Depot,IT00032,Sample item 032,EQP,Equipment,A,PCS,0,0,2921.25,0.0
+103,L103B,Abu Dhabi Depot,IT00008,Sample item 008,,,B,PCS,0,15,2649.11,39736.65
+103,L103A,Sharjah Yard,IT00027,Sample item 027,EQP,Equipment,G,PCS,160,1182,1366.39,1615072.98
+103,L103A,Sharjah Yard,IT00061,Sample item 061,PKG,Packaging,G,PCS,0,0,666.61,0.0
+103,L103B,Abu Dhabi Depot,IT00040,Sample item 040,CHM,Chemicals,G,PCS,51,192,269.52,51747.84
+103,L103A,Sharjah Yard,IT00050,Sample item 050,SPR,Spare Parts,B,PCS,89,1402,167.73,235157.46
+103,L103A,Sharjah Yard,IT00073,Sample item 073,,,G   ,PCS,0,22,225.17,4953.74
+103,L103A,Sharjah Yard,IT00070,Sample item 070,PKG,Packaging,B,PCS,5,27,26.07,703.89
+103,L103B,Abu Dhabi Depot,IT00070,Sample item 070,PKG,Packaging,A,PCS,2,6,26.07,156.42
+103,L103B,Abu Dhabi Depot,IT00006,Sample item 006,SPR,Spare Parts,B,PCS,0,4,171.72,686.88
+103,L103A,Sharjah Yard,IT00020,Sample item 020,EQP,Equipment,G,PCS,0,46,53.79,2474.34
+103,L103A,Sharjah Yard,IT00020,Sample item 020,EQP,Equipment,A,PCS,0,0,53.79,0.0
+103,L103B,Abu Dhabi Depot,IT00020,Sample item 020,EQP,Equipment,A,PCS,0,0,53.79,0.0
+103,L103B,Abu Dhabi Depot,IT00083,Sample item 083,,,G,PCS,2,12,36.11,433.32
+103,L103B,Abu Dhabi Depot,IT00083,Sample item 083,,,B,PCS,0,1007,36.11,36362.77
+103,L103A,Sharjah Yard,IT00022,Sample item 022,CHM,Chemicals,B,PCS,0,0,47.94,0.0
+103,L103B,Abu Dhabi Depot,IT00045,Sample item 045,,,B,PCS,0,0,1349.24,0.0
+103,L103B,Abu Dhabi Depot,IT00063,Sample item 063,CHM,Chemicals,B,PCS,0,97,2688.12,260747.64
+103,L103A,Sharjah Yard,IT00063,Sample item 063,CHM,Chemicals,B,PCS,0,0,2688.12,0.0
+103,L103A,Sharjah Yard,IT00037,Sample item 037,,,A,PCS,0,930,3839.97,3571172.1
+103,L103B,Abu Dhabi Depot,IT00037,Sample item 037,,,G,PCS,0,279,3839.97,1071351.63
+103,L103B,Abu Dhabi Depot,IT00084,Sample item 084,CNS,Consumables,B,PCS,0,0,26.94,0.0
+103,L103B,Abu Dhabi Depot,IT00084,Sample item 084,CNS,Consumables,A,PCS,0,0,26.94,0.0
+103,L103A,Sharjah Yard,IT00060,Sample item 060,CNS,Consumables,A,PCS,0,819,3312.95,2713306.05
+103,L103B,Abu Dhabi Depot,IT00060,Sample item 060,CNS,Consumables,B,PCS,0,0,3312.95,0.0
+103,L103A,Sharjah Yard,IT00085,Sample item 085,PKG,Packaging,B,PCS,0,0,84.75,0.0
+104,L104A,Cold Store,IT00034,Sample item 034,PKG,Packaging,G,PCS,2,16,1215.08,19441.28
+104,L104A,Cold Store,IT00045,Sample item 045,,,B,PCS,0,12,17.07,204.84
+104,L104A,Cold Store,IT00048,Sample item 048,CHM,Chemicals,B,PCS,0,0,2306.97,0.0
+104,L104A,Cold Store,IT00080,Sample item 080,EQP,Equipment,G,PCS,27,599,266.33,159531.67
+104,L104A,Cold Store,IT00083,Sample item 083,,,A,PCS,94,1357,581.23,788729.11
+104,L104A,Cold Store,IT00069,Sample item 069,EQP,Equipment,G,PCS,0,0,3095.82,0.0
+104,L104A,Cold Store,IT00069,Sample item 069,EQP,Equipment,A,PCS,0,0,3095.82,0.0
+104,L104A,Cold Store,IT00046,Sample item 046,PKG,Packaging,B,PCS,0,0,2005.5,0.0
+104,L104A,Cold Store,IT00046,Sample item 046,PKG,Packaging,A,PCS,0,4,2005.5,8022.0
+104,L104A,Cold Store,IT00054,Sample item 054,SPR,Spare Parts,B,PCS,0,0,3593.18,0.0
+104,L104A,Cold Store,IT00064,Sample item 064,,,G,PCS,0,0,528.12,0.0
+104,L104A,Cold Store,IT00011,Sample item 011,CHM,Chemicals,G,PCS,0,155,2463.8,381889.0
+104,L104A,Cold Store,IT00067,Sample item 067,PKG,Packaging,B,PCS,32,183,56.42,10324.86
+104,L104A,Cold Store,IT00067,Sample item 067,PKG,Packaging,G,PCS,22,97,56.42,5472.74
+104,L104A,Cold Store,IT00039,Sample item 039,CNS,Consumables,G,PCS,0,6,140.8,844.8
+104,L104A,Cold Store,IT00060,Sample item 060,CNS,Consumables,B,PCS,0,140,491.2,68768.0
+104,L104A,Cold Store,IT00049,Sample item 049,EQP,Equipment,B,PCS,0,0,58.85,0.0
+104,L104A,Cold Store,IT00042,Sample item 042,EQP,Equipment,G,PCS,0,0,468.29,0.0
+105,L105B,Transit Store,IT00063,Sample item 063,CHM,Chemicals,A,PCS,162,561,48.08,26972.88
+105,L105B,Transit Store,IT00063,Sample item 063,CHM,Chemicals,B,PCS,0,0,48.08,0.0
+105,L105A,Tech Hub Store,IT00034,Sample item 034,PKG,Packaging,B,PCS,0,0,1367.06,0.0
+105,L105B,Transit Store,IT00067,Sample item 067,PKG,Packaging,B,PCS,0,0,495.2,0.0
+105,L105A,Tech Hub Store,IT00059,Sample item 059,CHM,Chemicals,G,PCS,0,601,43.48,26131.48
+105,L105B,Transit Store,IT00059,Sample item 059,CHM,Chemicals,G,PCS,0,197,43.48,8565.56
+105,L105A,Tech Hub Store,IT00089,Sample item 089,CHM,Chemicals,A,PCS,0,441,211.1,93095.1
+105,L105B,Transit Store,IT00089,Sample item 089,CHM,Chemicals,B,PCS,107,1345,211.1,283929.5
+105,L105A,Tech Hub Store,IT00055,Sample item 055,EQP,Equipment,A,PCS,0,1345,145.11,195172.95
+105,L105A,Tech Hub Store,IT00053,Sample item 053,PKG,Packaging,A,PCS,0,0,552.84,0.0
+105,L105B,Transit Store,IT00048,Sample item 048,CHM,Chemicals,A   ,PCS,14,69,3337.36,230277.84
+105,L105B,Transit Store,IT00048,Sample item 048,CHM,Chemicals,G   ,PCS,191,1245,3337.36,4155013.2
+105,L105A,Tech Hub Store,IT00048,Sample item 048,CHM,Chemicals,B,PCS,0,0,3337.36,0.0
+105,L105B,Transit Store,IT00029,Sample item 029,SPR,Spare Parts,A,PCS,0,0,76.63,0.0
+105,L105B,Transit Store,IT00029,Sample item 029,SPR,Spare Parts,B,PCS,0,1374,76.63,105289.62
+105,L105A,Tech Hub Store,IT00005,Sample item 005,EQP,Equipment,G,PCS,0,1301,67.74,88129.74
+105,L105B,Transit Store,IT00005,Sample item 005,EQP,Equipment,B,PCS,2,19,67.74,1287.06
+105,L105A,Tech Hub Store,IT00023,Sample item 023,SPR,Spare Parts,A,PCS,0,142,47.74,6779.08
+105,L105B,Transit Store,IT00023,Sample item 023,SPR,Spare Parts,G,PCS,0,0,47.74,0.0
+105,L105B,Transit Store,IT00047,Sample item 047,CNS,Consumables,A,PCS,0,0,2469.07,0.0
+105,L105A,Tech Hub Store,IT00090,Sample item 090,EQP,Equipment,G,PCS,0,17,310.99,5286.83
+105,L105B,Transit Store,IT00090,Sample item 090,EQP,Equipment,A,PCS,232,912,310.99,283622.88
+105,L105B,Transit Store,IT00022,Sample item 022,CHM,Chemicals,A,PCS,1,5,68.22,341.1
+105,L105A,Tech Hub Store,IT00022,Sample item 022,CHM,Chemicals,A,PCS,215,1299,68.22,88617.78
+105,L105A,Tech Hub Store,IT00010,Sample item 010,EQP,Equipment,B,PCS,0,0,515.49,0.0
+105,L105B,Transit Store,IT00010,Sample item 010,EQP,Equipment,A,PCS,0,10,515.49,5154.9
+105,L105B,Transit Store,IT00010,Sample item 010,EQP,Equipment,B,PCS,0,35,515.49,18042.15
+105,L105B,Transit Store,IT00041,Sample item 041,CNS,Consumables,B,PCS,2,14,3818.01,53452.14
+105,L105A,Tech Hub Store,IT00030,Sample item 030,CNS,Consumables,G,PCS,0,9,2246.56,20219.04
+105,L105B,Transit Store,IT00030,Sample item 030,CNS,Consumables,A,PCS,44,216,2246.56,485256.96
+105,L105A,Tech Hub Store,IT00006,Sample item 006,SPR,Spare Parts,G,PCS,0,78,63.58,4959.24
+105,L105B,Transit Store,IT00006,Sample item 006,SPR,Spare Parts,A,PCS,0,64,63.58,4069.12
+105,L105A,Tech Hub Store,IT00031,Sample item 031,CHM,Chemicals,B,PCS,0,0,1876.61,0.0
+105,L105B,Transit Store,IT00031,Sample item 031,CHM,Chemicals,G,PCS,0,19,1876.61,35655.59
+105,L105A,Tech Hub Store,IT00068,Sample item 068,,,A,PCS,0,685,595.42,407862.7
+105,L105B,Transit Store,IT00068,Sample item 068,,,A,PCS,70,339,595.42,201847.38
+105,L105B,Transit Store,IT00068,Sample item 068,,,G,PCS,0,13,595.42,7740.46

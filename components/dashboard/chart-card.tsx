@@ -3,6 +3,8 @@ import { cn } from "@/lib/utils";
 
 export interface ChartCardProps {
   title: string;
+  /** Anchor for links into the page (`/inventory#reorder-alerts`). Defaults to the title, slugged. */
+  id?: string;
   description?: string;
   /** Top-right slot: a total, a toggle, an export button. */
   action?: React.ReactNode;
@@ -14,6 +16,7 @@ export interface ChartCardProps {
 /** The frame every chart and table sits in: title, optional description and action, content. */
 export function ChartCard({
   title,
+  id = slug(title),
   description,
   action,
   className,
@@ -21,7 +24,7 @@ export function ChartCard({
   children,
 }: ChartCardProps) {
   return (
-    <Card className={cn("min-w-0 gap-4", className)}>
+    <Card id={id} className={cn("min-w-0 scroll-mt-20 gap-4", className)}>
       <CardHeader>
         <CardTitle className="text-base">
           <h2>{title}</h2>
@@ -32,4 +35,13 @@ export function ChartCard({
       <CardContent className={cn("min-w-0", contentClassName)}>{children}</CardContent>
     </Card>
   );
+}
+
+/** "Dead and slow stock" → "dead-and-slow-stock". */
+export function slug(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/&/g, " and ")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
 }

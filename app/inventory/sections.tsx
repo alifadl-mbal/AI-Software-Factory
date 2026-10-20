@@ -37,7 +37,7 @@ function currentMonth(): string {
 }
 
 /** The newest month-end before the current month. */
-function lastClosed(months: MonthEnd[]): MonthEnd | undefined {
+export function lastClosed(months: MonthEnd[]): MonthEnd | undefined {
   const current = currentMonth();
   return months.filter((month) => month.month < current).at(-1);
 }

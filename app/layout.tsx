@@ -4,6 +4,7 @@ import { connection } from "next/server";
 import { Suspense } from "react";
 
 import { AppSidebar } from "@/components/shell/app-sidebar";
+import { ScrollToHash } from "@/components/shell/scroll-to-hash";
 import { ShellProvider } from "@/components/shell/shell-context";
 import { ThemeProvider } from "@/components/shell/theme-provider";
 import { TopBar } from "@/components/shell/top-bar";
@@ -50,6 +51,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
                     <div className="mx-auto w-full max-w-[1400px] flex-1 px-4 py-6 md:px-6 md:py-8">
                       {children}
                     </div>
+                    <ScrollToHash />
                   </SidebarInset>
                 </SidebarProvider>
               </ShellProvider>

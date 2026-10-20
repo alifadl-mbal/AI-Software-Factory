@@ -41,8 +41,8 @@ export function filterWhere(
 }
 
 /**
- * The `WHERE` fragment for the company filter alone, for dashboards whose figures are balances as
- * of today and so ignore the date range. `undefined` when every company is selected.
+ * The company-filter part of `filterWhere` on its own, for "as of today" views that ignore the
+ * date range. `undefined` when every company is selected.
  */
 export function companyWhere(
   companies: readonly string[],

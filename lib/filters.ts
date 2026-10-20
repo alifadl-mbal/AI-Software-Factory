@@ -71,6 +71,15 @@ export function addDays(date: string, days: number): string {
   return isoDate(shifted.getUTCFullYear(), shifted.getUTCMonth() + 1, shifted.getUTCDate());
 }
 
+/** Whole days from `from` to `to` (negative if `to` is earlier). */
+export function daysBetween(from: string, to: string): number {
+  const [fromYear, fromMonth, fromDay] = parts(from);
+  const [toYear, toMonth, toDay] = parts(to);
+  return Math.round(
+    (Date.UTC(toYear, toMonth - 1, toDay) - Date.UTC(fromYear, fromMonth - 1, fromDay)) / 86_400_000,
+  );
+}
+
 /** The same calendar day `years` later (earlier if negative). 29 Feb maps to 28 Feb. */
 export function shiftYears(date: string, years: number): string {
   const [year, month, day] = parts(date);

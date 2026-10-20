@@ -4,6 +4,7 @@ import { expect, type Page } from "@playwright/test";
 export const PAGES = [
   { path: "/", heading: "Overview", kpis: 5, headline: "Net revenue" },
   { path: "/sales", heading: "Sales", kpis: 5, headline: "Net revenue" },
+  { path: "/purchasing", heading: "Purchasing", kpis: 5, headline: "Pending PO value" },
   { path: "/finance", heading: "Finance", kpis: 7, headline: "Revenue" },
   {
     path: "/receivables-payables",

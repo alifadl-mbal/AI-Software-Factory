@@ -1,4 +1,11 @@
-import { Landmark, LayoutDashboard, Scale, TrendingUp, type LucideIcon } from "lucide-react";
+import {
+  Landmark,
+  LayoutDashboard,
+  Scale,
+  ShoppingCart,
+  TrendingUp,
+  type LucideIcon,
+} from "lucide-react";
 
 /**
  * The dashboard registry: the single list the sidebar and the Overview page are built from.
@@ -33,6 +40,14 @@ export const DASHBOARDS: readonly Dashboard[] = [
       "P&L from the posted general ledger: revenue, cost of sales, gross and net profit, the P&L statement, costs by account, division and department, and journal-line drill-down.",
     icon: Landmark,
     source: "ZF_F_T_DETAIL_BI",
+  },
+  {
+    slug: "purchasing",
+    title: "Purchasing",
+    description:
+      "Pending purchase orders with aging and overdue lines as of today, and receipts spend by month and supplier.",
+    icon: ShoppingCart,
+    source: "ZF_PO_PENDING_BI · ZF_CPR_BI",
   },
   {
     slug: "receivables-payables",

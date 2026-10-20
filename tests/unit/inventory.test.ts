@@ -182,8 +182,8 @@ describe("month-end trend", () => {
     expect(months.map((month) => month.month)).toEqual(["2025-12", "2026-01"]);
   });
 
-  // Live Orion: the closing view had 392 lines below zero at the last close, worth a negative 3.6M
-  // inside the month-end value. They now come back separately so the page can say so.
+  // Live Orion: the closing view had some 400 lines below zero at the last close, their negative
+  // value inside the month-end value. They now come back separately so the page can say so.
   it("reports lines with a negative closing quantity, which stay in the closing value", async () => {
     const dir = mkdtempSync(path.join(tmpdir(), "mbal-negative-stock-"));
     writeFileSync(

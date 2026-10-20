@@ -165,17 +165,22 @@ test("dark mode from the OS on a first visit hydrates cleanly", async ({ page })
 });
 
 test("negative bar values don't overlap their category labels", async ({ page }) => {
-  // Equipment nets out negative for these companies this quarter in the sample data.
-  await page.goto("/sales?range=qtd&company=101,102");
+  // Sample data is rebased to the current year; Equipment nets out negative for these companies over
+  // 1–20 October. A fixed range keeps that true whatever today's date is.
+  const year = new Date().getFullYear();
+  await page.goto(`/sales?range=custom&from=${year}-10-01&to=${year}-10-20&company=101,102`);
   await waitForData(page);
   const charts = page.locator(".recharts-wrapper");
-  const labels = charts.getByTestId("bar-value-label");
-  await expect(labels.first()).toBeVisible();
+  // Any LabelList text, so the check holds for whatever renders the labels.
+  const labels = charts.locator(".recharts-label-list text");
+  await expect(labels.filter({ hasText: "-AED 86.5K" })).toBeVisible();
+  expect(await labels.count()).toBeGreaterThan(1);
   for (const label of await labels.all()) {
     const text = (await label.textContent()) ?? "";
     const box = (await label.boundingBox())!;
     const chart = label.locator("xpath=ancestor::*[contains(@class,'recharts-wrapper')][1]");
-    const ticks = chart.locator(".recharts-yAxis .recharts-cartesian-axis-tick-value");
+    const ticks = chart.locator(".recharts-yAxis-tick-labels .recharts-cartesian-axis-tick-value");
+    expect(await ticks.count()).toBeGreaterThan(0);
     for (const tick of await ticks.all()) {
       const tickBox = (await tick.boundingBox())!;
       const overlaps =

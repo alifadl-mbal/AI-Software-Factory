@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import {
   Command,
   CommandDialog,
-  CommandEmpty,
   CommandGroup,
   CommandInput,
   CommandItem,
@@ -151,53 +150,58 @@ export function SearchCommand() {
             aria-label="Customer or item name, or code"
             data-testid="search-input"
           />
-          <CommandList aria-label="Search results">
-            {search.status === "idle" && (
-              <p className="py-6 text-center text-sm text-muted-foreground">
-                Type at least {MIN_LENGTH} characters of a customer’s name, an item’s description or a code.
-              </p>
-            )}
-            {search.status === "loading" && (
-              <p
-                className="flex items-center justify-center gap-2 py-6 text-sm text-muted-foreground"
-                role="status"
-              >
-                <Loader2 className="size-4 animate-spin" aria-hidden />
-                Searching…
-              </p>
-            )}
-            {search.status === "error" && (
-              <p className="py-6 text-center text-sm text-muted-foreground" role="alert">
-                {search.message}
-              </p>
-            )}
-            {search.status === "done" && (
-              <CommandEmpty>No customer or item matches “{search.query}”.</CommandEmpty>
-            )}
-            {GROUPS.map(({ kind, heading, icon: Icon }) => {
-              const group = results.filter((result) => result.kind === kind);
-              if (group.length === 0) return null;
-              return (
-                <CommandGroup key={kind} heading={heading} data-testid={`search-group-${kind}`}>
-                  {group.map((result) => (
-                    <CommandItem
-                      key={`${result.kind}:${result.code}`}
-                      value={`${result.kind}:${result.code}`}
-                      onSelect={() => openResult(result)}
-                      data-testid="search-result"
-                    >
-                      <Icon className="text-muted-foreground" aria-hidden />
-                      <span className="min-w-0 flex-1 truncate">{result.name}</span>
-                      <span className="tabular max-w-[45%] shrink-0 truncate text-xs text-muted-foreground">
-                        {result.detail ? `${result.detail} · ` : ""}
-                        {result.code}
-                      </span>
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              );
-            })}
-          </CommandList>
+          {/* Status lines stay outside the listbox: a listbox may only hold options and groups. */}
+          {search.status === "idle" && (
+            <p className="py-6 text-center text-sm text-muted-foreground">
+              Type at least {MIN_LENGTH} characters of a customer’s name, an item’s description or a code.
+            </p>
+          )}
+          {search.status === "loading" && (
+            <p
+              className="flex items-center justify-center gap-2 py-6 text-sm text-muted-foreground"
+              role="status"
+            >
+              <Loader2 className="size-4 animate-spin" aria-hidden />
+              Searching…
+            </p>
+          )}
+          {search.status === "error" && (
+            <p className="py-6 text-center text-sm text-muted-foreground" role="alert">
+              {search.message}
+            </p>
+          )}
+          {search.status === "done" && results.length === 0 && (
+            <p className="py-6 text-center text-sm text-muted-foreground" role="status">
+              No customer or item matches “{search.query}”.
+            </p>
+          )}
+          {results.length > 0 && (
+            <CommandList aria-label="Search results">
+              {GROUPS.map(({ kind, heading, icon: Icon }) => {
+                const group = results.filter((result) => result.kind === kind);
+                if (group.length === 0) return null;
+                return (
+                  <CommandGroup key={kind} heading={heading} data-testid={`search-group-${kind}`}>
+                    {group.map((result) => (
+                      <CommandItem
+                        key={`${result.kind}:${result.code}`}
+                        value={`${result.kind}:${result.code}`}
+                        onSelect={() => openResult(result)}
+                        data-testid="search-result"
+                      >
+                        <Icon className="text-muted-foreground" aria-hidden />
+                        <span className="min-w-0 flex-1 truncate">{result.name}</span>
+                        <span className="tabular max-w-[45%] shrink-0 truncate text-xs text-muted-foreground">
+                          {result.detail ? `${result.detail} · ` : ""}
+                          {result.code}
+                        </span>
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                );
+              })}
+            </CommandList>
+          )}
         </Command>
       </CommandDialog>
     </>

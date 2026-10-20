@@ -1,6 +1,12 @@
 import { expect, test } from "@playwright/test";
 
+import { signIn } from "./helpers";
+
 // Runs against a server in oracle mode whose ORACLE_DSN points at nothing (see playwright.config).
+// Live data needs sign-in, so every test starts signed in.
+test.beforeEach(async ({ context, baseURL }) => {
+  await signIn(context, baseURL!);
+});
 test("an unreachable Orion shows a friendly ErrorCard, not a stack trace", async ({ page }) => {
   await page.goto("/sales");
   const errors = page.getByTestId("error-card");

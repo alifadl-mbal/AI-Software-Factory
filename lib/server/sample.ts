@@ -5,6 +5,7 @@ import path from "node:path";
 import { DatabaseSync, type SQLInputValue } from "node:sqlite";
 
 import { addDays } from "@/lib/filters";
+import { formatOrionDate, ORION_DATE_RE, parseOrionDate } from "@/lib/orion-date";
 
 import { ensureReadOnly } from "./guard";
 import type { Binds, Row } from "./types";
@@ -22,11 +23,16 @@ import type { Binds, Row } from "./types";
 export const SAMPLE_DIR = path.join(process.cwd(), "data", "sample");
 const SAMPLE_SCHEMA = "MBALI";
 /**
- * Views of open balances, aged against today. Shifting them by whole years would leave documents in
- * the future or age them all into the same bucket, so with `anchorToDate` their dates move by whole
- * days instead, until the newest date in the file is that day.
+ * Views of open balances and open orders, aged against today. Shifting them by whole years would
+ * leave documents in the future or age them all into the same bucket, so with `anchorToDate` their
+ * dates move by whole days instead, until the newest `YYYY-MM-DD` date in the file is that day.
+ * Orion text dates (`DD-Mon-YYYY`, like `ZF_SO_BI.H_DEL_DT`) move by the same number of days.
  */
-export const BALANCE_VIEWS: ReadonlySet<string> = new Set(["ZF_SOA_DETL_CUST_INV_SM_BI", "ZF_SOAP_DETL_BI"]);
+export const BALANCE_VIEWS: ReadonlySet<string> = new Set([
+  "ZF_SOA_DETL_CUST_INV_SM_BI",
+  "ZF_SOAP_DETL_BI",
+  "ZF_SO_BI",
+]);
 const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const NUMBER_RE = /^-?\d+(\.\d+)?$/;
 const PERIOD_RE = /^\d{6}$/;
@@ -179,7 +185,19 @@ function dateColumns(table: Table): { column: number; values: string[] }[] {
   });
 }
 
-/** Move every date by the same number of days, so the newest one in the table is `date`. */
+/** The indexes of the columns that hold nothing but Orion `DD-Mon-YYYY` text dates. */
+function orionDateColumns(table: Table): number[] {
+  return table.header.flatMap((_, column) => {
+    const values = table.rows.map((row) => row[column]).filter((value) => value !== null);
+    return values.length > 0 && values.every((value) => ORION_DATE_RE.test(value)) ? [column] : [];
+  });
+}
+
+/**
+ * Move every date by the same number of days, so the newest `YYYY-MM-DD` one in the table is
+ * `date`. Orion text dates move by the same offset but don't set it: an expected delivery date may
+ * well be after the newest document.
+ */
 export function anchorDates(table: Table, date: string): void {
   const columns = dateColumns(table);
   if (columns.length === 0) return;
@@ -189,6 +207,12 @@ export function anchorDates(table: Table, date: string): void {
     for (const row of table.rows) {
       const value = row[column];
       if (value !== null) row[column] = addDays(value, offset);
+    }
+  }
+  for (const column of orionDateColumns(table)) {
+    for (const row of table.rows) {
+      const iso = parseOrionDate(row[column]);
+      if (iso !== null) row[column] = formatOrionDate(addDays(iso, offset));
     }
   }
 }

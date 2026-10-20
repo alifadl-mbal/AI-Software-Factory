@@ -80,7 +80,7 @@ export interface ApBalance extends Balance {
 }
 
 /** The binds for the aging cut-offs. */
-function agingBinds(asOf: string): Binds {
+export function agingBinds(asOf: string): Binds {
   const { under30Days, months, over90Days } = agingCutoffs(asOf);
   return {
     age_30d: under30Days,
@@ -94,7 +94,7 @@ function agingBinds(asOf: string): Binds {
 }
 
 /** Ladder index (1-based, as SQL) of a document date. Undated lines fall into the oldest bucket. */
-function bucketCase(dateColumn: string): string {
+export function bucketCase(dateColumn: string): string {
   return `CASE
             WHEN ${dateColumn} > TO_DATE(:age_30d, 'YYYY-MM-DD') THEN 1
             WHEN ${dateColumn} > TO_DATE(:age_2m, 'YYYY-MM-DD') THEN 2

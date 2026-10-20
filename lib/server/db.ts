@@ -1,5 +1,7 @@
 import "server-only";
 
+import { todayIso } from "@/lib/filters";
+
 import { CACHE_TTL_MS, dataSource, type DataSourceMode } from "./config";
 import { DataSourceError, friendlyMessage } from "./errors";
 import { ensureReadOnly } from "./guard";
@@ -22,7 +24,7 @@ interface CacheEntry {
 type Runner = (sql: string, binds: Binds) => Promise<Row[]>;
 
 const cache = new Map<string, CacheEntry>();
-let sampleSource: { year: number; source: SampleSource } | undefined;
+let sampleSource: { today: string; source: SampleSource } | undefined;
 let runnerOverride: Runner | undefined;
 
 function runner(mode: DataSourceMode): Runner {
@@ -31,9 +33,13 @@ function runner(mode: DataSourceMode): Runner {
     // Imported lazily so sample mode never loads the driver.
     return async (sql, binds) => (await import("./oracle")).queryOracle(sql, binds);
   }
-  const year = new Date().getFullYear();
-  if (sampleSource?.year !== year) {
-    sampleSource = { year, source: new SampleSource({ rebaseToYear: year }) };
+  // Rebuilt when the day changes: balance fixtures are anchored to today, the rest to this year.
+  const today = todayIso();
+  if (sampleSource?.today !== today) {
+    sampleSource = {
+      today,
+      source: new SampleSource({ rebaseToYear: Number(today.slice(0, 4)), anchorToDate: today }),
+    };
   }
   const source = sampleSource.source;
   return (sql, binds) => source.query(sql, binds);

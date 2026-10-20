@@ -1,8 +1,10 @@
 import { expect, type Page } from "@playwright/test";
 
+/** Every page, with the KPI card whose full value must be a real AED figure. */
 export const PAGES = [
-  { path: "/", heading: "Overview" },
-  { path: "/sales", heading: "Sales" },
+  { path: "/", heading: "Overview", kpi: "Net revenue" },
+  { path: "/sales", heading: "Sales", kpi: "Net revenue" },
+  { path: "/purchasing", heading: "Purchasing", kpi: "Pending PO value" },
 ] as const;
 
 /** Collect console errors and uncaught exceptions for the life of the page. */

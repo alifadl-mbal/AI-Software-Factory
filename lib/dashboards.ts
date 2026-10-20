@@ -83,6 +83,9 @@ export const DASHBOARDS: readonly Dashboard[] = [
 
 export const OVERVIEW = { href: "/", title: "Overview", icon: LayoutDashboard } as const;
 
+/** The daily snapshot email preview. Deliberately not in the sidebar. */
+export const SNAPSHOT = { href: "/snapshot", title: "Daily snapshot" } as const;
+
 export function dashboardHref(dashboard: Dashboard): string {
   return `/${dashboard.slug}`;
 }

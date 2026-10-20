@@ -35,6 +35,7 @@ import {
  * The customer page's sections. Period figures follow the filters; AR and the open order book are
  * as of `today` and follow only the companies, as on their dashboards. Every figure comes from the
  * dashboards' own queries narrowed to one customer code, so they agree with the dashboards' rows.
+ * The open book counts orders of any age (`"all"`): there is no order-age toggle on this page.
  */
 export interface CustomerProps {
   code: string;
@@ -93,7 +94,7 @@ export async function CustomerSalesKpis({ code, filters, today }: CustomerProps)
       salesKpis(filters, code),
       salesKpis(previousYear(filters), code),
       salesMonthly(filters, code),
-      openBookKpis(filters.companies, today, code),
+      openBookKpis(filters.companies, today, "all", code),
     ]),
   );
   if (!result.ok) return <RowError message={result.message} />;
@@ -120,7 +121,7 @@ export async function CustomerSalesKpis({ code, filters, today }: CustomerProps)
       <KpiCard
         label="Open order value"
         value={book.openValue}
-        hint={`${formatInt(book.openAedLines)} open AED lines, as of today`}
+        hint={`${formatInt(book.openAedLines)} open AED lines, as of today, orders of any age`}
       />
     </>
   );
@@ -323,19 +324,19 @@ export async function CustomerOpenOrders({ code, filters, today }: CustomerProps
   const title = "Open sales-order lines";
   const result = await load(() =>
     Promise.all([
-      openLines(filters.companies, today, OPEN_ROW_LIMIT, code),
-      openBookKpis(filters.companies, today, code),
-      openByCurrency(filters.companies, today, code),
+      openLines(filters.companies, today, "all", OPEN_ROW_LIMIT, code),
+      openBookKpis(filters.companies, today, "all", code),
+      openByCurrency(filters.companies, today, "all", code),
       companyNames(),
     ]),
   );
-  let description = `${AS_OF_TODAY}. AED orders, as on the Sales orders page.`;
+  let description = `${AS_OF_TODAY}. AED orders of any age.`;
   if (result.ok) {
     const [lines, kpis] = result.data;
     description =
       kpis.openAedLines > lines.length
-        ? `As of today: the ${formatInt(lines.length)} largest of ${formatInt(kpis.openAedLines)} open AED lines by pending value.`
-        : `As of today: ${formatInt(lines.length)} open AED lines still to deliver, largest first.`;
+        ? `As of today: the ${formatInt(lines.length)} largest of ${formatInt(kpis.openAedLines)} open AED lines by pending value, orders of any age.`
+        : `As of today: ${formatInt(lines.length)} open AED lines still to deliver, largest first, orders of any age.`;
   }
   const currencyNote = result.ok ? salesOrderCurrencyNote(result.data[2]) : null;
   return (

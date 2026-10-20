@@ -10,24 +10,18 @@ import { KpiCard } from "@/components/dashboard/kpi-card";
 import { PnlChart } from "@/components/dashboard/pnl-chart";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ReportAsOf } from "@/components/shell/shell-context";
-import { previousYear, type Filters } from "@/lib/filters";
+import type { Filters } from "@/lib/filters";
 import { formatAed, formatAedCompact, formatDeltaPct, formatInt, formatMonth, pctChange } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { dataAsOf } from "@/lib/server/db";
 import { load } from "@/lib/server/errors";
 import { apSplit, arSummary } from "@/lib/server/queries/ar-ap";
-import { financeKpis, financeMonthly } from "@/lib/server/queries/finance";
-import {
-  deadStock,
-  DEFAULT_DEAD_STOCK_MONTHS,
-  inventoryKpis,
-  monthEndTrend,
-  reorderAlerts,
-} from "@/lib/server/queries/inventory";
+import { financeVsLastYear, salesVsLastYear, stockPosition } from "@/lib/server/overview";
+import { financeMonthly } from "@/lib/server/queries/finance";
+import { deadStock, DEFAULT_DEAD_STOCK_MONTHS, reorderAlerts } from "@/lib/server/queries/inventory";
 import { pendingKpis } from "@/lib/server/queries/purchasing";
-import { salesKpis, salesMonthly } from "@/lib/server/queries/sales";
+import { salesMonthly } from "@/lib/server/queries/sales";
 
-import { lastClosed } from "../inventory/sections";
 import { ApCurrencyNote } from "../receivables-payables/sections";
 
 /**
@@ -49,11 +43,9 @@ function DataAsOf() {
 
 /** Net revenue and gross margin %, vs the same period last year. */
 export async function SalesTiles({ filters }: { filters: Filters }) {
-  const result = await load(() =>
-    Promise.all([salesKpis(filters), salesKpis(previousYear(filters)), salesMonthly(filters)]),
-  );
+  const result = await load(() => Promise.all([salesVsLastYear(filters), salesMonthly(filters)]));
   if (!result.ok) return <ErrorCard message={result.message} />;
-  const [current, previous, months] = result.data;
+  const [{ current, previous }, months] = result.data;
   return (
     <div className={TILE_GRID} data-testid="overview-sales">
       <DataAsOf />
@@ -77,11 +69,9 @@ export async function SalesTiles({ filters }: { filters: Filters }) {
 
 /** Net profit and net margin %, vs the same period last year. */
 export async function FinanceTiles({ filters }: { filters: Filters }) {
-  const result = await load(() =>
-    Promise.all([financeKpis(filters), financeKpis(previousYear(filters)), financeMonthly(filters)]),
-  );
+  const result = await load(() => Promise.all([financeVsLastYear(filters), financeMonthly(filters)]));
   if (!result.ok) return <ErrorCard message={result.message} />;
-  const [current, previous, months] = result.data;
+  const [{ current, previous }, months] = result.data;
   return (
     <div className={TILE_GRID} data-testid="overview-finance">
       <DataAsOf />
@@ -104,26 +94,25 @@ export async function FinanceTiles({ filters }: { filters: Filters }) {
 }
 
 /** Stock value as of today, and the change since the last closed month-end. */
-export async function InventoryTiles({ companies }: AsOfScope) {
-  const result = await load(() => Promise.all([inventoryKpis(companies), monthEndTrend(companies)]));
+export async function InventoryTiles({ companies, today }: AsOfScope) {
+  const result = await load(() => stockPosition(companies, today));
   if (!result.ok) return <ErrorCard message={result.message} />;
-  const [kpis, months] = result.data;
-  const closed = lastClosed(months);
+  const { stockValue, closed, change, months } = result.data;
   return (
     <div className={TILE_GRID} data-testid="overview-inventory">
       <DataAsOf />
       <KpiCard
         label="Stock value"
-        value={kpis.stockValue}
+        value={stockValue}
         spark={months.map((month) => month.closeValue)}
         hint="As of today"
       />
       <KpiCard
         label="Change vs last month-end"
-        value={closed ? kpis.stockValue - closed.closeValue : null}
+        value={change}
         hint={
           closed
-            ? `vs ${formatMonth(closed.month)} close (${formatDeltaPct(pctChange(kpis.stockValue, closed.closeValue))})`
+            ? `vs ${formatMonth(closed.month)} close (${formatDeltaPct(pctChange(stockValue, closed.closeValue))})`
             : "No closed month-end yet"
         }
       />

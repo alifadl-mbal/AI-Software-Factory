@@ -14,6 +14,7 @@ import { todayIso } from "@/lib/filters";
 import { formatAed, formatAedCompact, formatDeltaPct, formatInt, formatMonth, pctChange } from "@/lib/format";
 import { dataAsOf } from "@/lib/server/db";
 import { load } from "@/lib/server/errors";
+import { lastClosed } from "@/lib/server/overview";
 import {
   DEAD_STOCK_MONTHS,
   DEAD_STOCK_TOP_N,
@@ -26,7 +27,6 @@ import {
   TREND_PERIODS,
   type DeadStockMonths,
   type InventoryDimension,
-  type MonthEnd,
 } from "@/lib/server/queries/inventory";
 
 import { DeadStockToggle } from "./dead-stock-toggle";
@@ -34,12 +34,6 @@ import { DeadStockToggle } from "./dead-stock-toggle";
 /** The current month, `YYYY-MM`: its month-end is provisional. */
 function currentMonth(): string {
   return todayIso().slice(0, 7);
-}
-
-/** The newest month-end before the current month. */
-export function lastClosed(months: MonthEnd[]): MonthEnd | undefined {
-  const current = currentMonth();
-  return months.filter((month) => month.month < current).at(-1);
 }
 
 /** The five headline cards: live stock as of today, and the change since the last month-end. */

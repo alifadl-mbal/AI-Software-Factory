@@ -81,6 +81,7 @@ about 17 s.
 | `AUTH_URL`                          | for sign-in | Public address, e.g. `https://bi.mbal.local` (http only for local testing) |
 | `AUTH_ALLOWED_GROUP`                | no          | Entra group object id; only its members get in (empty: the whole tenant)   |
 | `CRON_SECRET`                       | for cron    | Bearer token for `/api/cron/*`; empty rejects every call                   |
+| `WARM_ON_START_URL`                 | no          | Warm-up called once at production start; default localhost:$PORT, `off`    |
 
 Sign-in is on once the first four `AUTH_*` variables are all set. Without them sample mode works
 exactly as before (no sign-in), `next dev` in oracle mode shows a warning banner, and `next start`
@@ -279,6 +280,27 @@ with the token. Run it in an elevated PowerShell on the server:
 - A run that doesn't get HTTP 200 exits 1, so Task Scheduler's history shows it as failed. The task
   retries three times, ten minutes apart.
 
+## Cache warm-up
+
+`POST /api/cron/warm` (same `CRON_SECRET` bearer as the snapshot) loads the default view of the
+Overview and of every dashboard (default date preset, all companies) through the pages' own
+loaders, so the first visitor finds it in the cache instead of waiting for Orion (8-12 s for AR).
+Results older than the run are re-read and waited for; visitors keep getting the cached ones
+meanwhile. It answers with each section's time:
+
+```json
+{ "ok": true, "today": "2026-10-20", "startedAt": "…", "ms": 29263,
+  "sections": [{ "page": "/", "section": "Receivables tiles, AR over 90 days", "ms": 12093, "ok": true }, …] }
+```
+
+502 (same body) means a section failed: its `message` is the one the page would show, the details
+are in the server log. 401 without the right token, 503 while `CRON_SECRET` is unset.
+
+`deploy/warm-task.ps1` runs it every 10 minutes from Task Scheduler (same options as the snapshot
+script: `-WhatIf`, `-Run`, `-Unregister`, `-Url`, `-SecretFile`, plus `-EveryMinutes`). A production
+server also warms once in the background when it starts (`instrumentation.ts`), never holding up
+startup; set `WARM_ON_START_URL=off` to switch that off. See docs/deployment.md, "Scheduled jobs".
+
 ## Scripts
 
 | Script              | What it does                                                |
@@ -336,7 +358,8 @@ lib/
   notes.ts              currency notes shared by the pages and the snapshot email
   server/               server-only data layer
     access.ts           who may see what: sign-in on/off, locked mode, group and cron checks
-    db.ts               runQuery(sql, binds): guard -> cache -> oracle or sample
+    db.ts               runQuery(sql, binds): guard -> cache (stale-while-revalidate) -> oracle or sample
+    warm.ts             the warm-up plan: every page's default sections, for /api/cron/warm
     guard.ts            read-only SQL guard
     errors.ts           DataSourceError and friendly Oracle error messages
     oracle.ts           node-oracledb pool
@@ -349,6 +372,7 @@ lib/
                         purchasing.ts, ar-ap.ts, sales-orders.ts, customers.ts, items.ts)
 data/sample/            sample fixtures, one CSV per view (plus FM_COMPANY and ZF_CUSTOMER)
 deploy/snapshot-task.ps1  registers the daily snapshot as a Windows scheduled task
+deploy/warm-task.ps1    registers the cache warm-up (every 10 minutes) as a Windows scheduled task
 data/chart-of-accounts.csv  GL main account -> level_0/1/2 (finance owns it)
 tests/unit, tests/e2e   Vitest and Playwright; tests/fixtures has the hand-checked CSV
 ```
@@ -360,9 +384,14 @@ Every query goes through `runQuery(sql, binds)` in `lib/server/db.ts`:
 1. **Read-only guard.** Only a single `SELECT` or `WITH` statement passes. No `;`, and none of
    `INSERT UPDATE DELETE MERGE DROP CREATE ALTER TRUNCATE GRANT ...` anywhere in the text, even in
    comments or string literals. Reword the query or use a bind variable.
-2. **Cache.** Results are cached in server memory for 15 minutes, keyed by data source + SQL +
-   binds. Failures are never cached. **Refresh** in the top bar clears the cache; the top bar shows
-   when the data on screen was read ("Data as of").
+2. **Cache.** Results are cached in server memory keyed by data source + SQL + binds,
+   stale-while-revalidate: up to 15 minutes old a result is served as is; up to 2 hours
+   (`CACHE_MAX_AGE_MS`) it is still served at once while one background refresh, shared by every
+   request, replaces it (a failed refresh keeps it and the next request retries); older than that
+   the request waits for the source. At most 500 results (`CACHE_MAX_ENTRIES`), least recently used
+   out first. Failures are never cached. **Refresh** in the top bar clears the cache; the top bar
+   shows when the oldest data on screen was read ("Data as of"), stale results included. The
+   warm-up job ([Cache warm-up](#cache-warm-up)) keeps the default views fresh.
 3. **Source.** `oracle` (pooled node-oracledb) or `sample` (SQLite). Column names come back
    lower-cased either way.
 

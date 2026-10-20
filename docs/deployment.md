@@ -294,3 +294,40 @@ Without `CRON_SECRET` every call is refused. Check a scheduler's token with:
 ```powershell
 Invoke-RestMethod https://bi.mbal.local/api/cron/ping -Headers @{ Authorization = "Bearer $env:CRON_SECRET" }
 ```
+
+### Cache warm-up, every 10 minutes
+
+Without it, the first visitor after the 15-minute cache expires waits for Orion: 8-12 s for the
+receivables figures on the Overview and the Receivables page. The warm-up re-reads the default view
+of every page (default date preset, all companies) in the background, so pages open from the cache.
+After an update or a restart the service also warms once on its own (`instrumentation.ts`, about a
+minute, in the background; `WARM_ON_START_URL=off` in the config file switches that off).
+
+In an elevated PowerShell on the server, with `CRON_SECRET` set machine-wide (as for the snapshot):
+
+```powershell
+cd C:\MbalBI-src
+.\deploy\warm-task.ps1 -WhatIf                 # show what would be registered; changes nothing
+.\deploy\warm-task.ps1                         # every 10 minutes, POST http://localhost:3000/api/cron/warm
+.\deploy\warm-task.ps1 -Url http://127.0.0.1:3000/api/cron/warm -EveryMinutes 5
+.\deploy\warm-task.ps1 -Unregister             # remove the task
+```
+
+Use the address the service listens on (`-ListenAddress`/`-Port` of the install, `127.0.0.1:3000`
+by default); localhost skips the reverse proxy. Like the snapshot task it runs as
+`NT AUTHORITY\NETWORK SERVICE` and reads the token when it runs (`CRON_SECRET` or `-SecretFile`),
+never from its command line. Runs never overlap; one that takes over 9 minutes is stopped.
+
+**Check it's working:**
+
+1. Run it once by hand: `.\deploy\warm-task.ps1 -Run`. It prints each section's time and exits 0.
+   The first run after a start is the slow one (AR ~12 s, the whole run about 30 s).
+2. Task Scheduler → Task Scheduler Library → **MBAL BI cache warm-up**: _Last Run Result_ is
+   `The operation completed successfully. (0x0)` and _Next Run Time_ is within 10 minutes. `0x1`
+   means the endpoint didn't answer 200; run step 1 to see why.
+3. `C:\MbalBI\logs\MbalBi.out.log` has a line per run:
+   `[mbal-bi] warm-up for 2026-10-20: 44 sections in 29263 ms`. A failing section is in
+   `MbalBi.err.log` as `warm-up for …, 1 failed: / Receivables tiles, AR over 90 days`, next to
+   the Orion error.
+4. Open the Overview: everything, AR tiles included, is there in under 2 s, and "Data as of" in the
+   top bar is never more than about 10 minutes old.

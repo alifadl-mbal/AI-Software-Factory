@@ -281,6 +281,31 @@ good: no section is slower than before, and the default is a little faster. The 
 costs no extra round trip: the KPI query sums the older lines conditionally (`in_scope = 0`), and
 the note reads the same cached result.
 
+## Cache warm-up and stale-while-revalidate (issue #29), 2026-10-20
+
+Production build (`next start`), oracle mode, default view (year to date, all companies). A page
+time is the full streamed response, every section resolved, AR included; measured with `fetch` from
+the server itself, so network to the browser isn't in it. In a browser (Playwright, first visit,
+JS and CSS included) the Overview showed the AR tiles 0.84 s after navigation once warm.
+
+| Load                                                       | Overview    | Receivables & payables |
+| ---------------------------------------------------------- | ----------- | ---------------------- |
+| Cold (empty cache, as before this change)                  | **13.8**    | **12.4**               |
+| After one `POST /api/cron/warm`                            | 0.09        | 0.06                   |
+| 15.5 min later (past the TTL, nothing re-warmed)           | 0.08, stale | 0.06, stale            |
+| 25 s after that (the background refresh had landed)        | 0.10        | 0.07                   |
+| First load after a restart (warm-up on start, ~30 s later) | 0.27        | 0.13                   |
+
+Every other dashboard, warm: 0.04-0.07 s. No error card anywhere.
+
+"Data as of" on the stale load still said 16:18:38 UTC (the warm-up's start), and on the next load
+16:34:12, the time the refresh started: the stale figures were shown and dated, then replaced.
+
+The warm-up itself takes ~29 s and loads 44 sections; the slow ones are the four AR queries (10.8-13.6
+s, Orion's AR view, see above), everything else is 0-3 s. Pages are warmed one after another, so it
+never uses more Orion connections than one page view. Run every 10 minutes, the default views are
+never older than about 10 minutes and nobody waits for AR.
+
 ## Data quality on live Orion
 
 | Finding                                                                                                                                                                                                                                                                                                                         | Effect on screen                                                  | Note on the page                                                                                             |

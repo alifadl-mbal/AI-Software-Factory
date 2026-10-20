@@ -62,13 +62,10 @@ export function formatInt(value: Maybe): string {
   return formatNumber(value, 0);
 }
 
-const QTY = new Intl.NumberFormat("en-US", { maximumFractionDigits: 2 });
-
-/** Stock quantity: whole numbers as `1,234`, fractions to at most two places: `12.5`. */
+/** Quantities: whole numbers stay whole, fractions keep up to two decimals (`1,234.5`). */
 export function formatQty(value: Maybe): string {
   if (isMissing(value)) return MISSING;
-  const result = rounded(value, 2);
-  return `${result < 0 ? "-" : ""}${QTY.format(Math.abs(result))}`;
+  return formatNumber(value, Number.isInteger(rounded(value, 2)) ? 0 : 2).replace(/(\.\d)0$/, "$1");
 }
 
 /** `value` is a fraction: 0.1234 → `12.3%`. */

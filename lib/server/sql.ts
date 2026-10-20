@@ -32,8 +32,8 @@ export function filterWhere(
     start_date: filters.start,
     end_date_exclusive: addDays(filters.end, 1),
   };
-  if (filters.companies.length > 0) {
-    const company = companyWhere(filters.companies, companyColumn);
+  const company = companyWhere(filters.companies, companyColumn);
+  if (company) {
     clauses.push(company.sql);
     Object.assign(binds, company.binds);
   }
@@ -41,16 +41,20 @@ export function filterWhere(
 }
 
 /**
- * The `WHERE` fragment for the company filter alone, for views without a date filter (live stock).
- * No companies means all of them: the fragment is then `1 = 1`.
+ * The company-filter part of `filterWhere` on its own, for "as of today" views that ignore the
+ * date range. `undefined` when every company is selected.
  */
-export function companyWhere(companies: string[], companyColumn: string): { sql: string; binds: Binds } {
-  if (companies.length === 0) return { sql: "1 = 1", binds: {} };
+export function companyWhere(
+  companies: readonly string[],
+  companyColumn: string,
+): { sql: string; binds: Binds } | undefined {
+  if (companies.length === 0) return undefined;
   const names = companies.map((_, index) => `company_${index}`);
-  return {
-    sql: `${companyColumn} IN (${names.map((name) => `:${name}`).join(", ")})`,
-    binds: Object.fromEntries(names.map((name, index) => [name, companies[index]])),
-  };
+  const binds: Binds = {};
+  names.forEach((name, index) => {
+    binds[name] = companies[index];
+  });
+  return { sql: `${companyColumn} IN (${names.map((name) => `:${name}`).join(", ")})`, binds };
 }
 
 /** Numeric column from a result row; `NULL` (an empty SUM) counts as 0. */

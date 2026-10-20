@@ -57,3 +57,13 @@ describe("percentages and counts", () => {
     expect(formatMonth("2026-03", true)).toBe("Mar 26");
   });
 });
+
+describe("formatQty", () => {
+  it("keeps whole numbers whole and fractions to two decimals", async () => {
+    const { formatQty } = await import("@/lib/format");
+    expect(formatQty(1234)).toBe("1,234");
+    expect(formatQty(1.5)).toBe("1.5");
+    expect(formatQty(2.345)).toBe("2.35");
+    expect(formatQty(null)).toBe("—");
+  });
+});

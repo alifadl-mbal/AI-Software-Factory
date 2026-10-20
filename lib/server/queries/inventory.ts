@@ -1,9 +1,14 @@
 import "server-only";
 
 import { run } from "../db";
-import { ALL_OTHER, companyWhere, labelOrUnassigned, num } from "../sql";
-import type { Query } from "../types";
+import { ALL_OTHER, companyWhere as companyFilter, labelOrUnassigned, num } from "../sql";
+import type { Binds, Query } from "../types";
 import { companies } from "./common";
+
+/** The company filter as a `WHERE` fragment; `1 = 1` when every company is selected. */
+function companyWhere(companyCodes: readonly string[], companyColumn: string): { sql: string; binds: Binds } {
+  return companyFilter(companyCodes, companyColumn) ?? { sql: "1 = 1", binds: {} };
+}
 
 /**
  * Inventory dashboard queries on three Orion views:

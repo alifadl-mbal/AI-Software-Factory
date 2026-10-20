@@ -7,12 +7,13 @@ Stack: Next.js 16 (App Router) · React 19 · TypeScript (strict) · Tailwind CS
 (Radix) · lucide-react · Recharts · TanStack Table · node-oracledb (thin mode, no Instant Client)
 · Vitest + Testing Library · Playwright + axe · ESLint + Prettier · GitHub Actions.
 
-| Page      | Route        | View                                              | What it shows                                                                                                                                                                                                                                                 |
-| --------- | ------------ | ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Overview  | `/`          |                                                   | Headline sales figures and a card for each dashboard                                                                                                                                                                                                          |
-| Sales     | `/sales`     | `ZF_CSL_BI`                                       | Net revenue, gross margin, margin %, invoices, returns (vs last year, with sparklines); monthly trend vs last year; revenue by company, item group, salesperson; top 20 customers and items                                                                   |
-| Inventory | `/inventory` | `ZF_CURR_STK_BI`, `ZF_STK_MTH_SUMM_BI`, `ZF_ITEM` | Stock value, available and reserved value, stocked items and change vs last month-end, as of today; month-end trend (24 periods); stock value by company, item group, location and grade; dead stock (3/6/12 months, `?dead=`); reorder alerts                |
-| Finance   | `/finance`   | `ZF_F_T_DETAIL_BI`                                | Revenue, cost of sales, gross profit and GP %, G&A, net profit and net margin % (vs last year); monthly P&L; P&L statement by level_1 that expands to GL accounts; costs by account, division and department; journal-line drill-down; unmapped-account total |
+| Page       | Route         | View                                              | What it shows                                                                                                                                                                                                                                                                            |
+| ---------- | ------------- | ------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Overview   | `/`           |                                                   | Headline sales figures and a card for each dashboard                                                                                                                                                                                                                                     |
+| Sales      | `/sales`      | `ZF_CSL_BI`                                       | Net revenue, gross margin, margin %, invoices, returns (vs last year, with sparklines); monthly trend vs last year; revenue by company, item group, salesperson; top 20 customers and items                                                                                              |
+| Inventory  | `/inventory`  | `ZF_CURR_STK_BI`, `ZF_STK_MTH_SUMM_BI`, `ZF_ITEM` | Stock value, available and reserved value, stocked items and change vs last month-end, as of today; month-end trend (24 periods); stock value by company, item group, location and grade; dead stock (3/6/12 months, `?dead=`); reorder alerts                                           |
+| Finance    | `/finance`    | `ZF_F_T_DETAIL_BI`                                | Revenue, cost of sales, gross profit and GP %, G&A, net profit and net margin % (vs last year); monthly P&L; P&L statement by level_1 that expands to GL accounts; costs by account, division and department; journal-line drill-down; unmapped-account total                            |
+| Purchasing | `/purchasing` | `ZF_PO_PENDING_BI`, `ZF_CPR_BI`                   | Pending PO value, open lines, overdue value and % (as of today); receipts spend vs last year; pending value by aging bucket, top 20 suppliers and company; overdue PO lines (top 1,000, CSV); monthly receipts spend vs last year; top 20 suppliers by spend; zero-exchange-rate warning |
 
 ## Setup
 
@@ -97,6 +98,7 @@ app/
   page.tsx              Overview
   sales/page.tsx        Sales page: Suspense sections, one per card/chart/table
   sales/sections.tsx    async server components that load data and render the components
+  purchasing/           Purchasing page and sections, same pattern
   finance/              Finance page, sections, P&L statement table and journal-line side panel
   api/finance/journal-lines/route.ts   GET endpoint the drill-down panel reads (shared filters)
   actions.ts            Refresh server action (clears the cache)
@@ -117,7 +119,8 @@ lib/
     sample.ts           SQLite sample source with Oracle shims
     sql.ts              filterWhere (binds), labelOrUnassigned, UNASSIGNED/ALL_OTHER
     chart-of-accounts.ts  reads data/chart-of-accounts.csv; unknown accounts are 'Unmapped'
-    queries/            one module per Orion domain (common.ts, sales.ts, inventory.ts, finance.ts)
+    queries/            one module per Orion domain (common.ts, sales.ts, inventory.ts, finance.ts,
+                        purchasing.ts)
 data/sample/            sample fixtures, one CSV per view
 data/chart-of-accounts.csv  GL main account -> level_0/1/2 (finance owns it)
 tests/unit, tests/e2e   Vitest and Playwright; tests/fixtures has the hand-checked CSV
@@ -146,7 +149,9 @@ Rules for query code:
   `YYYY-MM-DD` strings and wrapped in `TO_DATE(:bind, 'YYYY-MM-DD')`.
 - **Aggregate in SQL.** Never pull a fact table into JavaScript.
 - Use `companyWhere(companies, companyColumn)` on views the date filter doesn't apply to (live
-  stock). Registry entries for such dashboards set `dateFilter: false`, which hides the date picker.
+  stock, pending POs); it is `undefined` when every company is selected. Registry entries for
+  dashboards where nothing follows the date filter set `dateFilter: false`, which hides the date
+  picker.
 - Show blank dimension values as `'Unassigned'` with `labelOrUnassigned(column)`; fold long tails
   into `'All other'` so totals still add up.
 - Keep builders (`*Query(filters)` returning `{ sql, binds }`) separate from loaders, so tests can
@@ -259,3 +264,24 @@ CS_RESV_QTY`; available value = available qty × `CS_WAC`; reserved value = the 
   current month is provisional.
 - Dead stock for N months = a company × location × item whose closing qty is the same, and above
   zero, in each of the newest N + 1 periods. Value at risk is their closing value.
+
+## Business rules (Purchasing)
+
+Pending POs (`ZF_PO_PENDING_BI`) are **as of today**: the date filter doesn't apply, the company
+filter does. Receipts (`ZF_CPR_BI`) follow both filters.
+
+- A pending line is `PO_CLO_STATUS = 0 AND PO_PEND_QTY > 0`. `PO_CLO_STATUS` is a NUMBER
+  (`0` = Open); comparing it to `'O'` raises ORA-01722. The view is pre-filtered to open lines but
+  still holds fully received ones, hence the `PO_PEND_QTY` check.
+- The live view has no `PO_PEND_LC_VAL` (or aging columns), whatever older docs say. Pending value
+  (AED) = `(PO_LC_VAL − PO_LC_DISC) × PO_PEND_QTY / PO_QTY`, the line's net value pro rata to what
+  is still to come. `PO_LC_NET_VAL` is not used: it is 0 on some lines with a value and no discount.
+- Expected date = `PO_DATE + 84` days. A line is **On Time** while that is in the future, else
+  overdue by `today − expected date` days: `0-90`, `90-180`, `180-365`, `365+ Days Overdue` (lower
+  bound inclusive, so 90 days overdue is `90-180`). The bucket edges are bound as dates, which keeps
+  the SQL portable.
+- Receipts spend = `SUM(CPR_LANDED_VALUE)`. Returns to supplier (`CPR_SIGN = −1`) are already
+  negative and reduce spend.
+- Non-AED receipt lines with `CPR_EXGE_RATE = 0` have their AED value zeroed. They are listed in a
+  data-quality warning (count, recorded AED value, foreign-currency value) that only shows when
+  there are any. AED lines with rate 0 are fine and not flagged.

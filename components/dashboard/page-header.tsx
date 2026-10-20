@@ -10,11 +10,14 @@ export function PageHeader({
   description,
   filters,
   asOf,
+  note,
 }: {
   title: string;
   description: string;
   filters: Filters;
   asOf?: string;
+  /** A second line for figures that don't follow the period, such as "as of today" ones. */
+  note?: string;
 }) {
   const companies =
     filters.companies.length > 0
@@ -29,6 +32,11 @@ export function PageHeader({
           ? `As of today, ${formatDate(asOf)} · ${companies} · the date filter doesn't apply here`
           : `${formatDate(filters.start)} – ${formatDate(filters.end)} · ${companies} · compared with the same period last year`}
       </p>
+      {note && (
+        <p className="text-xs text-muted-foreground" data-testid="period-note">
+          {note}
+        </p>
+      )}
     </div>
   );
 }

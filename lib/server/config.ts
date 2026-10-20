@@ -19,6 +19,15 @@ export const ORACLE_ENV_VARS = ["ORACLE_USER", "ORACLE_PASSWORD", "ORACLE_DSN"] 
 /** How long a cached query result stays fresh. The Refresh button clears the cache early. */
 export const CACHE_TTL_MS = 15 * 60 * 1000;
 
+/**
+ * Past the TTL a result is still served at once while one background refresh replaces it, up to
+ * this age. Older than this, the request waits for fresh data, so nobody sees yesterday's figures.
+ */
+export const CACHE_MAX_AGE_MS = 2 * 60 * 60 * 1000;
+
+/** How many query results the cache keeps; the least recently used one goes first. */
+export const CACHE_MAX_ENTRIES = 500;
+
 /** The environment is set up wrongly. The message is safe to show to users. */
 export class ConfigError extends Error {
   constructor(message: string) {

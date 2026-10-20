@@ -214,7 +214,7 @@ Results older than the run are re-read and waited for; visitors keep getting the
 meanwhile. It answers with each section's time:
 
 ```json
-{ "ok": true, "today": "2026-10-20", "startedAt": "…", "ms": 14210,
+{ "ok": true, "today": "2026-10-20", "startedAt": "…", "ms": 29263,
   "sections": [{ "page": "/", "section": "Receivables tiles, AR over 90 days", "ms": 12093, "ok": true }, …] }
 ```
 

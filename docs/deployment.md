@@ -321,12 +321,12 @@ never from its command line. Runs never overlap; one that takes over 9 minutes i
 **Check it's working:**
 
 1. Run it once by hand: `.\deploy\warm-task.ps1 -Run`. It prints each section's time and exits 0.
-   The first run after a start is the slow one (AR ~12 s, the whole run well under a minute).
+   The first run after a start is the slow one (AR ~12 s, the whole run about 30 s).
 2. Task Scheduler → Task Scheduler Library → **MBAL BI cache warm-up**: _Last Run Result_ is
    `The operation completed successfully. (0x0)` and _Next Run Time_ is within 10 minutes. `0x1`
    means the endpoint didn't answer 200; run step 1 to see why.
 3. `C:\MbalBI\logs\MbalBi.out.log` has a line per run:
-   `[mbal-bi] warm-up for 2026-10-20: 46 sections in 14210 ms`. A failing section is in
+   `[mbal-bi] warm-up for 2026-10-20: 44 sections in 29263 ms`. A failing section is in
    `MbalBi.err.log` as `warm-up for …, 1 failed: / Receivables tiles, AR over 90 days`, next to
    the Orion error.
 4. Open the Overview: everything, AR tiles included, is there in under 2 s, and "Data as of" in the

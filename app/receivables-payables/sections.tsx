@@ -10,6 +10,7 @@ import { KpiCard } from "@/components/dashboard/kpi-card";
 import { ReportAsOf } from "@/components/shell/shell-context";
 import { AGING_BUCKETS } from "@/lib/aging";
 import { formatAed, formatInt, formatPct } from "@/lib/format";
+import { AP_CURRENCY_NOTE } from "@/lib/notes";
 import { dataAsOf } from "@/lib/server/db";
 import { load } from "@/lib/server/errors";
 import {
@@ -252,8 +253,7 @@ export async function ArCollection({ asOf, companies }: Scope) {
 export function ApCurrencyNote() {
   return (
     <p className="text-xs text-muted-foreground" data-testid="ap-currency-note">
-      All amounts are in AED: Orion&rsquo;s payables view converts every line, whatever the currency of the
-      invoice. Vendors are netted per company before splitting into what we owe and what we have prepaid.
+      {AP_CURRENCY_NOTE}
     </p>
   );
 }

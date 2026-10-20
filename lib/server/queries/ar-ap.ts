@@ -47,7 +47,7 @@ import type { Binds, Query } from "../types";
 const AR_VIEW = "MBALI.ZF_SOA_DETL_CUST_INV_SM_BI";
 const AP_VIEW = "MBALI.ZF_SOAP_DETL_BI";
 
-/** Below this (AED for AR, account currency for AP) a line is settled; the rest is FX rounding. */
+/** Below this (AED) a line is settled; the rest is FX rounding. */
 export const SETTLED_BELOW = 1;
 
 /** Rows in the top customers and top vendors tables. */

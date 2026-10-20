@@ -1,5 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
 
+import { SNAPSHOT_DIR, SNAPSHOT_SECRET } from "./tests/e2e/snapshot-env";
+
 /**
  * End-to-end tests against the production build (`npm run build` first).
  *
@@ -14,7 +16,15 @@ const suite = process.env.E2E_SUITE ?? "all";
 const sampleServer = {
   command: `npx next start -p ${PORT}`,
   url: `http://localhost:${PORT}/`,
-  env: { MBAL_DATA_SOURCE: "sample" },
+  env: {
+    MBAL_DATA_SOURCE: "sample",
+    // The daily snapshot endpoint writes its email to files that snapshot.spec.ts reads back.
+    CRON_SECRET: SNAPSHOT_SECRET,
+    SNAPSHOT_TRANSPORT: "file",
+    SNAPSHOT_DIR,
+    SNAPSHOT_TO: "manager@mbal.example",
+    APP_URL: "https://bi.example.test",
+  },
   reuseExistingServer: false,
   timeout: 120_000,
 };

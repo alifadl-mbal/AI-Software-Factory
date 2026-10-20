@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { OVERVIEW, dashboardForPath } from "@/lib/dashboards";
+import { OVERVIEW, SNAPSHOT, dashboardForPath } from "@/lib/dashboards";
 import type { Company } from "@/lib/server/queries/common";
 
 import { CompanySelect, CompanySelectFallback } from "./company-select";
@@ -88,7 +88,9 @@ function RefreshButton() {
 export function TopBar({ companies, sample }: { companies: Promise<Company[]>; sample: boolean }) {
   const pathname = usePathname();
   const dashboard = dashboardForPath(pathname);
-  const title = dashboard?.title ?? OVERVIEW.title;
+  // The snapshot preview isn't a dashboard: it always covers all companies and fixed periods.
+  const snapshot = pathname === SNAPSHOT.href;
+  const title = snapshot ? SNAPSHOT.title : (dashboard?.title ?? OVERVIEW.title);
 
   return (
     <header className="sticky top-0 z-20 border-b bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/70">
@@ -109,10 +111,12 @@ export function TopBar({ companies, sample }: { companies: Promise<Company[]>; s
           )}
         </div>
         <div className="order-last flex w-full min-w-0 flex-wrap items-center gap-2 md:order-none md:ml-auto md:w-auto md:justify-end">
-          {dashboard?.dateFilter !== false && <DateRangePicker />}
-          <Suspense fallback={<CompanySelectFallback />}>
-            <CompanySelect companies={companies} />
-          </Suspense>
+          {!snapshot && dashboard?.dateFilter !== false && <DateRangePicker />}
+          {!snapshot && (
+            <Suspense fallback={<CompanySelectFallback />}>
+              <CompanySelect companies={companies} />
+            </Suspense>
+          )}
         </div>
         <div className="ml-auto flex items-center gap-1 md:ml-0">
           <RefreshButton />

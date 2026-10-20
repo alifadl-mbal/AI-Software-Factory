@@ -128,8 +128,8 @@ test.describe("mobile 390px", () => {
       await expect(nav).toHaveCount(0);
       await page.getByRole("button", { name: "Toggle navigation" }).click();
       await expect(nav).toBeVisible();
-      await nav.getByRole("link", { name: "Sales" }).click();
-      await expect(page).toHaveURL(/\/sales/);
+      await nav.getByRole("link", { name: "Sales", exact: true }).click();
+      await expect(page).toHaveURL(/\/sales(\?|$)/);
       await expect(nav).toHaveCount(0);
     });
   }

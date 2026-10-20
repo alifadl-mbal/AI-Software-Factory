@@ -7,6 +7,7 @@ import { friendlyMessage } from "./errors";
 import { financeVsLastYear, salesVsLastYear, stockPosition } from "./overview";
 import { apSplit, arBalances, arSummary } from "./queries/ar-ap";
 import { companies } from "./queries/common";
+import { customerCodesByName } from "./queries/customers";
 import { expenseBreakdown, financeKpis, financeMonthly, pnlStatement } from "./queries/finance";
 import {
   deadStock,
@@ -64,6 +65,11 @@ interface Page {
   sections: Section[];
 }
 
+/** The customer-name → code lookup the top-customer tables do to link each row to its page. */
+async function withCustomerCodes(rows: { label: string }[]): Promise<void> {
+  await customerCodesByName(rows.map((row) => row.label));
+}
+
 /** The default view of every page, as of `today`. */
 export function warmPlan(today: string): Page[] {
   const filters: Filters = parseFilters({}, today);
@@ -101,7 +107,10 @@ export function warmPlan(today: string): Page[] {
         { name: "Revenue by company", load: () => salesBreakdown(filters, "company", undefined) },
         { name: "Revenue by item group", load: () => salesBreakdown(filters, "itemGroup", 12) },
         { name: "Revenue by salesperson", load: () => salesBreakdown(filters, "salesperson", 12) },
-        { name: "Top customers", load: () => salesBreakdown(filters, "customer", SALES_TOP_N) },
+        {
+          name: "Top customers",
+          load: () => salesBreakdown(filters, "customer", SALES_TOP_N).then(withCustomerCodes),
+        },
         { name: "Top items", load: () => salesBreakdown(filters, "item", SALES_TOP_N) },
       ],
     },
@@ -182,7 +191,7 @@ export function warmPlan(today: string): Page[] {
         { name: "Non-AED currency note", load: () => openByCurrency(all, today) },
         { name: "Open value by order age", load: () => openByAge(all, today) },
         { name: "Open value by salesperson", load: () => openBySalesperson(all, today) },
-        { name: "Open value by customer", load: () => openByCustomer(all, today) },
+        { name: "Open value by customer", load: () => openByCustomer(all, today).then(withCustomerCodes) },
         { name: "Open order lines", load: () => openLines(all, today) },
       ],
     },

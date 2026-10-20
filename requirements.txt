@@ -1,0 +1,9 @@
+# Runtime
+streamlit==1.66.0
+oracledb==26.0.1
+pandas==3.0.6
+plotly==7.1.0
+
+# Development: tests and lint (CI installs these too)
+pytest==9.1.1
+ruff==0.17.1

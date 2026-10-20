@@ -1,7 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
-import { aedNumber, kpiFull, waitForData, watchConsole } from "./helpers";
+import { aedNumber, kpiFull, openSearchByKeyboard, waitForData, watchConsole } from "./helpers";
 
 // In the sample data, item IT00065 has sales, stock, month-end history, pending POs and open orders
 // under the same code, and is at or below its reorder level at one location.
@@ -28,8 +28,7 @@ test("search → item page → linked customer page, keeping the filters", async
   await page.goto("/inventory?range=12m");
   await waitForData(page);
 
-  await page.keyboard.press("ControlOrMeta+k");
-  const dialog = page.getByRole("dialog", { name: "Search customers and items" });
+  const dialog = await openSearchByKeyboard(page);
   const input = dialog.getByRole("combobox", { name: "Customer or item name, or code" });
   await expect(input).toBeFocused();
   // Part of the description; items have their own group.

@@ -75,3 +75,17 @@ export async function kpiFull(page: Page, label: string): Promise<string> {
     .first();
   return (await card.getByTestId("kpi-value").getAttribute("title")) ?? "";
 }
+
+/**
+ * Open the top-bar search with Ctrl/⌘+K. The shortcut's listener is attached once the shell has
+ * hydrated, which on a slow runner can be after the data has streamed in, so the key is pressed
+ * again until the dialog shows (it toggles, so never while it is open).
+ */
+export async function openSearchByKeyboard(page: Page) {
+  const dialog = page.getByRole("dialog", { name: "Search customers and items" });
+  await expect(async () => {
+    if (!(await dialog.isVisible())) await page.keyboard.press("ControlOrMeta+k");
+    await expect(dialog).toBeVisible({ timeout: 1_000 });
+  }).toPass({ timeout: 15_000 });
+  return dialog;
+}

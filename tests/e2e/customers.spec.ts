@@ -1,7 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
-import { aedNumber, kpiFull, waitForData, watchConsole } from "./helpers";
+import { aedNumber, kpiFull, openSearchByKeyboard, waitForData, watchConsole } from "./helpers";
 
 // In the sample data, customer C0034 (Summit Hotel 34) has sales, open AR and open AED orders under
 // the same code, as every customer does on Orion.
@@ -19,9 +19,7 @@ test("search → customer page → back, by keyboard, keeping the filters", asyn
   await page.goto("/sales?range=12m&company=101,104");
   await waitForData(page);
 
-  await page.keyboard.press("ControlOrMeta+k");
-  const dialog = page.getByRole("dialog", { name: "Search customers" });
-  await expect(dialog).toBeVisible();
+  const dialog = await openSearchByKeyboard(page);
   const input = dialog.getByRole("combobox", { name: "Customer or item name, or code" });
   await expect(input).toBeFocused();
   await input.pressSequentially("summit hotel 3");

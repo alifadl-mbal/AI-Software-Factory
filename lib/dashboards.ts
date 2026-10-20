@@ -1,0 +1,41 @@
+import { LayoutDashboard, TrendingUp, type LucideIcon } from "lucide-react";
+
+/**
+ * The dashboard registry: the single list the sidebar and the Overview page are built from.
+ *
+ * To add a dashboard, add one entry here and create `app/<slug>/page.tsx`. See "Adding a
+ * dashboard" in the README.
+ */
+export interface Dashboard {
+  /** URL path segment; the page lives at `app/<slug>/page.tsx`. */
+  slug: string;
+  title: string;
+  /** One sentence for the Overview card and the page header. */
+  description: string;
+  icon: LucideIcon;
+  /** The Orion view the dashboard reads, shown on the Overview card. */
+  source: string;
+}
+
+export const DASHBOARDS: readonly Dashboard[] = [
+  {
+    slug: "sales",
+    title: "Sales",
+    description:
+      "Net revenue, gross margin, invoices and returns, with breakdowns by company, customer, item, salesperson and item group.",
+    icon: TrendingUp,
+    source: "ZF_CSL_BI",
+  },
+];
+
+export const OVERVIEW = { href: "/", title: "Overview", icon: LayoutDashboard } as const;
+
+export function dashboardHref(dashboard: Dashboard): string {
+  return `/${dashboard.slug}`;
+}
+
+/** The registry entry for a path like `/sales`, if any. */
+export function dashboardForPath(pathname: string): Dashboard | undefined {
+  const slug = pathname.split("/")[1];
+  return DASHBOARDS.find((dashboard) => dashboard.slug === slug);
+}

@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { ChartCardSkeleton, KpiRowSkeleton } from "@/components/dashboard/skeletons";
 import { DASHBOARDS } from "@/lib/dashboards";
-import { parseFilters, todayIso } from "@/lib/filters";
+import { filtersToSearch, parseFilters, todayIso } from "@/lib/filters";
 import { parseDeadStockMonths } from "@/lib/server/queries/inventory";
 
 import {
@@ -27,6 +27,8 @@ export default async function InventoryPage({ searchParams }: PageProps<"/invent
   // Only the company filter applies here: stock is as of today whatever the date range says.
   const { companies } = filters;
   const key = companies.join(",") || "all";
+  // Item names link to the item page with the filters kept.
+  const search = filtersToSearch(filters);
 
   return (
     <>
@@ -84,11 +86,11 @@ export default async function InventoryPage({ searchParams }: PageProps<"/invent
         </div>
 
         <Suspense key={`dead${key}-${deadMonths}`} fallback={<ChartCardSkeleton height={420} />}>
-          <DeadStockSection companies={companies} months={deadMonths} />
+          <DeadStockSection companies={companies} months={deadMonths} search={search} />
         </Suspense>
 
         <Suspense key={`reorder${key}`} fallback={<ChartCardSkeleton height={420} />}>
-          <ReorderAlertsSection companies={companies} />
+          <ReorderAlertsSection companies={companies} search={search} />
         </Suspense>
       </div>
     </>

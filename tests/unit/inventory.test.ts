@@ -157,13 +157,25 @@ describe("month-end trend", () => {
   it("asks for 24 periods by default and gets every one the fixture has", async () => {
     const months = await monthEndTrend([], TODAY);
     expect(months).toHaveLength(13);
-    expect(months[0]).toEqual({ month: "2025-01", closeValue: 400, negativeValue: 0, negativeLines: 0 });
+    expect(months[0]).toEqual({
+      month: "2025-01",
+      closeValue: 400,
+      closeQty: 18,
+      negativeValue: 0,
+      negativeLines: 0,
+    });
   });
 
   it("applies the company filter", async () => {
     const [latest] = (await monthEndTrend(["101"], TODAY, 1)).slice(-1);
-    // I1 13 × 10 + I2 100 + I5 30 + I9 0.
-    expect(latest).toEqual({ month: "2026-01", closeValue: 260, negativeValue: 0, negativeLines: 0 });
+    // I1 13 × 10 + I2 100 + I5 30 + I9 0; 13 + 4 + 6 + 0 units.
+    expect(latest).toEqual({
+      month: "2026-01",
+      closeValue: 260,
+      closeQty: 23,
+      negativeValue: 0,
+      negativeLines: 0,
+    });
   });
 
   // Live Orion: ranking every distinct period of the 8M-row view took 3.4 s; the trend needs 2 years.
@@ -201,7 +213,7 @@ describe("month-end trend", () => {
     try {
       expect(await monthEndTrend([], TODAY, 1)).toEqual([
         // A zero quantity with a leftover value is not negative stock.
-        { month: "2026-01", closeValue: 63, negativeValue: -35, negativeLines: 2 },
+        { month: "2026-01", closeValue: 63, closeQty: 6, negativeValue: -35, negativeLines: 2 },
       ]);
     } finally {
       useFixtureSource();

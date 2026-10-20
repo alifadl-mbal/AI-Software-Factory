@@ -9,6 +9,7 @@ import { financeVsLastYear, salesVsLastYear, stockPosition } from "./overview";
 import { apSplit, arBalances, arSummary } from "./queries/ar-ap";
 import { companies } from "./queries/common";
 import { customerCodesByName } from "./queries/customers";
+import { itemCodesByName } from "./queries/items";
 import { expenseBreakdown, financeKpis, financeMonthly, pnlStatement } from "./queries/finance";
 import {
   deadStock,
@@ -71,6 +72,11 @@ async function withCustomerCodes(rows: { label: string }[]): Promise<void> {
   await customerCodesByName(rows.map((row) => row.label));
 }
 
+/** The item-name → code lookup the top-items table does to link each row to the item page. */
+async function withItemCodes(rows: { label: string }[]): Promise<void> {
+  await itemCodesByName(rows.map((row) => row.label));
+}
+
 /** The default view of every page, as of `today`. */
 export function warmPlan(today: string): Page[] {
   const filters: Filters = parseFilters({}, today);
@@ -113,7 +119,10 @@ export function warmPlan(today: string): Page[] {
           name: "Top customers",
           load: () => salesBreakdown(filters, "customer", SALES_TOP_N).then(withCustomerCodes),
         },
-        { name: "Top items", load: () => salesBreakdown(filters, "item", SALES_TOP_N) },
+        {
+          name: "Top items",
+          load: () => salesBreakdown(filters, "item", SALES_TOP_N).then(withItemCodes),
+        },
       ],
     },
     {

@@ -7,16 +7,17 @@ Stack: Next.js 16 (App Router) · React 19 · TypeScript (strict) · Tailwind CS
 (Radix) · lucide-react · Recharts · TanStack Table · node-oracledb (thin mode, no Instant Client)
 · Vitest + Testing Library · Playwright + axe · ESLint + Prettier · GitHub Actions.
 
-| Page         | Route               | View                                                                 | What it shows                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| ------------ | ------------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Overview     | `/`                 | all of the above                                                     | Executive overview: headline tiles per area linking to each dashboard with the filters kept (sales net revenue and GM %, net profit and net margin % vs last year; stock value and change vs last month-end, pending PO value and overdue % on orders from the last 2 years, AR outstanding and share over 90 days, AP outstanding, as of today); needs attention (overdue POs, AR over 90 days, 6-month dead stock, reorder alerts, each linking to its section); monthly sales vs last year and monthly P&L; a compact card per dashboard |
-| Sales        | `/sales`            | `ZF_CSL_BI`                                                          | Net revenue, gross margin, margin %, invoices, returns (vs last year, with sparklines); monthly trend vs last year; revenue by company, item group, salesperson; top 20 customers and items                                                                                                                                                                                                                                                                                                                                                 |
-| Inventory    | `/inventory`        | `ZF_CURR_STK_BI`, `ZF_STK_MTH_SUMM_BI`, `ZF_ITEM`                    | Stock value, available and reserved value, stocked items and change vs last month-end, as of today; month-end trend (24 periods); stock value by company, item group, location and grade; dead stock (3/6/12 months, `?dead=`); reorder alerts                                                                                                                                                                                                                                                                                              |
-| Finance      | `/finance`          | `ZF_F_T_DETAIL_BI`                                                   | Revenue, cost of sales, gross profit and GP %, G&A, net profit and net margin % (vs last year); monthly P&L; P&L statement by level_1 that expands to GL accounts; costs by account, division and department; journal-line drill-down; unmapped-account total                                                                                                                                                                                                                                                                               |
-| Sales orders | `/sales-orders`     | `ZF_SO_BI`                                                           | Open order value, open orders and lines, delivered-not-invoiced and overdue value (as of today; orders placed in the last 2 years by default, `?since=12m\|all`, with what that leaves out); orders booked vs last year; open value by order age, salesperson and top 20 customers; monthly orders booked vs last year; open order lines (top 1,000, CSV); non-AED currency note                                                                                                                                                            |
-| Snapshot     | `/snapshot`         | all of the above                                                     | Preview of today's daily snapshot email, exactly as it would be sent (HTML and plain text); not in the sidebar. See [Daily snapshot email](#daily-snapshot-email)                                                                                                                                                                                                                                                                                                                                                                           |
-| Purchasing   | `/purchasing`       | `ZF_PO_PENDING_BI`, `ZF_CPR_BI`                                      | Pending PO value, open lines, overdue value and % (as of today; orders placed in the last 2 years by default, `?since=12m\|all`, with what that leaves out); receipts spend vs last year; pending value by aging bucket, top 20 suppliers and company; overdue PO lines (top 1,000, CSV); monthly receipts spend vs last year; top 20 suppliers by spend; zero-exchange-rate warning                                                                                                                                                        |
-| Customer     | `/customers/[code]` | `ZF_CUSTOMER`, `ZF_CSL_BI`, `ZF_SOA_DETL_CUST_INV_SM_BI`, `ZF_SO_BI` | One customer: net revenue and GM % vs last year, AR outstanding and over 90 days, open order value; monthly revenue vs last year; top items; AR aging and open documents; open order lines; returns. Not in the sidebar: reached from the top-bar search (Ctrl/⌘+K) and the linked customer names in the dashboards. See [Customer page and search](#customer-page-and-search)                                                                                                                                                              |
+| Page         | Route               | View                                                                                           | What it shows                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| ------------ | ------------------- | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Overview     | `/`                 | all of the above                                                                               | Executive overview: headline tiles per area linking to each dashboard with the filters kept (sales net revenue and GM %, net profit and net margin % vs last year; stock value and change vs last month-end, pending PO value and overdue % on orders from the last 2 years, AR outstanding and share over 90 days, AP outstanding, as of today); needs attention (overdue POs, AR over 90 days, 6-month dead stock, reorder alerts, each linking to its section); monthly sales vs last year and monthly P&L; a compact card per dashboard |
+| Sales        | `/sales`            | `ZF_CSL_BI`                                                                                    | Net revenue, gross margin, margin %, invoices, returns (vs last year, with sparklines); monthly trend vs last year; revenue by company, item group, salesperson; top 20 customers and items                                                                                                                                                                                                                                                                                                                                                 |
+| Inventory    | `/inventory`        | `ZF_CURR_STK_BI`, `ZF_STK_MTH_SUMM_BI`, `ZF_ITEM`                                              | Stock value, available and reserved value, stocked items and change vs last month-end, as of today; month-end trend (24 periods); stock value by company, item group, location and grade; dead stock (3/6/12 months, `?dead=`); reorder alerts                                                                                                                                                                                                                                                                                              |
+| Finance      | `/finance`          | `ZF_F_T_DETAIL_BI`                                                                             | Revenue, cost of sales, gross profit and GP %, G&A, net profit and net margin % (vs last year); monthly P&L; P&L statement by level_1 that expands to GL accounts; costs by account, division and department; journal-line drill-down; unmapped-account total                                                                                                                                                                                                                                                                               |
+| Sales orders | `/sales-orders`     | `ZF_SO_BI`                                                                                     | Open order value, open orders and lines, delivered-not-invoiced and overdue value (as of today; orders placed in the last 2 years by default, `?since=12m\|all`, with what that leaves out); orders booked vs last year; open value by order age, salesperson and top 20 customers; monthly orders booked vs last year; open order lines (top 1,000, CSV); non-AED currency note                                                                                                                                                            |
+| Snapshot     | `/snapshot`         | all of the above                                                                               | Preview of today's daily snapshot email, exactly as it would be sent (HTML and plain text); not in the sidebar. See [Daily snapshot email](#daily-snapshot-email)                                                                                                                                                                                                                                                                                                                                                                           |
+| Purchasing   | `/purchasing`       | `ZF_PO_PENDING_BI`, `ZF_CPR_BI`                                                                | Pending PO value, open lines, overdue value and % (as of today; orders placed in the last 2 years by default, `?since=12m\|all`, with what that leaves out); receipts spend vs last year; pending value by aging bucket, top 20 suppliers and company; overdue PO lines (top 1,000, CSV); monthly receipts spend vs last year; top 20 suppliers by spend; zero-exchange-rate warning                                                                                                                                                        |
+| Customer     | `/customers/[code]` | `ZF_CUSTOMER`, `ZF_CSL_BI`, `ZF_SOA_DETL_CUST_INV_SM_BI`, `ZF_SO_BI`                           | One customer: net revenue and GM % vs last year, AR outstanding and over 90 days, open order value; monthly revenue vs last year; top items; AR aging and open documents; open order lines; returns. Not in the sidebar: reached from the top-bar search (Ctrl/⌘+K) and the linked customer names in the dashboards. See [Customer page and search](#customer-page-and-search)                                                                                                                                                              |
+| Item         | `/items/[code]`     | `ZF_ITEM`, `ZF_CSL_BI`, `ZF_CURR_STK_BI`, `ZF_STK_MTH_SUMM_BI`, `ZF_PO_PENDING_BI`, `ZF_SO_BI` | One item: units sold, net revenue and GM % vs last year, average monthly units and months of cover; stock on hand, available, reserved, on order (POs) and to deliver (orders), as of today; monthly units and revenue vs last year; stock by company and location; month-end stock; pending PO lines and open order lines (following the order-age choice, `?since=`); top customers; reorder badge. Not in the sidebar: reached from the search and the linked item names. See [Item page](#item-page)                                    |
 
 ## Setup
 
@@ -121,17 +122,19 @@ about 0.1 s on Orion. The AR documents (200), open order lines (1,000) and retur
 capped, largest first, and say so.
 
 **Search.** The search button in the top bar, or Ctrl+K (⌘K on a Mac), opens a dialog that finds
-customers by part of their name or code and opens their page with the current filters.
+customers by part of their name or code, and items by part of their description or code
+(`ZF_ITEM`), in separate groups, and opens the chosen page with the current filters.
 
 ```
 GET /api/search?q=noor
-→ { "ok": true, "data": [{ "kind": "customer", "code": "C0017", "name": "Al Noor Contracting 17", "detail": "SHARJAH" }] }
+→ { "ok": true, "data": [{ "kind": "customer", "code": "C0017", "name": "Al Noor Contracting 17", "detail": "SHARJAH" },
+                         { "kind": "item", "code": "IT00065", "name": "Sample item 065", "detail": "Equipment" }] }
 ```
 
 `q` needs at least 2 characters (400 otherwise), is only ever bound, and `%` and `_` match
-literally. At most 20 results, best first (exact code, then code or name prefix, then the rest by
-name). Each result has a `kind`, so items can join the same results later. Behind sign-in like
-every other route.
+literally. At most 20 customers and 20 items (one per item code), customers first, each best first
+(exact code, then code or name prefix, then the rest by name); `kind` says which. Behind sign-in
+like every other route.
 
 **Links.** `DataTable` columns take a `linkKey`: the row field holding a link for that cell. The
 customer names in Receivables top customers (grouped by code), Sales top customers, Sales orders
@@ -139,6 +142,41 @@ top customers and the open order lines link to the customer page. Sales and Sale
 customers by name, as reconciled; a name links only when one master code carries it. On Orion a
 chain can have dozens of branch codes under one name, and its row adds them all up, so those rows
 stay plain text.
+
+## Item page
+
+`/items/<code>` shows one item, by its Orion code (`ZF_ITEM.IM_ITEM_CODE`, encoded in the URL: codes
+can hold `/`, `#`, `&` or spaces). Sales follow the period; stock, pending POs and open orders are
+as of today and follow only the company filter. The header shows the item group, stock and frozen
+flags and the reorder planning fields (min, max, reorder level and quantity, lead time), per company
+when the master's rows differ. An unknown code shows an "Item not found" state.
+
+- **Months of cover** = available stock (on hand − reserved, all locations of the selected
+  companies) ÷ the average monthly units sold over the last 12 months (net of returns, same
+  companies). Shown as "No recent sales" when that average is 0 or below; no available stock is 0.
+- **Units sold** = `SUM(CSL_QTY)` over the revenue rows (`INV` + `SARTN`). Orion puts the quantity on
+  the delivery note and none on the invoice raised from it, so nothing counts twice.
+- **Reorder badge**: shown when the item has a row in Inventory's reorder alerts (active item,
+  available at a location at or below its reorder level).
+- **On order** uses Purchasing's pending-line rule (`PO_CLO_STATUS = 0 AND PO_PEND_QTY > 0`), with
+  expected date = PO date + 84 days; **to deliver** uses the open book of Sales orders (Closed orders
+  out), in any currency since quantities add up across currencies. Order values are listed in the
+  order's currency. Both follow the order-age toggle (`?since=`, last 2 years by default) as on
+  Purchasing and Sales orders, and item links from those pages keep it.
+
+Every figure comes from the dashboards' own queries with the item code added as a bind
+(`CSL_ITEM_CODE`, `CS_ITEM_CODE`, `ZSL_ITEM_CODE`, `PO_ITEM_CODE` and `D_ITEM_CODE` are all
+`IM_ITEM_CODE`s on Orion), so an item's stock value is its share of Inventory's and its net revenue
+equals its row in Sales top items. Every section takes under about 1 s cold on Orion (the month-end
+trend is the slowest), so none needed its own boundary beyond the usual one per section.
+
+**Links.** Item names link to the item page in Sales top items and the customer page's top items
+(grouped by name: linked when one master code carries the name, as for customers), Inventory dead
+stock and reorder alerts, Purchasing overdue PO lines, Sales orders open lines and the customer
+page's open order lines (all by code). Purchasing's top suppliers, receipts and the other charts
+group by supplier or group, not item, so there is nothing to link there.
+
+![Item page](docs/screenshots/item-light.png)
 
 ## Daily snapshot email
 
@@ -295,8 +333,9 @@ app/
   purchasing/           Purchasing page and sections, same pattern
   finance/              Finance page, sections, P&L statement table and journal-line side panel
   api/finance/journal-lines/route.ts   GET endpoint the drill-down panel reads (shared filters)
-  api/search/route.ts   GET endpoint the top-bar search reads (customers by name or code)
+  api/search/route.ts   GET endpoint the top-bar search reads (customers and items by name or code)
   customers/[code]/     the customer page (not in the sidebar) and its sections
+  items/[code]/         the item page (not in the sidebar) and its sections
   api/health/route.ts   open health check: version, commit, data source, Orion ping (5 s)
   api/cron/             scheduled-job endpoints, Bearer CRON_SECRET instead of sign-in
   api/cron/snapshot/route.ts   POST endpoint that builds and sends the daily snapshot email
@@ -330,7 +369,7 @@ lib/
     overview.ts         overviewFigures(): the Overview's figures, for the page and the snapshot email
     snapshot/           snapshot email builder (email.ts), file and Graph transports, token check
     queries/            one module per Orion domain (common.ts, sales.ts, inventory.ts, finance.ts,
-                        purchasing.ts, ar-ap.ts, sales-orders.ts, customers.ts)
+                        purchasing.ts, ar-ap.ts, sales-orders.ts, customers.ts, items.ts)
 data/sample/            sample fixtures, one CSV per view (plus FM_COMPANY and ZF_CUSTOMER)
 deploy/snapshot-task.ps1  registers the daily snapshot as a Windows scheduled task
 deploy/warm-task.ps1    registers the cache warm-up (every 10 minutes) as a Windows scheduled task

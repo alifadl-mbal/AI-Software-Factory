@@ -1,6 +1,11 @@
-IM_COMP_CODE,IM_ITEM_CODE,IM_ITEM_NAME,IM_FRZ_FLAG,IM_ABC,IM_MIN_STK,IM_MAX_STK,IM_RORD_LVL,IM_RORD_QTY
-101,I1,Item One,Active,A,0,0,0,0
-101,I2,Item Two,Freeze,A,5,50,10,15
-102,I3,Item Three,Active,A,2,40,5,20
-102,I4,Item Four,Active,A,0,0,0,0
-101,I5,Item Five,Active,C,2,30,6,12
+IM_COMP_CODE,IM_ITEM_CODE,IM_ITEM_NAME,IM_GROUP_NAME,IM_STK_YN,IM_FRZ_FLAG,IM_ABC,IM_MIN_STK,IM_MAX_STK,IM_RORD_LVL,IM_RORD_QTY,IM_LEAD_TIME
+101,I1,Item One,Group 1,Stock,Active,A,0,0,0,0,0
+101,I2,Item Two,Group 2,Stock,Freeze,A,5,50,10,15,90
+102,I3,Item Three,Group 2,Stock,Active,A,2,40,5,20,56
+102,I4,Item Four,,Stock,Active,A,0,0,0,0,
+101,I5,Item Five,Group 1,Stock,Active,C,2,30,6,12,30
+102,I1,Item One,Group 1,Stock,Freeze,A,1,20,4,8,30
+101,IX,Item X,Group 1,Stock,Active,A,0,0,0,0,0
+102,IX2,Item X,Group 2,Non Stock,Active,A,0,0,0,0,0
+101,IY,Item Y,Group 1,Stock,Active,A,0,0,0,0,0
+101,A/B #1&2,Bolt 100% steel_x,Group 1,Stock,Active,A,0,0,0,0,0

@@ -49,8 +49,8 @@ export interface Customer {
   frozen: boolean;
 }
 
-/** What one search result is: customers now; items follow with the item page. */
-export type SearchKind = "customer";
+/** What one search result is; the item search is in `queries/items.ts`. */
+export type SearchKind = "customer" | "item";
 
 export interface SearchResult {
   kind: SearchKind;

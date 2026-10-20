@@ -12,6 +12,7 @@ import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { isCustomerPath } from "@/lib/customers";
+import { isItemPath } from "@/lib/items";
 import { OVERVIEW, SNAPSHOT, dashboardForPath } from "@/lib/dashboards";
 import type { Company } from "@/lib/server/queries/common";
 
@@ -106,7 +107,9 @@ export function TopBar({
     ? SNAPSHOT.title
     : isCustomerPath(pathname)
       ? "Customer"
-      : (dashboard?.title ?? OVERVIEW.title);
+      : isItemPath(pathname)
+        ? "Item"
+        : (dashboard?.title ?? OVERVIEW.title);
 
   return (
     <header className="sticky top-0 z-20 border-b bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/70">

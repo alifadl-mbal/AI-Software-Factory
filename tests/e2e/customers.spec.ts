@@ -1,7 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
-import { aedNumber, kpiFull, waitForData, watchConsole } from "./helpers";
+import { aedNumber, kpiFull, openSearchByKeyboard, waitForData, watchConsole } from "./helpers";
 
 // In the sample data, customer C0034 (Summit Hotel 34) has sales, open AR and open AED orders under
 // the same code, as every customer does on Orion.
@@ -19,10 +19,8 @@ test("search → customer page → back, by keyboard, keeping the filters", asyn
   await page.goto("/sales?range=12m&company=101,104");
   await waitForData(page);
 
-  await page.keyboard.press("ControlOrMeta+k");
-  const dialog = page.getByRole("dialog", { name: "Search customers" });
-  await expect(dialog).toBeVisible();
-  const input = dialog.getByRole("combobox", { name: "Customer name or code" });
+  const dialog = await openSearchByKeyboard(page);
+  const input = dialog.getByRole("combobox", { name: "Customer or item name, or code" });
   await expect(input).toBeFocused();
   await input.pressSequentially("summit hotel 3");
   await expect(dialog.getByTestId("search-result").first()).toContainText(NAME);
@@ -48,7 +46,7 @@ test("short or unmatched searches say so; Escape closes", async ({ page }) => {
   await input.fill("s");
   await expect(dialog).toContainText("Type at least 2 characters");
   await input.fill("zzzz nobody");
-  await expect(dialog).toContainText("No customer matches “zzzz nobody”");
+  await expect(dialog).toContainText("No customer or item matches “zzzz nobody”");
   await page.keyboard.press("Escape");
   await expect(dialog).toHaveCount(0);
 });
@@ -156,7 +154,7 @@ test.describe("mobile 390px", () => {
       page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     expect(await overflow()).toBeLessThanOrEqual(0);
     await page.getByRole("button", { name: "Search customers" }).click();
-    await page.getByRole("combobox", { name: "Customer name or code" }).fill("summit");
+    await page.getByRole("combobox", { name: "Customer or item name, or code" }).fill("summit");
     await expect(page.getByTestId("search-result").first()).toBeVisible();
     expect(await overflow()).toBeLessThanOrEqual(0);
   });
@@ -168,7 +166,7 @@ for (const theme of ["light", "dark"] as const) {
     await page.goto(`/customers/${CODE}`);
     await waitForData(page);
     await page.getByTestId("search-trigger").click();
-    await page.getByRole("combobox", { name: "Customer name or code" }).fill("summit");
+    await page.getByRole("combobox", { name: "Customer or item name, or code" }).fill("summit");
     await expect(page.getByTestId("search-result").first()).toBeVisible();
     for (const scope of ["page with dialog", "page"]) {
       const results = await new AxeBuilder({ page }).analyze();

@@ -27,7 +27,7 @@ import {
 import { cn } from "@/lib/utils";
 
 import { EmptyState } from "./empty-state";
-import { formatValue, type ValueFormat } from "./value-format";
+import { formatValue, isNumericFormat, type ValueFormat } from "./value-format";
 
 /** A column, described with plain data so server components can pass it in. */
 export interface ColumnSpec {
@@ -79,7 +79,7 @@ function download(fileName: string, text: string) {
   URL.revokeObjectURL(url);
 }
 
-const isNumeric = (format: ValueFormat | undefined) => format !== undefined && format !== "text";
+const isNumeric = isNumericFormat;
 
 /** Sortable, searchable, paginated table with a sticky header and CSV export. */
 export function DataTable({

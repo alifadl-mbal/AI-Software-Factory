@@ -25,14 +25,22 @@ const CONFIG = {
 } satisfies ChartConfig;
 
 /** Monthly values for this period (bars) against the same months last year (line). */
-export function TrendChart({ data, height = 300 }: { data: TrendPoint[]; height?: number }) {
+export function TrendChart({
+  data,
+  height = 300,
+  ariaLabel = "Monthly net revenue, this year compared with last year",
+}: {
+  data: TrendPoint[];
+  height?: number;
+  ariaLabel?: string;
+}) {
   return (
     <ChartContainer
       config={CONFIG}
       className="aspect-auto w-full"
       style={{ height }}
       role="img"
-      aria-label="Monthly net revenue, this year compared with last year"
+      aria-label={ariaLabel}
     >
       <ComposedChart data={data} margin={{ top: 8, right: 8, left: 4, bottom: 0 }}>
         <CartesianGrid vertical={false} strokeDasharray="3 3" />

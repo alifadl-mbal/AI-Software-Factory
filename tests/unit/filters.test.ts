@@ -122,3 +122,12 @@ describe("URL filters", () => {
     expect(monthsInRange("2025-11-15", "2026-02-01")).toEqual(["2025-11", "2025-12", "2026-01", "2026-02"]);
   });
 });
+
+describe("daysBetween", () => {
+  it("counts whole days across months and leap years", async () => {
+    const { daysBetween } = await import("@/lib/filters");
+    expect(daysBetween("2025-04-07", "2025-06-30")).toBe(84);
+    expect(daysBetween("2024-02-28", "2024-03-01")).toBe(2);
+    expect(daysBetween("2025-06-30", "2025-06-29")).toBe(-1);
+  });
+});

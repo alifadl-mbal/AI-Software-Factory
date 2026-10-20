@@ -1,0 +1,36 @@
+# HTTPS in front of MBAL BI. Caddy (https://caddyserver.com) runs on the same machine as the
+# app and forwards to it on 127.0.0.1, so the app itself is never reachable over plain http.
+# See docs/deployment.md, "HTTPS".
+#
+# Copy to C:\caddy\Caddyfile and adjust the three marked lines. Use forward slashes in paths.
+
+bi.mbal.local {
+	# 1. The certificate for bi.mbal.local from MBAL's internal CA (PEM files: certificate with
+	#    the chain, and its private key). Every office PC already trusts that CA.
+	tls C:/caddy/certs/bi.mbal.local.crt C:/caddy/certs/bi.mbal.local.key
+	#    No internal CA? Use Caddy's own instead, then install its root certificate on the PCs
+	#    (see docs/deployment.md):
+	# tls internal
+
+	encode zstd gzip
+
+	# 2. The port given to deploy\install.ps1 (-Port, default 3000).
+	# Caddy sets X-Forwarded-For/Proto/Host, which sign-in uses to build its redirect URLs.
+	reverse_proxy 127.0.0.1:3000
+
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		X-Frame-Options DENY
+		-Server
+	}
+
+	# 3. Access log for the proxy; the app logs to C:\MbalBI\logs.
+	log {
+		output file C:/caddy/logs/access.log {
+			roll_size 10MiB
+			roll_keep 10
+		}
+	}
+}

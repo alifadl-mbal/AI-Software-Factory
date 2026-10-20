@@ -38,6 +38,36 @@ function pool(): Promise<oracledb.Pool> {
   return poolPromise;
 }
 
+/**
+ * Whether Orion answers a round trip within `timeoutMs`. Never throws; the reason for a failure
+ * goes to the server log only.
+ */
+export async function pingOracle(timeoutMs: number): Promise<boolean> {
+  let timer: NodeJS.Timeout | undefined;
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new Error(`no answer within ${timeoutMs} ms`)), timeoutMs);
+  });
+  const ping = (async () => {
+    const connection = await (await pool()).getConnection();
+    try {
+      await connection.ping();
+    } finally {
+      await connection.close();
+    }
+  })();
+  // A ping that finishes after the timeout must not surface as an unhandled rejection.
+  ping.catch(() => {});
+  try {
+    await Promise.race([ping, timeout]);
+    return true;
+  } catch (error) {
+    console.error(`[mbal-bi] health ping failed: ${error instanceof Error ? error.message : String(error)}`);
+    return false;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 /** Run one read-only query on live Orion (node-oracledb thin mode, pooled). */
 export async function queryOracle<T extends Row = Row>(sql: string, binds: Binds = {}): Promise<T[]> {
   ensureReadOnly(sql);

@@ -17,6 +17,7 @@ import type { Company } from "@/lib/server/queries/common";
 import { CompanySelect, CompanySelectFallback } from "./company-select";
 import { DateRangePicker } from "./date-range-picker";
 import { useShell } from "./shell-context";
+import { UserMenu, type SignedInUser } from "./user-menu";
 
 function formatTime(iso: string): string {
   return new Date(iso).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
@@ -84,8 +85,17 @@ function RefreshButton() {
   );
 }
 
-/** The bar above every page: navigation toggle, page title, filters, refresh and theme. */
-export function TopBar({ companies, sample }: { companies: Promise<Company[]>; sample: boolean }) {
+/** The bar above every page: navigation toggle, page title, filters, refresh, theme and user. */
+export function TopBar({
+  companies,
+  sample,
+  user,
+}: {
+  companies: Promise<Company[]>;
+  sample: boolean;
+  /** The signed-in user; null while sign-in is off. */
+  user: SignedInUser | null;
+}) {
   const pathname = usePathname();
   const dashboard = dashboardForPath(pathname);
   // The snapshot preview isn't a dashboard: it always covers all companies and fixed periods.
@@ -121,6 +131,7 @@ export function TopBar({ companies, sample }: { companies: Promise<Company[]>; s
         <div className="ml-auto flex items-center gap-1 md:ml-0">
           <RefreshButton />
           <ThemeToggle />
+          {user && <UserMenu user={user} />}
         </div>
       </div>
     </header>

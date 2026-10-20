@@ -28,7 +28,9 @@ npm run dev            # http://localhost:3000, or $PORT if set
 
 `PORT=4000 npm run dev` serves on port 4000 (PowerShell: `$env:PORT=4000; npm run dev`).
 
-For production: `npm run build && npm start` (also honours `$PORT`).
+For production: `npm run build && npm start` (also honours `$PORT`). To run it for the team on
+the office network, as a Windows service behind HTTPS with Microsoft sign-in, follow
+[docs/deployment.md](docs/deployment.md).
 
 ## Data sources
 
@@ -63,19 +65,31 @@ about 17 s.
 
 ## Environment variables
 
-| Variable           | Required    | Meaning                                       |
-| ------------------ | ----------- | --------------------------------------------- |
-| `MBAL_DATA_SOURCE` | no          | `sample` (default) or `oracle`                |
-| `ORACLE_USER`      | oracle mode | Orion user                                    |
-| `ORACLE_PASSWORD`  | oracle mode | Orion password                                |
-| `ORACLE_DSN`       | oracle mode | Easy Connect string, `host:port/service_name` |
-| `PORT`             | no          | Port for `npm run dev` / `npm start`          |
+| Variable                            | Required    | Meaning                                                                    |
+| ----------------------------------- | ----------- | -------------------------------------------------------------------------- |
+| `MBAL_DATA_SOURCE`                  | no          | `sample` (default) or `oracle`                                             |
+| `ORACLE_USER`                       | oracle mode | Orion user                                                                 |
+| `ORACLE_PASSWORD`                   | oracle mode | Orion password                                                             |
+| `ORACLE_DSN`                        | oracle mode | Easy Connect string, `host:port/service_name`                              |
+| `PORT`                              | no          | Port for `npm run dev` / `npm start`                                       |
+| `AUTH_SECRET`                       | for sign-in | Random secret that encrypts the session cookie (32+ bytes)                 |
+| `AUTH_MICROSOFT_ENTRA_ID_ID`        | for sign-in | Entra app registration: Application (client) ID                            |
+| `AUTH_MICROSOFT_ENTRA_ID_SECRET`    | for sign-in | Entra app registration: client secret value                                |
+| `AUTH_MICROSOFT_ENTRA_ID_TENANT_ID` | for sign-in | MBAL's Directory (tenant) ID; only accounts in it can sign in              |
+| `AUTH_URL`                          | for sign-in | Public address, e.g. `https://bi.mbal.local` (http only for local testing) |
+| `AUTH_ALLOWED_GROUP`                | no          | Entra group object id; only its members get in (empty: the whole tenant)   |
+| `CRON_SECRET`                       | for cron    | Bearer token for `/api/cron/*`; empty rejects every call                   |
+
+Sign-in is on once the first four `AUTH_*` variables are all set. Without them sample mode works
+exactly as before (no sign-in), `next dev` in oracle mode shows a warning banner, and `next start`
+in oracle mode serves **no data**: every page shows "Sign-in is not configured" and the APIs
+answer 503. Live figures are never served without sign-in.
 
 The daily snapshot email adds these (see [Daily snapshot email](#daily-snapshot-email)):
 
 | Variable                 | Required      | Meaning                                                                         |
 | ------------------------ | ------------- | ------------------------------------------------------------------------------- |
-| `CRON_SECRET`            | for the email | Bearer token for `POST /api/cron/snapshot`; without it the endpoint answers 503 |
+| `CRON_SECRET`            | for the email | Bearer token for `POST /api/cron/snapshot` (see above); without it, 401         |
 | `APP_URL`                | in production | Where the dashboards live, for the email's links (e.g. `https://bi.mbal.local`) |
 | `SNAPSHOT_TRANSPORT`     | no            | `file` (default) or `graph`                                                     |
 | `SNAPSHOT_DIR`           | no            | Folder the `file` transport writes to; default `./snapshots` (git-ignored)      |
@@ -126,11 +140,11 @@ POST /api/cron/snapshot
 Authorization: Bearer <CRON_SECRET>
 ```
 
-The token is compared in constant time. A wrong or missing token gets **401**, `GET` gets **405**,
-an unset `CRON_SECRET` **503**, and a failed send **502** (logged with the step and Graph's error
-code, never a secret or token). On success it answers `{ ok, date, subject, transport, recipients,
-files?, unavailable }`. The route checks the token itself, whether or not sign-in covers
-`/api/cron/*`.
+The token is compared in constant time. A wrong or missing token gets **401** (so does every call
+while `CRON_SECRET` is unset: the gate in `proxy.ts` refuses it before the route runs), `GET` gets
+**405**, and a failed send **502** (logged with the step and Graph's error code, never a secret or
+token). On success it answers `{ ok, date, subject, transport, recipients, files?, unavailable }`.
+The route checks the token itself as well, so it stays safe even without the gate.
 
 ### Transports
 
@@ -203,9 +217,12 @@ with the token. Run it in an elevated PowerShell on the server:
 | `npm test`          | Vitest unit tests (guard, SQL numbers, binds, formatting)   |
 | `npm run test:e2e`  | Playwright against the production build (run `build` first) |
 
-`test:e2e` starts two servers: sample mode on `E2E_PORT` (default 3100), and oracle mode with an
-unreachable DSN on `E2E_ORACLE_PORT` (default `E2E_PORT + 1`) to check the error card.
-`E2E_SUITE=sample` or `E2E_SUITE=oracle` runs only one. CI runs everything in sample mode on every
+`test:e2e` starts three servers: sample mode without sign-in on `E2E_PORT` (default 3100); oracle
+mode with an unreachable DSN and sign-in configured with a dummy tenant on `E2E_ORACLE_PORT`
+(default `E2E_PORT + 1`), for the sign-in gate, the cron token, health and the error card (tests
+mint a session cookie with the test `AUTH_SECRET`, so nothing reaches Microsoft); and oracle mode
+without sign-in on `E2E_LOCKED_PORT` (default `E2E_PORT + 2`), which must serve no data.
+`E2E_SUITE=sample` runs only the first, `E2E_SUITE=oracle` the other two. CI runs everything in sample mode on every
 push and pull request.
 
 ## How it fits together
@@ -219,9 +236,16 @@ app/
   purchasing/           Purchasing page and sections, same pattern
   finance/              Finance page, sections, P&L statement table and journal-line side panel
   api/finance/journal-lines/route.ts   GET endpoint the drill-down panel reads (shared filters)
+  api/health/route.ts   open health check: version, commit, data source, Orion ping (5 s)
+  api/cron/             scheduled-job endpoints, Bearer CRON_SECRET instead of sign-in
   api/cron/snapshot/route.ts   POST endpoint that builds and sends the daily snapshot email
+  api/auth/             Auth.js (Microsoft Entra ID) sign-in and callback
+  sign-in/, no-access/, not-configured/   the pages shown before the dashboards
   snapshot/             preview of today's snapshot email (not in the sidebar)
   actions.ts            Refresh server action (clears the cache)
+proxy.ts                the gate in front of every page and API (Next 16 middleware)
+auth.ts                 Auth.js config: Entra ID, single tenant, group check, 10-hour sessions
+deploy/                 Windows service scripts (install/update/uninstall, WinSW) and Caddyfile
 components/
   dashboard/            KpiCard, ChartCard, TrendChart, PnlChart, BarBreakdown, DataTable, EmptyState,
                         ErrorCard, skeletons, PageHeader: reuse these in every dashboard
@@ -233,6 +257,7 @@ lib/
   format.ts             AED, number, percent and delta formatting
   notes.ts              currency notes shared by the pages and the snapshot email
   server/               server-only data layer
+    access.ts           who may see what: sign-in on/off, locked mode, group and cron checks
     db.ts               runQuery(sql, binds): guard -> cache -> oracle or sample
     guard.ts            read-only SQL guard
     errors.ts           DataSourceError and friendly Oracle error messages

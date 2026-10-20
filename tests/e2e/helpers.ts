@@ -1,4 +1,33 @@
-import { expect, type Page } from "@playwright/test";
+import { expect, type BrowserContext, type Page } from "@playwright/test";
+
+import { E2E_AUTH, E2E_GROUP } from "./auth-env";
+
+/** The session cookie's name over plain http (the e2e server's AUTH_URL). */
+const SESSION_COOKIE = "authjs.session-token";
+
+/**
+ * Sign a user in without Microsoft: mint the encrypted session cookie Auth.js would set after
+ * the Entra callback. `member: false` leaves them out of AUTH_ALLOWED_GROUP.
+ */
+export async function signIn(
+  context: BrowserContext,
+  baseURL: string,
+  { member = true, name = "Test User" }: { member?: boolean; name?: string } = {},
+) {
+  const { encode } = await import("next-auth/jwt");
+  const value = await encode({
+    salt: SESSION_COOKIE,
+    secret: E2E_AUTH.AUTH_SECRET,
+    token: {
+      name,
+      email: "test.user@mbal.example",
+      sub: "e2e-user",
+      signedInAt: Date.now(),
+      groups: member ? [E2E_GROUP] : [],
+    },
+  });
+  await context.addCookies([{ name: SESSION_COOKIE, value, url: baseURL, httpOnly: true, sameSite: "Lax" }]);
+}
 
 /** Every page, with how many KPI cards it shows and one money KPI that must have a value. */
 export const PAGES = [

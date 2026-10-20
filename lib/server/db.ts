@@ -2,7 +2,8 @@ import "server-only";
 
 import { todayIso } from "@/lib/filters";
 
-import { CACHE_TTL_MS, dataSource, type DataSourceMode } from "./config";
+import { accessMode } from "./access";
+import { CACHE_TTL_MS, ConfigError, dataSource, type DataSourceMode } from "./config";
 import { DataSourceError, friendlyMessage } from "./errors";
 import { ensureReadOnly } from "./guard";
 import { SampleSource } from "./sample";
@@ -61,6 +62,10 @@ function cacheKey(mode: DataSourceMode, sql: string, binds: Binds): string {
 export async function runQuery<T extends Row = Row>(sql: string, binds: Binds = {}): Promise<T[]> {
   try {
     ensureReadOnly(sql);
+    // Live figures are never served without sign-in, whatever reaches this far.
+    if (accessMode() === "locked") {
+      throw new ConfigError("Sign-in is not configured, so MBAL BI serves no data. See docs/deployment.md.");
+    }
     const mode = dataSource();
     const key = cacheKey(mode, sql, binds);
     const now = Date.now();

@@ -2,10 +2,21 @@ import "server-only";
 
 import { addDays, daysBetween, monthsInRange, previousYear, shiftMonth, type Filters } from "@/lib/filters";
 import { orderAgeCutoff, type OrderAge } from "@/lib/order-age";
+import type { DocumentKey } from "@/lib/sales-drill";
 
+import { BRAND_MAP } from "../brand-map";
 import { run } from "../db";
-import { ALL_OTHER, companyWhere, filterWhere, labelOrUnassigned, num } from "../sql";
+import {
+  ALL_OTHER,
+  companyWhere,
+  filterWhere,
+  labelOrUnassigned,
+  num,
+  salesWhere,
+  type SalesColumns,
+} from "../sql";
 import type { Binds, Query } from "../types";
+import { companies as loadCompanies } from "./common";
 
 /**
  * Purchasing dashboard queries on two views:
@@ -30,11 +41,16 @@ import type { Binds, Query } from "../types";
  *   older lines and flags them instead (`in_scope`), so one round trip also says what is left out.
  *
  * Receipts, `MBALI.ZF_CPR_BI`, one row per goods-receipt line, dated `CPR_DATE`; follows both
- * filters.
+ * filters. A receipt document is `CPR_COMP_CODE` + `CPR_TXN_CODE` + `CPR_NO` (a GRN, or a return to
+ * supplier).
  * - Spend = `SUM(CPR_LANDED_VALUE)` (AED). Returns to supplier (`CPR_SIGN = -1`) are already
  *   negative, so they reduce spend by themselves.
  * - A non-AED line with `CPR_EXGE_RATE = 0` has its AED value silently zeroed: those are reported
  *   as a data-quality warning, with their foreign-currency value.
+ *
+ * Brand filter: both views carry the item code (`PO_ITEM_CODE`, `CPR_CODE`, the code space of
+ * `ZF_ITEM.IM_ITEM_CODE`), so the brand filter applies to every figure through the same per-item
+ * map as Sales (`lib/server/brand-map.ts`). Neither view has a salesperson, so that filter doesn't.
  */
 
 const PENDING_VIEW = "MBALI.ZF_PO_PENDING_BI";
@@ -44,6 +60,22 @@ const PENDING_LINE = "PO_CLO_STATUS = 0 AND PO_PEND_QTY > 0";
 const PENDING_VALUE = "(NVL(PO_LC_VAL, 0) - NVL(PO_LC_DISC, 0)) * PO_PEND_QTY / NULLIF(PO_QTY, 0)";
 const SPEND = "NVL(CPR_LANDED_VALUE, 0)";
 const ZERO_RATE = "CPR_CURR_CODE <> 'AED' AND NVL(CPR_EXGE_RATE, 0) = 0";
+/** Brand applies through the item code; neither view has a salesperson. */
+const PENDING_COLUMNS: SalesColumns = { item: "PO_ITEM_CODE" };
+const RECEIPT_COLUMNS: SalesColumns = { item: "CPR_CODE" };
+/** The receipts view with each line's brand (`CPR_BRAND_NAME`), for the brand breakdown only. */
+const RECEIPTS_WITH_BRAND = `(
+    SELECT cpr.*, brand_map.brand_name AS CPR_BRAND_NAME
+    FROM ${RECEIPTS_VIEW} cpr
+    LEFT JOIN (${BRAND_MAP}) brand_map ON brand_map.item_code = TRIM(cpr.CPR_CODE)
+) cpr_brand`;
+
+/**
+ * What the pending queries follow: company codes alone (every brand, as the Overview and the item
+ * page ask), or the page's filters, whose brand also narrows them.
+ */
+export type PendingScope =
+  readonly string[] | (Pick<Filters, "companies"> & Partial<Pick<Filters, "brands">>);
 
 /** Days from PO date to expected delivery. */
 export const PO_LEAD_DAYS = 84;
@@ -92,11 +124,19 @@ function bucketCase(today: string): { sql: string; binds: Binds } {
   return { sql: `CASE ${branches.join(" ")} ELSE '${last}' END`, binds };
 }
 
+function isCodeList(scope: PendingScope): scope is readonly string[] {
+  return Array.isArray(scope);
+}
+
 /** With `item`, only that item's lines (`PO_ITEM_CODE`, the code space of `ZF_ITEM.IM_ITEM_CODE`). */
-function pendingWhere(companies: readonly string[], item?: string): { sql: string; binds: Binds } {
-  const company = companyWhere(companies, "PO_COMP_CODE");
-  const clauses = [PENDING_LINE, ...(company ? [company.sql] : [])];
-  const binds: Binds = { ...company?.binds };
+function pendingWhere(scope: PendingScope, item?: string): { sql: string; binds: Binds } {
+  const filters: Exclude<PendingScope, readonly string[]> = isCodeList(scope)
+    ? { companies: [...scope] }
+    : scope;
+  const company = companyWhere(filters.companies, "PO_COMP_CODE");
+  const brand = salesWhere(filters, PENDING_COLUMNS);
+  const clauses = [PENDING_LINE, ...(company ? [company.sql] : []), ...(brand ? [brand.sql] : [])];
+  const binds: Binds = { ...company?.binds, ...brand?.binds };
   if (item !== undefined) {
     clauses.push("PO_ITEM_CODE = :item_code");
     binds.item_code = item;
@@ -113,7 +153,7 @@ const IN_SCOPE = "PO_DATE >= TO_DATE(:since_date, 'YYYY-MM-DD')";
  * `item`, only that item's lines.
  */
 function pendingLines(
-  companies: readonly string[],
+  companies: PendingScope,
   today: string,
   age: OrderAge,
   columns: string[] = [],
@@ -187,7 +227,7 @@ export interface OverdueLine {
   pendingValue: number;
 }
 
-export function pendingKpiQuery(companies: readonly string[], today: string, age: OrderAge): Query {
+export function pendingKpiQuery(companies: PendingScope, today: string, age: OrderAge): Query {
   const lines = pendingLines(companies, today, age, [], { flagScope: true });
   return {
     sql: `
@@ -203,7 +243,7 @@ FROM (${lines.sql}
   };
 }
 
-export function pendingByBucketQuery(companies: readonly string[], today: string, age: OrderAge): Query {
+export function pendingByBucketQuery(companies: PendingScope, today: string, age: OrderAge): Query {
   const lines = pendingLines(companies, today, age);
   return {
     sql: `
@@ -216,7 +256,7 @@ GROUP BY bucket`,
 }
 
 export function pendingBySupplierQuery(
-  companies: readonly string[],
+  companies: PendingScope,
   today: string,
   age: OrderAge,
   topN = TOP_N,
@@ -230,7 +270,7 @@ export function pendingBySupplierQuery(
   return foldTopN(grouped, lines.binds, topN);
 }
 
-export function pendingByCompanyQuery(companies: readonly string[], today: string, age: OrderAge): Query {
+export function pendingByCompanyQuery(companies: PendingScope, today: string, age: OrderAge): Query {
   const lines = pendingLines(companies, today, age, ["PO_COMP_CODE AS company_code"]);
   return {
     sql: `
@@ -245,7 +285,7 @@ ORDER BY amount DESC, company_code`,
 
 /** The largest overdue lines by pending value, at most `limit`. */
 export function overdueLinesQuery(
-  companies: readonly string[],
+  companies: PendingScope,
   today: string,
   age: OrderAge,
   limit = OVERDUE_ROW_LIMIT,
@@ -278,7 +318,7 @@ ORDER BY rn`,
 
 /** Headline pending-PO figures as of `today`, on orders placed since the `age` cut-off. */
 export async function pendingKpis(
-  companies: readonly string[],
+  companies: PendingScope,
   today: string,
   age: OrderAge,
 ): Promise<PendingKpis> {
@@ -298,7 +338,7 @@ export async function pendingKpis(
 
 /** Pending value in every bucket, in bucket order; empty buckets are zero. */
 export async function pendingByBucket(
-  companies: readonly string[],
+  companies: PendingScope,
   today: string,
   age: OrderAge,
 ): Promise<LabelValue[]> {
@@ -309,7 +349,7 @@ export async function pendingByBucket(
 
 /** Pending value of the top suppliers; the last row may be 'All other'. */
 export async function pendingBySupplier(
-  companies: readonly string[],
+  companies: PendingScope,
   today: string,
   age: OrderAge,
   topN = TOP_N,
@@ -320,7 +360,7 @@ export async function pendingBySupplier(
 
 /** Pending value per company code, largest first. */
 export async function pendingByCompany(
-  companies: readonly string[],
+  companies: PendingScope,
   today: string,
   age: OrderAge,
 ): Promise<LabelValue[]> {
@@ -329,7 +369,7 @@ export async function pendingByCompany(
 }
 
 export async function overdueLines(
-  companies: readonly string[],
+  companies: PendingScope,
   today: string,
   age: OrderAge,
   limit = OVERDUE_ROW_LIMIT,
@@ -384,7 +424,7 @@ export interface ItemPending {
  * (the same pending-line rule and value as the dashboard, so the value is the item's share of it).
  */
 export function itemPendingQuery(
-  companies: readonly string[],
+  companies: PendingScope,
   today: string,
   age: OrderAge,
   item: string,
@@ -424,7 +464,7 @@ ORDER BY rn`,
 }
 
 export async function itemPending(
-  companies: readonly string[],
+  companies: PendingScope,
   today: string,
   age: OrderAge,
   item: string,
@@ -479,7 +519,7 @@ export interface ZeroRateCurrency {
 }
 
 function receiptsWhere(filters: Filters): { sql: string; binds: Binds } {
-  return filterWhere(filters, "CPR_DATE", "CPR_COMP_CODE");
+  return filterWhere(filters, "CPR_DATE", "CPR_COMP_CODE", RECEIPT_COLUMNS);
 }
 
 export function receiptsKpiQuery(filters: Filters): Query {
@@ -572,5 +612,201 @@ export async function zeroRateReceipts(filters: Filters): Promise<ZeroRateCurren
     lineCount: num(row.line_count),
     fcValue: num(row.fc_value),
     landedValue: num(row.landed_value),
+  }));
+}
+
+// ---------------------------------------------------------------------------------------------
+// Receipts hover card and drill-down
+
+/** Slices per dimension on the hover card; the rest fold into 'All other'. */
+export const HOVER_TOP_N = 5;
+
+export type ReceiptDimension = "company" | "supplier" | "brand";
+
+/** What the card of a month bar breaks it down by. */
+export const RECEIPT_CARD_DIMENSIONS: readonly ReceiptDimension[] = ["company", "supplier", "brand"];
+
+const RECEIPT_DIMENSION_COLUMNS: Record<ReceiptDimension, string> = {
+  company: "CPR_COMP_CODE",
+  supplier: "CPR_SUPP_NAME",
+  brand: "CPR_BRAND_NAME",
+};
+
+/** Spend by one dimension, top `topN` plus 'All other'. Company is by code; names come later. */
+export function receiptsByDimensionQuery(
+  filters: Filters,
+  dimension: ReceiptDimension,
+  topN = HOVER_TOP_N,
+): Query {
+  const label = labelOrUnassigned(RECEIPT_DIMENSION_COLUMNS[dimension]);
+  const { sql, binds } = receiptsWhere(filters);
+  const grouped = `
+            SELECT ${label} AS label, SUM(${SPEND}) AS amount
+            FROM ${dimension === "brand" ? RECEIPTS_WITH_BRAND : RECEIPTS_VIEW}
+            WHERE ${sql}
+            GROUP BY ${label}`;
+  return foldTopN(grouped, binds, topN);
+}
+
+export interface ReceiptsHover {
+  spend: number;
+  /** The same days a year earlier. */
+  lastYearSpend: number;
+  breakdowns: { dimension: ReceiptDimension; rows: LabelValue[] }[];
+}
+
+/**
+ * What makes up one bar of the receipts trend: its spend, last year's, and the top
+ * `HOVER_TOP_N` companies, suppliers and brands plus 'All other'. `filters` is already narrowed to
+ * the bar's days. Each dimension's rows add up to `spend`.
+ */
+export async function receiptsHover(
+  filters: Filters,
+  dimensions: readonly ReceiptDimension[] = RECEIPT_CARD_DIMENSIONS,
+): Promise<ReceiptsHover> {
+  const [current, previous, breakdowns, companyList] = await Promise.all([
+    receiptsKpis(filters),
+    receiptsKpis(previousYear(filters)),
+    Promise.all(dimensions.map((dimension) => run(receiptsByDimensionQuery(filters, dimension)))),
+    dimensions.includes("company") ? loadCompanies() : Promise.resolve([]),
+  ]);
+  const names = new Map(companyList.map((company) => [company.code, company.name]));
+  return {
+    spend: current.spend,
+    lastYearSpend: previous.spend,
+    breakdowns: dimensions.map((dimension, index) => ({
+      dimension,
+      rows: breakdowns[index].map((row) => {
+        const label = String(row.label);
+        return {
+          label: dimension === "company" ? (names.get(label) ?? label) : label,
+          value: num(row.amount),
+        };
+      }),
+    })),
+  };
+}
+
+/** The drill-down lists at most this many receipt documents (the largest first). */
+export const RECEIPT_DOCUMENT_LIMIT = 300;
+
+export interface ReceiptDocument extends DocumentKey {
+  /** YYYY-MM-DD. */
+  date: string;
+  /** `GRN`, or `SURTN` for a return to supplier. */
+  txnType: string;
+  supplier: string;
+  lineCount: number;
+  spend: number;
+}
+
+export interface ReceiptDocuments {
+  documents: ReceiptDocument[];
+  /** Every document in the period; `documents` stops at `limit`. */
+  total: number;
+  /** The period's exact figures, whatever the limit (the KPI query on the same filters). */
+  totals: ReceiptsKpis;
+  limit: number;
+}
+
+export interface ReceiptLine {
+  /** `CPR_CODE`; empty when blank. */
+  itemCode: string;
+  item: string;
+  currency: string;
+  /** Signed: negative on returns. */
+  quantity: number;
+  /** In `currency`. */
+  fcValue: number;
+  spend: number;
+}
+
+/**
+ * The period's receipt documents, largest spend first whatever its sign, so big returns show too.
+ * Ranked in a subquery: Oracle rejects a GROUP BY on an expression with a bind (ORA-00979), and
+ * SQLite has no FETCH FIRST.
+ */
+export function receiptDocumentsQuery(filters: Filters, limit = RECEIPT_DOCUMENT_LIMIT): Query {
+  const { sql, binds } = receiptsWhere(filters);
+  return {
+    sql: `
+SELECT doc_date, company_code, txn_code, txn_no, txn_type, supplier, line_count, spend, total_documents
+FROM (
+    SELECT doc_date, company_code, txn_code, txn_no, txn_type, supplier, line_count, spend,
+        COUNT(*) OVER () AS total_documents,
+        ROW_NUMBER() OVER (ORDER BY ABS(spend) DESC, doc_date, company_code, txn_code, txn_no) AS rn
+    FROM (
+        SELECT TO_CHAR(MIN(CPR_DATE), 'YYYY-MM-DD') AS doc_date, CPR_COMP_CODE AS company_code,
+            CPR_TXN_CODE AS txn_code, CPR_NO AS txn_no, MAX(CPR_TXN_TYPE) AS txn_type,
+            MAX(${labelOrUnassigned("CPR_SUPP_NAME")}) AS supplier, COUNT(*) AS line_count,
+            SUM(${SPEND}) AS spend
+        FROM ${RECEIPTS_VIEW}
+        WHERE ${sql}
+        GROUP BY CPR_COMP_CODE, CPR_TXN_CODE, CPR_NO
+    ) grouped
+) ranked
+WHERE rn <= :row_limit
+ORDER BY rn`,
+    binds: { ...binds, row_limit: limit },
+  };
+}
+
+function text(value: unknown): string {
+  return value === null || value === undefined ? "" : String(value).trim();
+}
+
+/**
+ * The receipt documents behind a period, at most `limit` of them, with the period's exact totals
+ * from the KPI query, so the totals never depend on the limit.
+ */
+export async function receiptDocuments(
+  filters: Filters,
+  limit = RECEIPT_DOCUMENT_LIMIT,
+): Promise<ReceiptDocuments> {
+  const [rows, totals] = await Promise.all([
+    run(receiptDocumentsQuery(filters, limit)),
+    receiptsKpis(filters),
+  ]);
+  return {
+    documents: rows.map((row) => ({
+      date: text(row.doc_date),
+      company: text(row.company_code),
+      txnCode: text(row.txn_code),
+      // CPR_NO is a NUMBER; format it here so no ".0" can creep in.
+      no: String(num(row.txn_no)),
+      txnType: text(row.txn_type),
+      supplier: text(row.supplier),
+      lineCount: num(row.line_count),
+      spend: num(row.spend),
+    })),
+    total: num(rows[0]?.total_documents),
+    totals,
+    limit,
+  };
+}
+
+/** One receipt document's lines within the period, largest first. One query per opened document. */
+export function receiptLinesQuery(filters: Filters, doc: DocumentKey): Query {
+  const { sql, binds } = receiptsWhere(filters);
+  return {
+    sql: `
+SELECT TRIM(CPR_CODE) AS item_code, ${labelOrUnassigned("CPR_NAME")} AS item, CPR_CURR_CODE AS currency,
+    NVL(CPR_QTY, 0) AS quantity, NVL(CPR_FC_WAC_VALUE, 0) AS fc_value, ${SPEND} AS spend
+FROM ${RECEIPTS_VIEW}
+WHERE ${sql} AND CPR_COMP_CODE = :doc_company AND CPR_TXN_CODE = :doc_txn_code AND CPR_NO = :doc_no
+ORDER BY ABS(${SPEND}) DESC, item_code`,
+    binds: { ...binds, doc_company: doc.company, doc_txn_code: doc.txnCode, doc_no: doc.no },
+  };
+}
+
+export async function receiptLines(filters: Filters, doc: DocumentKey): Promise<ReceiptLine[]> {
+  const rows = await run(receiptLinesQuery(filters, doc));
+  return rows.map((row) => ({
+    itemCode: text(row.item_code),
+    item: text(row.item),
+    currency: text(row.currency),
+    quantity: num(row.quantity),
+    fcValue: num(row.fc_value),
+    spend: num(row.spend),
   }));
 }

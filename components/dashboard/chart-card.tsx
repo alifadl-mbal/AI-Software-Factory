@@ -1,8 +1,11 @@
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
-/** For a card whose chart has a hover card: lets it spill over the edge, above the cards after it. */
-export const HOVER_CARD_FRAME = "relative overflow-visible hover:z-10 focus-within:z-10";
+/**
+ * For a card whose chart has a hover card: lets it spill over the edge, above the cards after it
+ * and their sticky table headers (z-10), but under the top bar (z-20).
+ */
+export const HOVER_CARD_FRAME = "relative overflow-visible hover:z-[15] focus-within:z-[15]";
 
 export interface ChartCardProps {
   title: string;

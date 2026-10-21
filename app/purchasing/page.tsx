@@ -8,6 +8,7 @@ import { filtersToSearch, parseFilters, todayIso } from "@/lib/filters";
 import { formatDate } from "@/lib/format";
 import { orderAgeScope, parseOrderAge } from "@/lib/order-age";
 
+import { ReceiptsDrillDialog } from "./charts";
 import {
   OrderAgeBar,
   OverdueLinesTable,
@@ -30,9 +31,9 @@ export default async function PurchasingPage({ searchParams }: PageProps<"/purch
   const filters = parseFilters(params, today);
   const age = parseOrderAge(params);
   // A new key per filter set, so each section shows its skeleton while the new figures stream in.
-  // Pending POs only depend on the companies and the order age.
+  // Pending POs only depend on the companies, the brands and the order age.
   const key = filtersToSearch(filters) || "default";
-  const pendingKey = `${filters.companies.join(",") || "all"}|${age}`;
+  const pendingKey = `${filters.companies.join(",") || "all"}|${filters.brands.join(",") || "all"}|${age}`;
   const scope = { filters, today, age };
 
   return (
@@ -41,7 +42,7 @@ export default async function PurchasingPage({ searchParams }: PageProps<"/purch
         title={dashboard.title}
         description={dashboard.description}
         filters={filters}
-        note={`Pending POs are as of today, ${formatDate(today)}, whatever the period, on ${orderAgeScope(age)}; receipts follow the period.`}
+        note={`Pending POs are as of today, ${formatDate(today)}, whatever the period, on ${orderAgeScope(age)}; receipts follow the period. Both follow the company and brand filters.`}
       />
       <div className="flex flex-col gap-6">
         <Suspense key={`kpis${key}|${age}`} fallback={<KpiRowSkeleton count={5} />}>
@@ -79,6 +80,7 @@ export default async function PurchasingPage({ searchParams }: PageProps<"/purch
           <ReceiptsTopSuppliers filters={filters} />
         </Suspense>
       </div>
+      <ReceiptsDrillDialog />
     </>
   );
 }

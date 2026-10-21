@@ -34,6 +34,12 @@ export interface Dashboard {
    * the top bar shows them disabled, and the scope line says when one is set but doesn't apply.
    */
   salesFilters?: boolean;
+  /**
+   * True when every figure follows the brand filter but there is no salesperson (its views have an
+   * item code, so the brand map applies, and no salesperson): the top bar disables only the
+   * salesperson filter.
+   */
+  brandFilter?: boolean;
 }
 
 export const DASHBOARDS: readonly Dashboard[] = [
@@ -79,6 +85,7 @@ export const DASHBOARDS: readonly Dashboard[] = [
       "Pending purchase orders with aging and overdue lines as of today, and receipts spend by month and supplier.",
     icon: ShoppingCart,
     source: "ZF_PO_PENDING_BI · ZF_CPR_BI",
+    brandFilter: true,
   },
   {
     slug: "receivables-payables",
@@ -113,14 +120,16 @@ export function dashboardHref(dashboard: Dashboard): string {
 /**
  * How a page applies the salesperson and brand filters: to every figure ("all"), to its sales
  * figures only ("sales": the Overview), to its sales and open orders ("sales-orders": the
- * customer and item pages), or not at all ("none").
+ * customer and item pages), brand only, to every figure ("brand": Purchasing), or not at all
+ * ("none").
  */
-export type SalesFilterSupport = "all" | "sales" | "sales-orders" | "none";
+export type SalesFilterSupport = "all" | "sales" | "sales-orders" | "brand" | "none";
 
 export function salesFilterSupport(pathname: string): SalesFilterSupport {
   if (pathname === "/") return "sales";
   if (pathname.startsWith("/customers/") || pathname.startsWith("/items/")) return "sales-orders";
-  return dashboardForPath(pathname)?.salesFilters ? "all" : "none";
+  const dashboard = dashboardForPath(pathname);
+  return dashboard?.salesFilters ? "all" : dashboard?.brandFilter ? "brand" : "none";
 }
 
 /** The registry entry for a path like `/sales`, if any. */

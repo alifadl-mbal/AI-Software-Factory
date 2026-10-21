@@ -2,9 +2,8 @@ import "server-only";
 
 import { Suspense } from "react";
 
-import { AgingChart } from "@/components/dashboard/aging-chart";
 import { BarBreakdown } from "@/components/dashboard/bar-breakdown";
-import { ChartCard } from "@/components/dashboard/chart-card";
+import { ChartCard, HOVER_CARD_FRAME } from "@/components/dashboard/chart-card";
 import { DataQualityNote } from "@/components/dashboard/data-quality-note";
 import { DataTable, type ColumnSpec } from "@/components/dashboard/data-table";
 import { EmptyState } from "@/components/dashboard/empty-state";
@@ -12,13 +11,12 @@ import { ErrorCard } from "@/components/dashboard/error-card";
 import { KpiCard } from "@/components/dashboard/kpi-card";
 import { OrderAgeNote } from "@/components/dashboard/order-age-note";
 import { OrderAgeToggle } from "@/components/dashboard/order-age-toggle";
-import { TrendChart } from "@/components/dashboard/trend-chart";
 import { ReportAsOf } from "@/components/shell/shell-context";
 import { AGING_BUCKETS } from "@/lib/aging";
 import { customerHref } from "@/lib/customers";
 import { filtersToSearch, previousYear, type Filters } from "@/lib/filters";
 import { itemHref } from "@/lib/items";
-import { formatAed, formatAedCompact, formatInt, formatPct } from "@/lib/format";
+import { formatAed, formatInt, formatPct } from "@/lib/format";
 import { salesOrderCurrencyNote } from "@/lib/notes";
 import { orderAgeCutoff, orderAgeScope, withOrderAge, type OrderAge } from "@/lib/order-age";
 import { dataAsOf } from "@/lib/server/db";
@@ -39,6 +37,8 @@ import {
   type LabelValue,
 } from "@/lib/server/queries/sales-orders";
 
+import { BookedTrendChart, OpenByAgeChart } from "./charts";
+
 /**
  * The open book is as of `today` and follows the companies and the order-age choice; "booked"
  * follows both filters and ignores order age.
@@ -49,8 +49,13 @@ interface SectionProps {
   age: OrderAge;
 }
 
-/** Six cards: three per row on wide screens, two on phones. */
-export const SALES_ORDER_KPI_GRID = "grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3";
+/** Eight cards: four per row on wide screens, two on phones. */
+export const SALES_ORDER_KPI_GRID = "grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4";
+
+/** AED booked per order; `null` with no orders. */
+function averageOrder(booked: { orders: number; value: number }): number | null {
+  return booked.orders ? booked.value / booked.orders : null;
+}
 
 /** "As of today, AED orders from the last 2 years; …" */
 function asOfToday(age: OrderAge): string {
@@ -115,7 +120,21 @@ export async function SalesOrderKpis({ filters, today, age }: SectionProps) {
         previous={lastYear.orders}
         format="int"
         spark={months.map((month) => month.orders)}
-        hint={`${formatAedCompact(booked.value)} in the period (vs ${formatAedCompact(lastYear.value)})`}
+        hint="In the period, any currency"
+      />
+      <KpiCard
+        label="Booked value"
+        value={booked.value}
+        previous={lastYear.value}
+        spark={months.map((month) => month.value)}
+        hint="AED orders in the period, net of cancelled quantities"
+      />
+      <KpiCard
+        label="Average order"
+        value={averageOrder(booked)}
+        previous={averageOrder(lastYear)}
+        spark={months.map((month) => averageOrder(month) ?? 0)}
+        hint="Booked value per order booked"
       />
     </div>
   );
@@ -171,7 +190,8 @@ export async function OpenByAge({ filters, today, age }: SectionProps) {
   return (
     <ChartCard
       title={title}
-      description={`${asOfToday(age)}. Age from the order date; orange columns are 3 months old or more.`}
+      className={HOVER_CARD_FRAME}
+      description={`${asOfToday(age)}. Age from the order date; orange columns are 3 months old or more. Hover or tap a column for its breakdown, select it to list its orders.`}
       action={result.ok && total !== 0 ? <Total value={total} /> : undefined}
     >
       {!result.ok ? (
@@ -180,9 +200,8 @@ export async function OpenByAge({ filters, today, age }: SectionProps) {
         <EmptyState title="Nothing open" message={NOTHING_OPEN} />
       ) : (
         <div className="flex flex-col gap-4">
-          <AgingChart
+          <OpenByAgeChart
             values={result.data}
-            label="Open value"
             ariaLabel={`${title}: ${AGING_BUCKETS.map((bucket, index) => `${bucket} ${formatAed(result.data[index])}`).join(", ")}`}
           />
           <StaleOrderNote oldest={result.data.at(-1) ?? 0} total={total} age={age} />
@@ -286,7 +305,8 @@ export async function BookedTrend({ filters }: { filters: Filters }) {
   return (
     <ChartCard
       title="Monthly orders booked"
-      description="Value of AED orders by order date, against the same months last year. Follows the period. Cancelled quantities are left out."
+      className={HOVER_CARD_FRAME}
+      description="Value of AED orders by order date, against the same months last year. Follows the period. Cancelled quantities are left out. Hover or tap a bar for its breakdown, select it to list its orders."
       action={result.ok ? <Total value={total} /> : undefined}
     >
       {!result.ok ? (
@@ -294,13 +314,14 @@ export async function BookedTrend({ filters }: { filters: Filters }) {
       ) : result.data.every((month) => month.value === 0 && month.lastYearValue === 0) ? (
         <EmptyState />
       ) : (
-        <TrendChart
-          ariaLabel="Monthly orders booked, this year compared with last year"
+        <BookedTrendChart
           data={result.data.map((month) => ({
             month: month.month,
             thisYear: month.value,
             lastYear: month.lastYearValue,
           }))}
+          start={filters.start}
+          end={filters.end}
         />
       )}
     </ChartCard>

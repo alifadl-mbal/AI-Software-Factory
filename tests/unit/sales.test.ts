@@ -16,8 +16,17 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { setRunnerForTests } from "@/lib/server/db";
 import {
+  averageInvoiceValue,
+  breakdownQuery,
+  COMPANY_CARD_DIMENSIONS,
   DIMENSIONS,
+  extrasQuery,
+  HOVER_TOP_N,
+  MONTH_CARD_DIMENSIONS,
   salesBreakdown,
+  salesExtras,
+  salesExtrasMonthly,
+  salesHoverBreakdown,
   salesKpis,
   salesMonthly,
   type Dimension,
@@ -25,6 +34,7 @@ import {
 import { companies } from "@/lib/server/queries/common";
 import { ALL_OTHER, UNASSIGNED } from "@/lib/server/sql";
 import { previousYear } from "@/lib/filters";
+import { clipToBucket } from "@/lib/periods";
 
 import { Q1_2025, useFixtureSource } from "./fixture";
 
@@ -143,5 +153,124 @@ describe("companies", () => {
       { code: "101", name: "Alpha Trading" },
       { code: "102", name: "Beta Supplies" },
     ]);
+  });
+});
+
+/*
+ * Active customers, discount and gross value, Q1 2025 (the rows listed at the top):
+ *   CA: net 1000 + 500 − 200 = 1300, discount 100 + 0 − 20 = 80, gross 1100 + 500 − 220 = 1380
+ *   CB: net 2000 + 0 = 2000, discount 200, gross 2200
+ *   CU: net 800, discount 0, gross 800
+ * Three active customers, discount 280 of gross 4380. In March CB has only the zero-value delivery
+ * note, so it is not active that month.
+ */
+describe("customer and discount KPIs", () => {
+  it("period totals", async () => {
+    const result = await salesExtras(Q1_2025);
+    expect(result.activeCustomers).toBe(3);
+    expect(result.discount).toBeCloseTo(280);
+    expect(result.grossValue).toBeCloseTo(4380);
+    expect(result.discountPct).toBeCloseTo(280 / 4380);
+  });
+
+  it("gross − net = discount on the fixture, as on live Orion", async () => {
+    const [kpis, extras] = await Promise.all([salesKpis(Q1_2025), salesExtras(Q1_2025)]);
+    expect(extras.grossValue - kpis.netRevenue).toBeCloseTo(extras.discount);
+  });
+
+  it("per month", async () => {
+    const months = await salesExtrasMonthly(Q1_2025);
+    expect(months.map((month) => [month.month, month.activeCustomers])).toEqual([
+      ["2025-01", 1],
+      ["2025-02", 2],
+      ["2025-03", 1],
+    ]);
+    expect(months.map((month) => month.discount)).toEqual([100, 180, 0]);
+  });
+
+  it("a fully returned customer is not active", async () => {
+    // Customer A in February 2024: invoice 700, return −100 → active; one company, last year.
+    expect((await salesExtras(previousYear(Q1_2025))).activeCustomers).toBe(1);
+    expect((await salesExtras({ ...Q1_2025, start: "2030-01-01", end: "2030-01-31" })).activeCustomers).toBe(
+      0,
+    );
+  });
+
+  it("follows the company filter", async () => {
+    const result = await salesExtras({ ...Q1_2025, companies: ["101"] });
+    expect(result.activeCustomers).toBe(1);
+    expect(result.discount).toBeCloseTo(80);
+  });
+
+  it("average invoice value is net revenue per invoice", async () => {
+    expect(averageInvoiceValue(await salesKpis(Q1_2025))).toBeCloseTo(4100 / 3);
+    expect(averageInvoiceValue({ netRevenue: 0, invoiceCount: 0 })).toBeNull();
+  });
+
+  it("the query only reads and binds every filter value", () => {
+    const query = extrasQuery({ ...Q1_2025, companies: ["101"] }, true);
+    expect(query.sql).toMatch(/^\s*SELECT/);
+    expect(query.sql).not.toContain("101");
+    expect(query.binds).toMatchObject({ start_date: "2025-01-01", company_0: "101" });
+  });
+});
+
+describe("hover breakdown", () => {
+  const sum = (rows: { netRevenue: number }[]) => rows.reduce((total, row) => total + row.netRevenue, 0);
+
+  it("each month's slices add up to its bar", async () => {
+    const months = await salesMonthly(Q1_2025);
+    for (const month of months) {
+      const clipped = clipToBucket(Q1_2025, month.month)!;
+      const card = await salesHoverBreakdown(clipped, MONTH_CARD_DIMENSIONS);
+      expect(card.netRevenue, month.month).toBeCloseTo(month.netRevenue);
+      expect(card.lastYearNetRevenue, month.month).toBeCloseTo(month.lastYearNetRevenue);
+      for (const { dimension, rows } of card.breakdowns) {
+        expect(sum(rows), `${month.month} ${dimension}`).toBeCloseTo(month.netRevenue);
+      }
+    }
+  });
+
+  it("February by salesperson and company", async () => {
+    const card = await salesHoverBreakdown(clipToBucket(Q1_2025, "2025-02")!, MONTH_CARD_DIMENSIONS);
+    expect(card.netRevenue).toBeCloseTo(1800);
+    expect(card.lastYearNetRevenue).toBeCloseTo(600);
+    const byDimension = Object.fromEntries(card.breakdowns.map((entry) => [entry.dimension, entry.rows]));
+    expect(byDimension.company.map((row) => [row.label, row.netRevenue])).toEqual([
+      ["Beta Supplies", 2000],
+      ["Alpha Trading", -200],
+    ]);
+    expect(byDimension.salesperson.map((row) => row.label)).toEqual(["Bob", "Alice"]);
+  });
+
+  it("a company bar's slices add up to the bar, Unassigned included", async () => {
+    const companiesBars = await salesBreakdown(Q1_2025, "company");
+    for (const bar of companiesBars) {
+      const card = await salesHoverBreakdown(Q1_2025, COMPANY_CARD_DIMENSIONS, {
+        dimension: "company",
+        label: bar.label,
+      });
+      expect(card.netRevenue, bar.label).toBeCloseTo(bar.netRevenue);
+      expect(card.breakdowns.map((entry) => entry.dimension)).toEqual(["salesperson", "itemGroup"]);
+      for (const { rows } of card.breakdowns) expect(sum(rows), bar.label).toBeCloseTo(bar.netRevenue);
+    }
+    const beta = await salesHoverBreakdown(Q1_2025, COMPANY_CARD_DIMENSIONS, {
+      dimension: "company",
+      label: "Beta Supplies",
+    });
+    expect(beta.breakdowns[0].rows.map((row) => [row.label, row.netRevenue])).toEqual([
+      ["Bob", 2000],
+      [UNASSIGNED, 800],
+    ]);
+  });
+
+  it("folds beyond the top 5 into All other", async () => {
+    expect(HOVER_TOP_N).toBe(5);
+    const query = breakdownQuery(Q1_2025, "salesperson", HOVER_TOP_N, {
+      slice: { dimension: "company", label: "x' OR '1'='1" },
+    });
+    expect(query.sql).toContain(":slice_label");
+    expect(query.sql).not.toContain("OR '1'='1");
+    expect(query.binds).toMatchObject({ slice_label: "x' OR '1'='1", top_n: 5 });
   });
 });

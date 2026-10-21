@@ -1,6 +1,7 @@
 import "server-only";
 
 import { parseFilters, previousYear, todayIso, type Filters } from "@/lib/filters";
+import { clipToBucket, periodBuckets } from "@/lib/periods";
 import { DEFAULT_ORDER_AGE } from "@/lib/order-age";
 
 import { refreshedSince } from "./db";
@@ -10,7 +11,13 @@ import { apSplit, arBalances, arSummary } from "./queries/ar-ap";
 import { companies } from "./queries/common";
 import { customerCodesByName } from "./queries/customers";
 import { itemCodesByName } from "./queries/items";
-import { expenseBreakdown, financeKpis, financeMonthly, pnlStatement } from "./queries/finance";
+import {
+  expenseBreakdown,
+  financeKpis,
+  financeMonthly,
+  financeMonthlyVsLastYear,
+  pnlStatement,
+} from "./queries/finance";
 import {
   deadStock,
   DEFAULT_DEAD_STOCK_MONTHS,
@@ -31,7 +38,17 @@ import {
   receiptsMonthly,
   zeroRateReceipts,
 } from "./queries/purchasing";
-import { salesBreakdown, salesKpis, salesMonthly, TOP_N as SALES_TOP_N } from "./queries/sales";
+import {
+  COMPANY_CARD_DIMENSIONS,
+  MONTH_CARD_DIMENSIONS,
+  salesBreakdown,
+  salesExtras,
+  salesExtrasMonthly,
+  salesHoverBreakdown,
+  salesKpis,
+  salesMonthly,
+  TOP_N as SALES_TOP_N,
+} from "./queries/sales";
 import {
   bookedKpis,
   bookedMonthly,
@@ -72,6 +89,20 @@ async function withCustomerCodes(rows: { label: string }[]): Promise<void> {
   await customerCodesByName(rows.map((row) => row.label));
 }
 
+/**
+ * The Sales hover cards (`/api/sales/breakdown`) of every month bar and every company bar, one bar
+ * at a time so the run needs no more connections than one card.
+ */
+async function salesHoverCards(filters: Filters): Promise<void> {
+  for (const { key } of periodBuckets(filters.start, filters.end)) {
+    const clipped = clipToBucket(filters, key);
+    if (clipped) await salesHoverBreakdown(clipped, MONTH_CARD_DIMENSIONS);
+  }
+  for (const { label } of await salesBreakdown(filters, "company", undefined)) {
+    await salesHoverBreakdown(filters, COMPANY_CARD_DIMENSIONS, { dimension: "company", label });
+  }
+}
+
 /** The item-name → code lookup the top-items table does to link each row to the item page. */
 async function withItemCodes(rows: { label: string }[]): Promise<void> {
   await itemCodesByName(rows.map((row) => row.label));
@@ -110,7 +141,15 @@ export function warmPlan(today: string): Page[] {
       sections: [
         {
           name: "KPIs",
-          load: () => Promise.all([salesKpis(filters), salesKpis(lastYear), salesMonthly(filters)]),
+          load: () =>
+            Promise.all([
+              salesKpis(filters),
+              salesKpis(lastYear),
+              salesMonthly(filters),
+              salesExtras(filters),
+              salesExtras(lastYear),
+              salesExtrasMonthly(filters),
+            ]),
         },
         { name: "Revenue by company", load: () => salesBreakdown(filters, "company", undefined) },
         { name: "Revenue by item group", load: () => salesBreakdown(filters, "itemGroup", 12) },
@@ -123,6 +162,7 @@ export function warmPlan(today: string): Page[] {
           name: "Top items",
           load: () => salesBreakdown(filters, "item", SALES_TOP_N).then(withItemCodes),
         },
+        { name: "Hover breakdowns", load: () => salesHoverCards(filters) },
       ],
     },
     {
@@ -130,7 +170,13 @@ export function warmPlan(today: string): Page[] {
       sections: [
         {
           name: "KPIs and trend",
-          load: () => Promise.all([financeKpis(filters), financeKpis(lastYear), financeMonthly(filters)]),
+          load: () =>
+            Promise.all([
+              financeKpis(filters),
+              financeKpis(lastYear),
+              financeMonthly(filters),
+              financeMonthlyVsLastYear(filters),
+            ]),
         },
         { name: "P&L statement", load: () => pnlStatement(filters) },
         { name: "Costs by GL account", load: () => expenseBreakdown(filters, "account", 12) },

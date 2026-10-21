@@ -1,6 +1,6 @@
 import "server-only";
 
-import { monthsInRange, previousYear, type Filters } from "@/lib/filters";
+import { monthsInRange, previousYear, shiftMonth, type Filters } from "@/lib/filters";
 
 import {
   chartOfAccounts,
@@ -271,6 +271,21 @@ export async function financeMonthly(filters: Filters): Promise<PnlMonth[]> {
     month,
     ...summarise(byMonth.get(month) ?? []),
   }));
+}
+
+export interface PnlMonthVsLastYear extends PnlMonth {
+  /** Revenue of the same days a year earlier. */
+  lastYearRevenue: number;
+}
+
+/** `financeMonthly` with each month's revenue a year earlier, over the same days (`previousYear`). */
+export async function financeMonthlyVsLastYear(filters: Filters): Promise<PnlMonthVsLastYear[]> {
+  const [current, previous] = await Promise.all([
+    financeMonthly(filters),
+    financeMonthly(previousYear(filters)),
+  ]);
+  const lastYear = new Map(previous.map((month) => [shiftMonth(month.month, 1), month.revenue]));
+  return current.map((month) => ({ ...month, lastYearRevenue: lastYear.get(month.month) ?? 0 }));
 }
 
 /**

@@ -217,7 +217,8 @@ export function FiltersSheet({
         className="max-h-[85svh] gap-0 overflow-y-auto rounded-t-[20px]"
         data-testid="filters-drawer"
       >
-        <SheetHeader className="pb-2">
+        {/* pr-12 keeps Reset all clear of the sheet's Close button. */}
+        <SheetHeader className="pr-12 pb-2">
           <SheetTitle className="sr-only">Filters</SheetTitle>
           <SheetDescription className="sr-only">They apply to every figure on this page.</SheetDescription>
           <PanelHeading />

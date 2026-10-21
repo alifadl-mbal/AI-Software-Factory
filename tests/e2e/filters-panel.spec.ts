@@ -273,6 +273,24 @@ test.describe("phone 390px", () => {
     expect(errors).toEqual([]);
   });
 
+  for (const width of [390, 768, 1000]) {
+    test(`the sheet's Close button stays clear of Reset all at ${width}px`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 844 });
+      await page.goto("/sales?salesperson=S06");
+      await waitForData(page);
+      await page.getByTestId("filters-trigger").click();
+      const drawer = page.getByTestId("filters-drawer");
+      const reset = (await drawer.getByTestId("filters-reset").boundingBox())!;
+      const close = (await drawer.getByRole("button", { name: "Close" }).boundingBox())!;
+      const intersect =
+        reset.x < close.x + close.width &&
+        close.x < reset.x + reset.width &&
+        reset.y < close.y + close.height &&
+        close.y < reset.y + reset.height;
+      expect(intersect).toBe(false);
+    });
+  }
+
   for (const theme of ["light", "dark"] as const) {
     test(`axe: the Filters sheet (${theme})`, async ({ page }) => {
       await page.emulateMedia({ colorScheme: theme });

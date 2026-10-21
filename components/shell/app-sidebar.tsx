@@ -1,7 +1,9 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
+import { Suspense, use } from "react";
 import { BarChart3 } from "lucide-react";
 
 import {
@@ -18,14 +20,87 @@ import {
   SidebarRail,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { monogram } from "@/lib/company-identity";
 import { DASHBOARDS, OVERVIEW, dashboardHref } from "@/lib/dashboards";
 import { DOC_PARAM, DRILL_PARAM } from "@/lib/sales-drill";
+import type { Company } from "@/lib/server/queries/common";
+
+import { useShell } from "./shell-context";
+
+/** The app's own mark and name: all companies, several, or one whose name isn't known yet. */
+function AppIdentity() {
+  return (
+    <>
+      <span className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+        <BarChart3 className="size-4" aria-hidden />
+      </span>
+      <span className="grid flex-1 text-left leading-tight">
+        <span className="truncate font-semibold">MBAL BI</span>
+        <span className="truncate text-xs text-muted-foreground">Orion ERP analytics</span>
+      </span>
+    </>
+  );
+}
+
+/** One company selected: its logo (from `public/logos/`) or a monogram badge, and its name. */
+function CompanyIdentity({
+  code,
+  companies: companiesPromise,
+  logos,
+}: {
+  code: string;
+  companies: Promise<Company[]>;
+  logos: Record<string, string>;
+}) {
+  const name = use(companiesPromise).find((company) => company.code === code)?.name ?? code;
+  const logo = logos[code];
+  return (
+    <>
+      {logo ? (
+        <Image
+          src={logo}
+          alt=""
+          width={32}
+          height={32}
+          unoptimized
+          className="size-8 shrink-0 rounded-lg bg-white object-contain p-0.5 ring-1 ring-border"
+          data-testid="company-logo"
+        />
+      ) : (
+        <span
+          className="flex aspect-square size-8 shrink-0 items-center justify-center rounded-lg bg-primary text-xs font-semibold tracking-tight text-primary-foreground"
+          aria-hidden
+          data-testid="company-monogram"
+        >
+          {monogram(name)}
+        </span>
+      )}
+      <span className="grid flex-1 text-left leading-tight">
+        <span className="truncate font-semibold" data-testid="company-identity-name">
+          {name}
+        </span>
+        <span className="truncate text-xs text-muted-foreground">MBAL BI · Orion ERP analytics</span>
+      </span>
+    </>
+  );
+}
 
 /** The left navigation, built from the dashboard registry. A drawer on small screens. */
-export function AppSidebar({ sourceLabel }: { sourceLabel: string }) {
+export function AppSidebar({
+  sourceLabel,
+  companies,
+  logos,
+}: {
+  sourceLabel: string;
+  companies: Promise<Company[]>;
+  /** Company code → logo URL, from `public/logos/`. */
+  logos: Record<string, string>;
+}) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { setOpenMobile } = useSidebar();
+  const { filters } = useShell();
+  const single = filters.companies.length === 1 ? filters.companies[0] : null;
   // Keep the filters when moving between dashboards, but not a page's open drill-down.
   const kept = new URLSearchParams(searchParams);
   kept.delete(DRILL_PARAM);
@@ -46,14 +121,14 @@ export function AppSidebar({ sourceLabel }: { sourceLabel: string }) {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild tooltip="MBAL BI">
-              <Link href={`/${search}`} onClick={() => setOpenMobile(false)}>
-                <span className="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                  <BarChart3 className="size-4" aria-hidden />
-                </span>
-                <span className="grid flex-1 text-left leading-tight">
-                  <span className="truncate font-semibold">MBAL BI</span>
-                  <span className="truncate text-xs text-muted-foreground">Orion ERP analytics</span>
-                </span>
+              <Link href={`/${search}`} onClick={() => setOpenMobile(false)} data-testid="app-identity">
+                {single ? (
+                  <Suspense fallback={<AppIdentity />}>
+                    <CompanyIdentity code={single} companies={companies} logos={logos} />
+                  </Suspense>
+                ) : (
+                  <AppIdentity />
+                )}
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

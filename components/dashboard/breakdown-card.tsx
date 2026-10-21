@@ -73,6 +73,7 @@ const DIMENSION_TITLES: Record<Dimension, string> = {
   customer: "By customer",
   item: "By item",
   salesperson: "By salesperson",
+  brand: "By brand",
   itemGroup: "By item group",
 };
 

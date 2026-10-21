@@ -1,12 +1,27 @@
 import "server-only";
 
 import { AGING_BUCKETS } from "@/lib/aging";
-import { daysBetween, monthsInRange, previousYear, shiftMonth, type Filters } from "@/lib/filters";
+import {
+  daysBetween,
+  monthsInRange,
+  previousYear,
+  shiftMonth,
+  type Filters,
+  type SalesFilterKey,
+} from "@/lib/filters";
 import { orderAgeCutoff, type OrderAge } from "@/lib/order-age";
 import { orionDateSql, parseOrionDate } from "@/lib/orion-date";
 
 import { run } from "../db";
-import { ALL_OTHER, companyWhere, filterWhere, labelOrUnassigned, num } from "../sql";
+import {
+  ALL_OTHER,
+  companyWhere,
+  filterWhere,
+  labelOrUnassigned,
+  num,
+  salesWhere,
+  type SalesColumns,
+} from "../sql";
 import type { Binds, Query } from "../types";
 import { agingBinds, bucketCase } from "./ar-ap";
 
@@ -62,7 +77,13 @@ import { agingBinds, bucketCase } from "./ar-ap";
  *   name on many lines, so the item page shows the master name. The item page narrows the book with
  *   the code.
  *
- * The open book is **as of today** and follows only the company filter and the order-age choice
+ * - **Salesperson and brand filters:** `H_SM_CODE` is the code space of `ZF_CSL_BI.CSL_SM_CODE`
+ *   (99.9% of this year's net revenue is booked by a salesperson code that is also on orders), so
+ *   the salesperson filter applies as it does to sales. Brand comes from the same per-item map as
+ *   sales (`lib/server/brand-map.ts`) on `D_ITEM_CODE`; `D_FLEX_01_BRAND` isn't used, as it gives
+ *   one item several brands.
+ *
+ * The open book is **as of today** and follows the company, salesperson and brand filters and the order-age choice
  * (`lib/order-age.ts`: by default orders placed in the last 2 years, on `H_DT`); "booked" figures
  * follow both filters and ignore order age. Order age uses the shared ladder in `lib/aging.ts` on `H_DT`, with the cut-offs
  * bound as dates (the same `CASE` as receivables).
@@ -107,6 +128,20 @@ export interface BookScope {
   item?: string;
 }
 
+/** Salesperson and brand, as the shared filters apply them to order lines. */
+const SALES_COLUMNS: SalesColumns = { salesperson: "H_SM_CODE", item: "D_ITEM_CODE" };
+
+/**
+ * What the open book follows: company codes alone (all salespeople and brands), or the page's
+ * filters, whose salesperson and brand also narrow it.
+ */
+export type BookCompanies =
+  readonly string[] | (Pick<Filters, "companies"> & Partial<Pick<Filters, SalesFilterKey>>);
+
+function isCodeList(companies: BookCompanies): companies is readonly string[] {
+  return Array.isArray(companies);
+}
+
 /** A plain string is a customer code, as the customer page passes it. */
 function bookScope(scope: string | BookScope | undefined): BookScope {
   return typeof scope === "string" ? { customer: scope } : (scope ?? {});
@@ -120,13 +155,17 @@ function bookScope(scope: string | BookScope | undefined): BookScope {
  * `in_scope = 0`, so the KPI query can say what the cut-off hides in the same round trip.
  */
 function bookLines(
-  companies: readonly string[],
+  companies: BookCompanies,
   today: string,
   age: OrderAge,
   columns: string[] = [],
   { flagScope = false, customer, item }: { flagScope?: boolean } & BookScope = {},
 ): Query {
-  const company = companyWhere(companies, "H_COMP_CODE");
+  const filters: Exclude<BookCompanies, readonly string[]> = isCodeList(companies)
+    ? { companies: [...companies] }
+    : companies;
+  const company = companyWhere(filters.companies, "H_COMP_CODE");
+  const sales = salesWhere(filters, SALES_COLUMNS);
   // Order age has no "over 90 days" figure; an unused bind is an error on both sources.
   const ageBinds = Object.fromEntries(
     Object.entries(agingBinds(today)).filter(([name]) => name !== "age_90d"),
@@ -151,8 +190,8 @@ function bookLines(
     FROM ${VIEW}
     WHERE ${NOT_CLOSED} AND D_QTY > 0
       AND (${PENDING_QTY} > 0 OR ${UNINVOICED_QTY} > 0)${company ? `\n      AND ${company.sql}` : ""}${
-        customer === undefined ? "" : `\n      AND H_CUST_CODE = :cust_code`
-      }${
+        sales ? `\n      AND ${sales.sql}` : ""
+      }${customer === undefined ? "" : `\n      AND H_CUST_CODE = :cust_code`}${
         item === undefined
           ? ""
           : `
@@ -166,6 +205,7 @@ function bookLines(
     binds: {
       ...ageBinds,
       ...company?.binds,
+      ...sales?.binds,
       ...(customer !== undefined && { cust_code: customer }),
       ...(item !== undefined && { item_code: item }),
       ...(cutoff ? { since_date: cutoff } : {}),
@@ -260,7 +300,7 @@ export interface OpenLine {
 
 /** With `scope`, only that customer's (`H_CUST_CODE`) or item's (`D_ITEM_CODE`) orders. */
 export function openKpiQuery(
-  companies: readonly string[],
+  companies: BookCompanies,
   today: string,
   age: OrderAge,
   scope?: string | BookScope,
@@ -285,7 +325,7 @@ FROM (${lines.sql}
   };
 }
 
-export function openByAgeQuery(companies: readonly string[], today: string, age: OrderAge): Query {
+export function openByAgeQuery(companies: BookCompanies, today: string, age: OrderAge): Query {
   const lines = bookLines(companies, today, age);
   return {
     sql: `
@@ -299,7 +339,7 @@ GROUP BY bucket`,
 
 function openByLabelQuery(
   column: string,
-  companies: readonly string[],
+  companies: BookCompanies,
   today: string,
   age: OrderAge,
   topN: number,
@@ -315,7 +355,7 @@ function openByLabelQuery(
 }
 
 export function openBySalespersonQuery(
-  companies: readonly string[],
+  companies: BookCompanies,
   today: string,
   age: OrderAge,
   topN = TOP_SALESPEOPLE,
@@ -329,7 +369,7 @@ export function openBySalespersonQuery(
  * `MBALI.ZF_CUSTOMER`, the table that lookup reads. Codes sharing a name still add up under it.
  */
 export function openByCustomerQuery(
-  companies: readonly string[],
+  companies: BookCompanies,
   today: string,
   age: OrderAge,
   topN = TOP_CUSTOMERS,
@@ -350,7 +390,7 @@ export function openByCustomerQuery(
 }
 
 export function openByCurrencyQuery(
-  companies: readonly string[],
+  companies: BookCompanies,
   today: string,
   age: OrderAge,
   scope?: string | BookScope,
@@ -378,7 +418,7 @@ ORDER BY line_count DESC, currency`,
 
 /** The largest open AED lines by pending value, at most `limit`; with `scope`, only those. */
 export function openLinesQuery(
-  companies: readonly string[],
+  companies: BookCompanies,
   today: string,
   age: OrderAge,
   limit = OPEN_ROW_LIMIT,
@@ -433,7 +473,7 @@ function text(value: unknown): string {
  * `customer`, only that customer's orders.
  */
 export async function openBookKpis(
-  companies: readonly string[],
+  companies: BookCompanies,
   today: string,
   age: OrderAge,
   scope?: string | BookScope,
@@ -454,11 +494,7 @@ export async function openBookKpis(
 }
 
 /** Open AED value over the aging ladder, in ladder order; empty buckets are zero. */
-export async function openByAge(
-  companies: readonly string[],
-  today: string,
-  age: OrderAge,
-): Promise<number[]> {
+export async function openByAge(companies: BookCompanies, today: string, age: OrderAge): Promise<number[]> {
   const rows = await run(openByAgeQuery(companies, today, age));
   const byBucket = new Map(rows.map((row) => [num(row.bucket), num(row.amount)]));
   return AGING_BUCKETS.map((_, index) => byBucket.get(index + 1) ?? 0);
@@ -471,7 +507,7 @@ async function labelValues(query: Query): Promise<LabelValue[]> {
 
 /** Open AED value of the top salespeople; the last row may be 'All other'. */
 export function openBySalesperson(
-  companies: readonly string[],
+  companies: BookCompanies,
   today: string,
   age: OrderAge,
   topN = TOP_SALESPEOPLE,
@@ -480,18 +516,13 @@ export function openBySalesperson(
 }
 
 /** Open AED value of the top customers; the last row may be 'All other'. */
-export function openByCustomer(
-  companies: readonly string[],
-  today: string,
-  age: OrderAge,
-  topN = TOP_CUSTOMERS,
-) {
+export function openByCustomer(companies: BookCompanies, today: string, age: OrderAge, topN = TOP_CUSTOMERS) {
   return labelValues(openByCustomerQuery(companies, today, age, topN));
 }
 
 /** Open lines of non-AED orders per currency, left out of the AED figures. */
 export async function openByCurrency(
-  companies: readonly string[],
+  companies: BookCompanies,
   today: string,
   age: OrderAge,
   scope?: string | BookScope,
@@ -505,7 +536,7 @@ export async function openByCurrency(
 }
 
 export async function openLines(
-  companies: readonly string[],
+  companies: BookCompanies,
   today: string,
   age: OrderAge,
   limit = OPEN_ROW_LIMIT,
@@ -570,7 +601,7 @@ export interface ItemOpenBook {
  * book as the Sales orders page: Closed orders are out, and so are orders older than the `age` cut-off.
  */
 export function itemOpenLinesQuery(
-  companies: readonly string[],
+  companies: BookCompanies,
   today: string,
   age: OrderAge,
   item: string,
@@ -615,7 +646,7 @@ ORDER BY rn`,
 }
 
 export async function itemOpenBook(
-  companies: readonly string[],
+  companies: BookCompanies,
   today: string,
   age: OrderAge,
   item: string,
@@ -663,7 +694,7 @@ export interface BookedMonth extends BookedKpis {
 }
 
 function bookedLines(filters: Filters): Query {
-  const { sql, binds } = filterWhere(filters, "H_DT", "H_COMP_CODE");
+  const { sql, binds } = filterWhere(filters, "H_DT", "H_COMP_CODE", SALES_COLUMNS);
   return {
     sql: `
     SELECT TO_CHAR(H_DT, 'YYYY-MM') AS order_month, ${ORDER_KEY} AS order_key,

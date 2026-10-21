@@ -3,21 +3,31 @@
 import { usePathname } from "next/navigation";
 import { Suspense, useSyncExternalStore } from "react";
 import { useTheme } from "next-themes";
-import { Database, Loader2, Moon, RefreshCw, Sun } from "lucide-react";
+import { Database, Loader2, Moon, RefreshCw, SlidersHorizontal, Sun } from "lucide-react";
 
 import { refreshData } from "@/app/actions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { isCustomerPath } from "@/lib/customers";
 import { isItemPath } from "@/lib/items";
 import { OVERVIEW, SNAPSHOT, dashboardForPath } from "@/lib/dashboards";
+import { DEFAULT_RANGE } from "@/lib/filters";
 import type { Company } from "@/lib/server/queries/common";
 
 import { CompanySelect, CompanySelectFallback } from "./company-select";
 import { DateRangePicker } from "./date-range-picker";
+import { SalesFilterSelects } from "./sales-filters";
 import { SearchCommand } from "./search-command";
 import { useShell } from "./shell-context";
 import { UserMenu, type SignedInUser } from "./user-menu";
@@ -88,6 +98,51 @@ function RefreshButton() {
   );
 }
 
+/** Every filter control of the page, in a row on wide screens and stacked in the drawer. */
+function FilterControls({ companies, dateFilter }: { companies: Promise<Company[]>; dateFilter: boolean }) {
+  return (
+    <>
+      {dateFilter && <DateRangePicker />}
+      <Suspense fallback={<CompanySelectFallback />}>
+        <CompanySelect companies={companies} />
+      </Suspense>
+      <SalesFilterSelects />
+    </>
+  );
+}
+
+/** Under 768 px the filters live in a drawer, behind one button that counts the active ones. */
+function FiltersDrawer({ companies, dateFilter }: { companies: Promise<Company[]>; dateFilter: boolean }) {
+  const { filters } = useShell();
+  const active =
+    (dateFilter && filters.range !== DEFAULT_RANGE ? 1 : 0) +
+    [filters.companies, filters.salespeople, filters.brands].filter((codes) => codes.length > 0).length;
+  return (
+    <Sheet>
+      <SheetTrigger asChild>
+        <Button variant="outline" className="h-9 w-full gap-2" data-testid="filters-trigger">
+          <SlidersHorizontal aria-hidden />
+          Filters
+          {active > 0 && (
+            <Badge variant="secondary" className="tabular px-1.5" aria-label={`${active} active`}>
+              {active}
+            </Badge>
+          )}
+        </Button>
+      </SheetTrigger>
+      <SheetContent side="bottom" className="max-h-[85svh] overflow-y-auto" data-testid="filters-drawer">
+        <SheetHeader className="pb-0">
+          <SheetTitle>Filters</SheetTitle>
+          <SheetDescription>They apply to every page that has the data for them.</SheetDescription>
+        </SheetHeader>
+        <div className="flex flex-col items-stretch gap-2 px-4 pb-6 [&>button]:w-full [&>span]:px-1">
+          <FilterControls companies={companies} dateFilter={dateFilter} />
+        </div>
+      </SheetContent>
+    </Sheet>
+  );
+}
+
 /** The bar above every page: navigation toggle, page title, filters, refresh, theme and user. */
 export function TopBar({
   companies,
@@ -103,6 +158,8 @@ export function TopBar({
   const dashboard = dashboardForPath(pathname);
   // The snapshot preview isn't a dashboard: it always covers all companies and fixed periods.
   const snapshot = pathname === SNAPSHOT.href;
+  const dateFilter = dashboard?.dateFilter !== false;
+  const shortTitle = snapshot ? undefined : dashboard?.shortTitle;
   const title = snapshot
     ? SNAPSHOT.title
     : isCustomerPath(pathname)
@@ -114,29 +171,43 @@ export function TopBar({
   return (
     <header className="sticky top-0 z-20 border-b bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/70">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2 px-4 py-2.5 md:px-6">
-        <div className="flex min-w-0 flex-1 items-center gap-2 md:flex-none">
+        <div className="flex min-w-0 flex-1 items-center gap-1.5 sm:gap-2 md:flex-none">
           <SidebarTrigger className="-ml-1" aria-label="Toggle navigation" />
-          <Separator orientation="vertical" className="mr-1 data-[orientation=vertical]:h-5" />
-          <span className="truncate text-sm font-semibold">{title}</span>
+          <Separator orientation="vertical" className="data-[orientation=vertical]:h-5 sm:mr-1" />
+          <span className="truncate text-sm font-semibold" title={title} data-testid="page-title">
+            {shortTitle ? (
+              <>
+                <span className="sm:hidden">{shortTitle}</span>
+                <span className="max-sm:hidden">{title}</span>
+              </>
+            ) : (
+              title
+            )}
+          </span>
           {sample && (
             <Badge
               variant="secondary"
-              className="ml-1 gap-1 border border-chart-4/40 bg-chart-4/15 text-foreground"
+              className="gap-1 border border-chart-4/40 bg-chart-4/15 text-foreground max-sm:px-1.5 sm:ml-1"
+              title="Sample data"
               data-testid="sample-badge"
             >
               <Database className="size-3" aria-hidden />
-              Sample data
+              {/* The icon alone on phones, so even "Receivables & payables" fits beside it. */}
+              <span className="max-sm:sr-only">Sample data</span>
             </Badge>
           )}
         </div>
-        <div className="order-last flex w-full min-w-0 flex-wrap items-center gap-2 md:order-none md:ml-auto md:w-auto md:justify-end">
-          {!snapshot && dashboard?.dateFilter !== false && <DateRangePicker />}
-          {!snapshot && (
-            <Suspense fallback={<CompanySelectFallback />}>
-              <CompanySelect companies={companies} />
-            </Suspense>
-          )}
-        </div>
+        {!snapshot && (
+          <div className="hidden min-w-0 flex-wrap items-center gap-2 md:ml-auto md:flex md:justify-end">
+            <FilterControls companies={companies} dateFilter={dateFilter} />
+          </div>
+        )}
+        {/* Its own row under 768 px, like the pickers it stands for, so the title and badge keep theirs. */}
+        {!snapshot && (
+          <div className="order-last w-full md:hidden">
+            <FiltersDrawer companies={companies} dateFilter={dateFilter} />
+          </div>
+        )}
         <div className="ml-auto flex items-center gap-1 md:ml-0">
           <SearchCommand />
           <RefreshButton />

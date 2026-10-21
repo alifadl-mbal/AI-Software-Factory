@@ -15,6 +15,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { todayIso } from "@/lib/filters";
 import { accessMode } from "@/lib/server/access";
 import { isSampleMode } from "@/lib/server/config";
+import { companyLogos } from "@/lib/server/logos";
 import { companies as loadCompanies, type Company } from "@/lib/server/queries/common";
 
 import "./globals.css";
@@ -68,7 +69,11 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
             <Suspense>
               <ShellProvider today={todayIso()}>
                 <SidebarProvider>
-                  <AppSidebar sourceLabel={sample ? "sample data" : "Orion"} />
+                  <AppSidebar
+                    sourceLabel={sample ? "sample data" : "Orion"}
+                    companies={companies}
+                    logos={companyLogos()}
+                  />
                   <SidebarInset className="min-w-0">
                     {mode === "dev-warning" && <NoSignInBanner />}
                     <TopBar companies={companies} sample={sample} user={user} />

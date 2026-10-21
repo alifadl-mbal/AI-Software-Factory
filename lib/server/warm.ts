@@ -38,6 +38,7 @@ import {
   receiptsMonthly,
   zeroRateReceipts,
 } from "./queries/purchasing";
+import { salesFilterOptions } from "./queries/sales-filters";
 import {
   COMPANY_CARD_DIMENSIONS,
   MONTH_CARD_DIMENSIONS,
@@ -119,7 +120,10 @@ export function warmPlan(today: string): Page[] {
   return [
     {
       path: "(shell)",
-      sections: [{ name: "Company list", load: () => companies() }],
+      sections: [
+        { name: "Company list", load: () => companies() },
+        { name: "Salesperson and brand choices", load: () => salesFilterOptions(filters) },
+      ],
     },
     {
       path: "/",
@@ -157,6 +161,7 @@ export function warmPlan(today: string): Page[] {
         { name: "Revenue by company", load: () => salesBreakdown(filters, "company", undefined) },
         { name: "Revenue by item group", load: () => salesBreakdown(filters, "itemGroup", 12) },
         { name: "Revenue by salesperson", load: () => salesBreakdown(filters, "salesperson", 12) },
+        { name: "Revenue by brand", load: () => salesBreakdown(filters, "brand", 12) },
         {
           name: "Top customers",
           load: () => salesBreakdown(filters, "customer", SALES_TOP_N).then(withCustomerCodes),

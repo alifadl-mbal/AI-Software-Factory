@@ -4,6 +4,11 @@
  *   ?range=ytd                       a preset: mtd, qtd, ytd (default) or 12m
  *   ?range=custom&from=…&to=…        a custom range, both ends inclusive, as YYYY-MM-DD
  *   &company=101,107                 company codes; absent means all companies
+ *   &salesperson=S01,S07             salesperson codes (`CSL_SM_CODE`); absent means all salespeople
+ *   &brand=BR1,BR2                   brand codes (see `lib/server/queries/brands.ts`); absent = all
+ *
+ * `_none` in the salesperson or brand list stands for Unassigned: lines with no salesperson, or
+ * items with no brand. Codes are validated, de-duplicated and sorted, like companies.
  *
  * Dates are plain `YYYY-MM-DD` strings throughout, so no time zone can shift a day. This module is
  * safe to import on the client and the server.
@@ -29,6 +34,21 @@ export interface Filters {
   end: string;
   /** Company codes; empty means all companies. */
   companies: string[];
+  /** Salesperson codes; empty means all salespeople. Sales figures only. */
+  salespeople: string[];
+  /** Brand codes; empty means all brands. Sales figures only. */
+  brands: string[];
+}
+
+/** The salesperson and brand filters, which only views with sales lines can apply. */
+export type SalesFilterKey = "salespeople" | "brands";
+
+/** The code that stands for "no salesperson" or "no brand" (shown as Unassigned). */
+export const UNASSIGNED_CODE = "_none";
+
+/** True when a salesperson or brand filter narrows the figures. */
+export function hasSalesFilter(filters: Pick<Filters, SalesFilterKey>): boolean {
+  return filters.salespeople.length > 0 || filters.brands.length > 0;
 }
 
 export type SearchParams = Record<string, string | string[] | undefined>;
@@ -105,19 +125,26 @@ function first(value: string | string[] | undefined): string | undefined {
   return Array.isArray(value) ? value[0] : value;
 }
 
-/** Read filters from URL search params. Anything invalid falls back to the default. */
-export function parseFilters(params: SearchParams | URLSearchParams, today: string): Filters {
-  const get = (name: string) =>
-    params instanceof URLSearchParams ? (params.get(name) ?? undefined) : first(params[name]);
-
-  const companies = [
+/** A comma-separated list of codes: valid ones only, de-duplicated and sorted. */
+function codeList(value: string | undefined): string[] {
+  return [
     ...new Set(
-      (get("company") ?? "")
+      (value ?? "")
         .split(",")
         .map((code) => code.trim())
         .filter((code) => COMPANY_CODE_RE.test(code)),
     ),
   ].sort();
+}
+
+/** Read filters from URL search params. Anything invalid falls back to the default. */
+export function parseFilters(params: SearchParams | URLSearchParams, today: string): Filters {
+  const get = (name: string) =>
+    params instanceof URLSearchParams ? (params.get(name) ?? undefined) : first(params[name]);
+
+  const companies = codeList(get("company"));
+  const salespeople = codeList(get("salesperson"));
+  const brands = codeList(get("brand"));
 
   const range = get("range");
   if (range === "custom") {
@@ -125,15 +152,17 @@ export function parseFilters(params: SearchParams | URLSearchParams, today: stri
     const to = get("to");
     if (isValidIsoDate(from) && isValidIsoDate(to)) {
       const [start, end] = from <= to ? [from, to] : [to, from];
-      return { range: "custom", start, end, companies };
+      return { range: "custom", start, end, companies, salespeople, brands };
     }
   }
   const preset = DATE_PRESETS.some((option) => option.id === range) ? (range as PresetId) : DEFAULT_RANGE;
-  return { range: preset, ...presetRange(preset, today), companies };
+  return { range: preset, ...presetRange(preset, today), companies, salespeople, brands };
 }
 
 /** The query string for `filters`, leaving defaults out so URLs stay short. */
-export function filtersToSearch(filters: Pick<Filters, "range" | "start" | "end" | "companies">): string {
+export function filtersToSearch(
+  filters: Pick<Filters, "range" | "start" | "end" | "companies"> & Partial<Pick<Filters, SalesFilterKey>>,
+): string {
   const params = new URLSearchParams();
   if (filters.range === "custom") {
     params.set("range", "custom");
@@ -144,6 +173,12 @@ export function filtersToSearch(filters: Pick<Filters, "range" | "start" | "end"
   }
   if (filters.companies.length > 0) {
     params.set("company", [...filters.companies].sort().join(","));
+  }
+  if (filters.salespeople?.length) {
+    params.set("salesperson", [...filters.salespeople].sort().join(","));
+  }
+  if (filters.brands?.length) {
+    params.set("brand", [...filters.brands].sort().join(","));
   }
   const search = params.toString().replaceAll("%2C", ",");
   return search ? `?${search}` : "";

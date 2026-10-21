@@ -1,0 +1,8 @@
+LCS_COMP_CODE,Location,Brand,Brand_Name,Item,Item_Name,Free_Stock
+101,L1,B1,Brand One,IX,Item X,5
+102,L2,B1,Brand One,IX,Item X,1
+101,L1,B2,Brand Two,IY,Item Y,0
+101,L1,B1,Brand One,I1,Item One,2
+101,L1,,,IZ,Item Z,3
+101,L1,B2,Brand Two,I2,Item Two,0
+101,L1,B2,Brand Two,,,0

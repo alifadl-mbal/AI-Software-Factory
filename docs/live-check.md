@@ -306,6 +306,56 @@ s, Orion's AR view, see above), everything else is 0-3 s. Pages are warmed one a
 never uses more Orion connections than one page view. Run every 10 minutes, the default views are
 never older than about 10 minutes and nobody waits for AR.
 
+## Salesperson and brand filters (issue #39), 2026-10-21
+
+Percentages and counts only, no amounts. Year to date is 1 Jan – 21 Oct 2026, net revenue as on
+the Sales page (`ZF_CSL_BI`, `INV` + `SARTN`).
+
+**Salesperson** is `CSL_SM_CODE` / `CSL_SM_NAME`. 51 salespeople sold this year; no code is
+space-padded and none has two names; every revenue line this year has a code. `ZF_SO_BI.H_SM_CODE`
+is the same code space: 99.94% of this year's revenue is booked by a code that is also on orders.
+
+**Brand.** `ZF_CSL_BI` has no brand column. The candidates, checked for one brand per item code and
+for the share of this year's revenue whose item they map:
+
+| Source                                                         | Items with a brand | Items with 2+ brands | Revenue mapped YTD      | Cost                              |
+| -------------------------------------------------------------- | ------------------ | -------------------- | ----------------------- | --------------------------------- |
+| `ZF_STK_SO_PO_SL_BI."Brand"` / `"Brand_Name"` (**chosen**)     | 6,989              | 0                    | 94.49%                  | ~12K rows, under 1 s              |
+| `ZF_STK_MTH_SUMM_BI.ZSL_BRAND` / `ZSL_BRAND_NAME`, all periods | 36,948             | 0                    | 92.69%                  | 8M rows, ~5 s per scan            |
+| the same, latest period only                                   |                    |                      | 91.89% (last 12 months) | ~3 s                              |
+| `ZF_SO_BI.D_FLEX_01_BRAND`                                     | 4,546              | 420                  |                         | not one brand per item: ruled out |
+
+- The issue named `ZF_CURR_STK_BI.ZSL_BRAND`; the live `ZF_CURR_STK_BI` has no brand column. The
+  `ZSL_*` brand columns are on the month-end view `ZF_STK_MTH_SUMM_BI`.
+- Where both stock views give an item a brand they never disagree (0 items). Together they would
+  map 97.27%, but the month-end view would add ~5 s to every brand query, so it isn't used.
+- In `ZF_STK_SO_PO_SL_BI` no brand code has two names; 201 brand codes, 52 with sales this year.
+- TNS (read from its refresh script, nothing run): its "brand" was `CSL_GROUP_NAME AS BRAND`, the
+  item group, which the Sales page already breaks down by.
+
+**Hand SQL agrees with the app.** The app's generated SQL and binds were run on live Orion next to
+hand-written SQL, for this year's top salesperson (35.17% of revenue) and top brand (26.01%):
+
+| Check                                                             | Result |
+| ----------------------------------------------------------------- | ------ |
+| One salesperson: net revenue and cost = hand SQL on `CSL_SM_CODE` | equal  |
+| One brand: net revenue and cost = hand SQL joining the brand map  | equal  |
+| Revenue by brand adds up to the all-sales KPI                     | equal  |
+| Its Unassigned row = the KPI with brand `_none`                   | equal  |
+| Brand X or Unassigned = X + Unassigned                            | equal  |
+| Revenue by salesperson under one brand = that brand's KPI         | equal  |
+| Booked orders for the salesperson (`ZF_SO_BI`)                    | found  |
+
+**Times (seconds, cold, one query each):** KPIs for all 0.9, one salesperson 0.5, one brand 1.3,
+Unassigned brand 1.8; revenue by brand 1.9; booked orders for a salesperson 0.5; open book with
+Unassigned brand 1.8. Options: salespeople 0.7 and brands 1.8, fetched in parallel. Warm they come
+from the cache (tens of milliseconds through `/api/filter-options`), and the warm-up job loads them.
+
+What was slow: "Unassigned" first read as `item IS NULL OR NOT EXISTS (… brand view …)`, and "X or
+Unassigned" as an `OR` of two subqueries. Oracle then re-ran the brand view for every sales line
+(over 60 s, timed out). Each filter is now a single `IN` or `NOT IN` with no `OR` (blank codes are
+compared as a stand-in value), which Oracle runs as a semi- or anti-join in about 2 s.
+
 ## Data quality on live Orion
 
 | Finding                                                                                                                                                                                                                                                                                                                         | Effect on screen                                                  | Note on the page                                                                                             |

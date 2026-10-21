@@ -11,6 +11,10 @@
  *     102 INP 4002  net  800  cost 0     blank customer / salesperson / group
  *
  * Left out: the XFR row (wrong type), the April invoice, and the 2024 rows (last year: 700 − 100).
+ *
+ * Salesperson codes: Alice A1, Bob B1, blank = Unassigned. Brands (tests/fixtures/
+ * ZF_STK_SO_PO_SL_BI.csv): IX Brand One (B1, on two rows), IY Brand Two (B2), IZ has a blank brand
+ * so it is Unassigned. Q1 2025 by brand: B1 1000 + 2000 − 200 = 2800, B2 500, Unassigned 800.
  */
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
@@ -32,6 +36,7 @@ import {
   type Dimension,
 } from "@/lib/server/queries/sales";
 import { companies } from "@/lib/server/queries/common";
+import { salesFilterOptions } from "@/lib/server/queries/sales-filters";
 import { ALL_OTHER, UNASSIGNED } from "@/lib/server/sql";
 import { previousYear } from "@/lib/filters";
 import { clipToBucket } from "@/lib/periods";
@@ -132,6 +137,72 @@ describe("sales breakdowns", () => {
       ["Beta Supplies", 2800],
       ["Alpha Trading", 1300],
     ]);
+  });
+});
+
+describe("salesperson and brand filters", () => {
+  it("by brand, items without a brand are Unassigned", async () => {
+    const rows = await salesBreakdown(Q1_2025, "brand");
+    expect(rows.map((row) => [row.label, row.netRevenue])).toEqual([
+      ["Brand One", 2800],
+      [UNASSIGNED, 800],
+      ["Brand Two", 500],
+    ]);
+  });
+
+  it("one salesperson", async () => {
+    const alice = { ...Q1_2025, salespeople: ["A1"] };
+    expect((await salesKpis(alice)).netRevenue).toBeCloseTo(1300);
+    expect((await salesKpis({ ...Q1_2025, salespeople: ["_none"] })).netRevenue).toBeCloseTo(800);
+    expect((await salesKpis({ ...Q1_2025, salespeople: ["A1", "_none"] })).netRevenue).toBeCloseTo(2100);
+    const months = await salesMonthly(alice);
+    expect(months.map((row) => row.netRevenue)).toEqual([1500, -200, 0]);
+    // Last year's comparison follows the same salesperson.
+    expect(months.map((row) => row.lastYearNetRevenue)).toEqual([0, 600, 0]);
+  });
+
+  it("one brand, Unassigned brand, and both filters together", async () => {
+    expect((await salesKpis({ ...Q1_2025, brands: ["B1"] })).netRevenue).toBeCloseTo(2800);
+    expect((await salesKpis({ ...Q1_2025, brands: ["_none"] })).netRevenue).toBeCloseTo(800);
+    const both = await salesKpis({ ...Q1_2025, salespeople: ["A1"], brands: ["B1"] });
+    expect(both).toMatchObject({ netRevenue: 800, cost: 480, returnsValue: -200 });
+  });
+
+  it.each(Object.keys(DIMENSIONS) as Dimension[])(
+    "%s still adds up to the KPIs with a salesperson and brand chosen",
+    async (dimension) => {
+      const filters = { ...Q1_2025, salespeople: ["A1", "B1"], brands: ["B1", "_none"] };
+      const kpis = await salesKpis(filters);
+      expect(kpis.netRevenue).toBeCloseTo(2800);
+      const rows = await salesBreakdown(filters, dimension, 1);
+      expect(rows.reduce((total, row) => total + row.netRevenue, 0)).toBeCloseTo(kpis.netRevenue);
+    },
+  );
+
+  it("options cascade from the companies and the period", async () => {
+    expect(await salesFilterOptions(Q1_2025)).toEqual({
+      salespeople: [
+        { code: "A1", name: "Alice" },
+        { code: "B1", name: "Bob" },
+        { code: "_none", name: UNASSIGNED },
+      ],
+      brands: [
+        { code: "B1", name: "Brand One" },
+        { code: "B2", name: "Brand Two" },
+        { code: "_none", name: UNASSIGNED },
+      ],
+    });
+    expect(await salesFilterOptions({ ...Q1_2025, companies: ["101"] })).toEqual({
+      salespeople: [{ code: "A1", name: "Alice" }],
+      brands: [
+        { code: "B1", name: "Brand One" },
+        { code: "B2", name: "Brand Two" },
+      ],
+    });
+    expect(await salesFilterOptions({ ...Q1_2025, start: "2001-01-01", end: "2001-01-31" })).toEqual({
+      salespeople: [],
+      brands: [],
+    });
   });
 });
 

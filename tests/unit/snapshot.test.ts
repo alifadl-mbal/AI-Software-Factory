@@ -43,7 +43,7 @@ function useSample(failingView?: string) {
 afterAll(() => setRunnerForTests(undefined));
 
 function filters(range: "mtd" | "ytd"): Filters {
-  return { range, ...presetRange(range, TODAY), companies: [] };
+  return { range, ...presetRange(range, TODAY), companies: [], salespeople: [], brands: [] };
 }
 
 function build(figures: OverviewFigures, sampleMode = true): SnapshotEmail {

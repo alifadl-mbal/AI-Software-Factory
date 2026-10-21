@@ -75,12 +75,14 @@ describe("drill periods", () => {
   });
 
   it("keeps every other filter", () => {
-    const filters = { ...Q1_2025, companies: ["101"] };
+    const filters = { ...Q1_2025, companies: ["101"], salespeople: ["A1"], brands: ["B1"] };
     expect(drillFilters(filters, { start: "2025-02-01", end: "2025-02-28" })).toEqual({
       range: "custom",
       start: "2025-02-01",
       end: "2025-02-28",
       companies: ["101"],
+      salespeople: ["A1"],
+      brands: ["B1"],
     });
   });
 

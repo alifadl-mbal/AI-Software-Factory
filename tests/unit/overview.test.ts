@@ -9,7 +9,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { parseFilters, type Filters } from "@/lib/filters";
 import { setChartOfAccountsPathForTests } from "@/lib/server/chart-of-accounts";
 import { setRunnerForTests } from "@/lib/server/db";
-import { companyRanking, summarySentence, type SummaryInput } from "@/lib/server/overview";
+import { article, companyRanking, summarySentence, type SummaryInput } from "@/lib/server/overview";
 import { companyAccountQuery, financeKpis, summarise } from "@/lib/server/queries/finance";
 import { SampleSource } from "@/lib/server/sample";
 import type { Binds } from "@/lib/server/types";
@@ -141,6 +141,24 @@ describe("summarySentence", () => {
     );
   });
 
+  it("says an before a margin read with a vowel sound", () => {
+    expect(["8.0%", "11.2%", "18.7%", "80.5%", "4.1%", "1.8%", "110.0%", "-8.1%"].map(article)).toEqual([
+      "an",
+      "an",
+      "an",
+      "an",
+      "a",
+      "a",
+      "a",
+      "an",
+    ]);
+    const finance = {
+      current: { netProfit: 1_870_000, netMarginPct: 0.187 },
+      previous: { netProfit: 1, netMarginPct: 0 },
+    };
+    expect(summarySentence(input({ finance }))).toContain("at an 18.7% net margin.");
+  });
+
   it("drops the comparison without last-year data", () => {
     const text = summarySentence(
       input({ sales: { current: { netRevenue: 12_300_000 }, previous: { netRevenue: 0 } } }),
@@ -187,6 +205,26 @@ describe("summarySentence", () => {
     });
     expect(text).toBe("From 1 Jan 2030 to 31 Jan 2030, there was no net revenue.");
     expect(text).not.toMatch(/NaN|Infinity|0%|—/);
+  });
+
+  it("keeps the ledger's margin and leader apart from revenue filtered by salesperson or brand", () => {
+    const text = summarySentence(input({ filters: { ...YTD, salespeople: ["S06"] } }));
+    expect(text).toBe(
+      "Year to date, net revenue was AED 12.3M, down 9.4% on the same days last year. Across all salespeople and brands, the business made a 4.1% net margin; Company X led with AED 3.2M net profit.",
+    );
+    const loss = summarySentence(
+      input({
+        filters: { ...YTD, brands: ["NW"] },
+        finance: {
+          current: { netProfit: -450_000, netMarginPct: -0.0366 },
+          previous: { netProfit: 0, netMarginPct: null },
+        },
+        ranking: { rows: [rows[0]] },
+      }),
+    );
+    expect(loss).toBe(
+      "Year to date, net revenue was AED 12.3M, down 9.4% on the same days last year. Across all salespeople and brands, the business made a net loss of AED 450K.",
+    );
   });
 
   it("names the period for each preset", () => {

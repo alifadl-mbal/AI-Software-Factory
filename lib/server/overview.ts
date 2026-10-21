@@ -1,6 +1,6 @@
 import "server-only";
 
-import { addDays, presetRange, previousYear, todayIso, type Filters } from "@/lib/filters";
+import { addDays, hasSalesFilter, presetRange, previousYear, todayIso, type Filters } from "@/lib/filters";
 import { formatAedCompact, formatDate, formatPct, pctChange } from "@/lib/format";
 
 import { load, type Loaded } from "./errors";
@@ -127,6 +127,12 @@ export interface SummaryInput {
   ranking: Pick<CompanyRanking, "rows">;
 }
 
+/** "an" before a figure read with a vowel sound (8%, 11.2%, 18.7%, 80%), "a" before the rest. */
+export function article(figure: string): "a" | "an" {
+  const whole = figure.replace(/^[-+]/, "").split(/[.%]/)[0].replace(/,/g, "");
+  return whole.startsWith("8") || whole === "11" || whole === "18" ? "an" : "a";
+}
+
 /**
  * The Overview's one-sentence summary, worded from the same figures and formats as its tiles and
  * ranking. A part with no figure behind it (no last year, no margin, one company) is left out
@@ -144,17 +150,34 @@ export function summarySentence({ filters, sales, finance, ranking }: SummaryInp
         ? ", level with the same days last year"
         : `, ${change > 0 ? "up" : "down"} ${formatPct(Math.abs(change))} on the same days last year`;
   }
+  // The P&L and the ranking come from the ledger, which has no salesperson or brand: under either
+  // filter they go in a sentence of their own that says so, not after the filtered revenue.
+  const filtered = hasSalesFilter(filters);
   const { netProfit, netMarginPct } = finance.current;
+  let pnl = "";
+  let joiner = "";
   if (netProfit < 0 && !isZero(netProfit)) {
-    first += `, with a net loss of ${formatAedCompact(-netProfit)}`;
+    pnl = `a net loss of ${formatAedCompact(-netProfit)}`;
+    joiner = "with";
   } else if (netMarginPct !== null && Number.isFinite(netMarginPct) && !isZero(netProfit)) {
-    first += `, at a ${formatPct(netMarginPct)} net margin`;
+    const margin = formatPct(netMarginPct);
+    pnl = `${article(margin)} ${margin} net margin`;
+    joiner = "at";
   }
+  if (pnl && !filtered) first += `, ${joiner} ${pnl}`;
   const sentences = [`${first}.`];
 
   const leader = ranking.rows[0];
-  if (filters.companies.length !== 1 && ranking.rows.length > 1 && leader && leader.current.netProfit > 0) {
-    sentences.push(`${leader.name} led with ${formatAedCompact(leader.current.netProfit)} net profit.`);
+  const led =
+    filters.companies.length !== 1 && ranking.rows.length > 1 && leader && leader.current.netProfit > 0
+      ? `${leader.name} led with ${formatAedCompact(leader.current.netProfit)} net profit`
+      : "";
+  if (!filtered) {
+    if (led) sentences.push(`${led}.`);
+  } else if (pnl || led) {
+    const business = pnl ? `the business made ${pnl}` : "";
+    const parts = [business, led].filter(Boolean).join("; ");
+    sentences.push(`Across all salespeople and brands, ${parts}.`);
   }
   return sentences.join(" ");
 }
@@ -236,7 +259,7 @@ export interface OverviewFigures {
 }
 
 function periodFilters(range: "mtd" | "ytd", today: string): Filters {
-  return { range, ...presetRange(range, today), companies: [] };
+  return { range, ...presetRange(range, today), companies: [], salespeople: [], brands: [] };
 }
 
 /** Every Overview figure for all companies, as of `today` (Asia/Dubai). */
@@ -245,7 +268,14 @@ export async function overviewFigures(today: string = todayIso()): Promise<Overv
   const yesterday = addDays(today, -1);
   const mtdFilters = periodFilters("mtd", today);
   const ytdFilters = periodFilters("ytd", today);
-  const yesterdayFilters: Filters = { range: "custom", start: yesterday, end: yesterday, companies };
+  const yesterdayFilters: Filters = {
+    range: "custom",
+    start: yesterday,
+    end: yesterday,
+    companies,
+    salespeople: [],
+    brands: [],
+  };
 
   const [sales, finance, inventory, purchasing, receivables, payables, salesOrders, dead, reorder] =
     await Promise.all([

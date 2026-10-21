@@ -48,7 +48,9 @@ export interface CustomerProps {
 /** Items in the top-items table; the rest are one "All other" row. */
 export const TOP_ITEMS = 15;
 
-const AS_OF_TODAY = "As of today; the company filter applies, the period doesn't";
+const AR_AS_OF_TODAY = "As of today; the company filter applies, the period doesn't";
+const ORDERS_AS_OF_TODAY =
+  "As of today; the company, salesperson and brand filters apply, the period doesn't";
 
 function Total({ value }: { value: number }) {
   return <span className="tabular text-sm font-medium">{formatAed(value)}</span>;
@@ -96,7 +98,7 @@ export async function CustomerSalesKpis({ code, filters, today }: CustomerProps)
       salesKpis(filters, code),
       salesKpis(previousYear(filters), code),
       salesMonthly(filters, code),
-      openBookKpis(filters.companies, today, "all", code),
+      openBookKpis(filters, today, "all", code),
     ]),
   );
   if (!result.ok) return <RowError message={result.message} />;
@@ -237,7 +239,7 @@ export async function CustomerArAging({ code, filters, today }: CustomerProps) {
   return (
     <ChartCard
       title={title}
-      description={`${AS_OF_TODAY}. Outstanding net of PDCs by document age; orange columns are 3 months old or more.`}
+      description={`${AR_AS_OF_TODAY}. Outstanding net of PDCs by document age; orange columns are 3 months old or more.`}
       action={summary && result.ok && result.data.length > 0 ? <Total value={summary.balance} /> : undefined}
     >
       {!result.ok ? (
@@ -275,7 +277,7 @@ export async function CustomerArDocuments({ code, filters, today }: CustomerProp
       companyNames(),
     ]),
   );
-  let description = `${AS_OF_TODAY}. Largest outstanding first.`;
+  let description = `${AR_AS_OF_TODAY}. Largest outstanding first.`;
   if (result.ok) {
     const [documents, balances] = result.data;
     const open = balances.reduce((sum, row) => sum + row.lines, 0);
@@ -331,13 +333,13 @@ export async function CustomerOpenOrders({ code, filters, today }: CustomerProps
   const title = "Open sales-order lines";
   const result = await load(() =>
     Promise.all([
-      openLines(filters.companies, today, "all", OPEN_ROW_LIMIT, code),
-      openBookKpis(filters.companies, today, "all", code),
-      openByCurrency(filters.companies, today, "all", code),
+      openLines(filters, today, "all", OPEN_ROW_LIMIT, code),
+      openBookKpis(filters, today, "all", code),
+      openByCurrency(filters, today, "all", code),
       companyNames(),
     ]),
   );
-  let description = `${AS_OF_TODAY}. AED orders of any age.`;
+  let description = `${ORDERS_AS_OF_TODAY}. AED orders of any age.`;
   if (result.ok) {
     const [lines, kpis] = result.data;
     description =

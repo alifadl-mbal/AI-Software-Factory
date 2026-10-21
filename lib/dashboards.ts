@@ -19,6 +19,8 @@ export interface Dashboard {
   /** URL path segment; the page lives at `app/<slug>/page.tsx`. */
   slug: string;
   title: string;
+  /** What the top bar says instead on phones, when the title doesn't fit beside the controls there. */
+  shortTitle?: string;
   /** One sentence for the Overview card and the page header. */
   description: string;
   icon: LucideIcon;
@@ -26,6 +28,11 @@ export interface Dashboard {
   source: string;
   /** False for dashboards that show "as of today" figures: the top bar then hides the date filter. */
   dateFilter?: boolean;
+  /**
+   * True when every figure follows the salesperson and brand filters (its views have both). Elsewhere
+   * the top bar shows them disabled, and the scope line says when one is set but doesn't apply.
+   */
+  salesFilters?: boolean;
 }
 
 export const DASHBOARDS: readonly Dashboard[] = [
@@ -33,9 +40,10 @@ export const DASHBOARDS: readonly Dashboard[] = [
     slug: "sales",
     title: "Sales",
     description:
-      "Net revenue, gross margin, invoices and returns, with breakdowns by company, customer, item, salesperson and item group.",
+      "Net revenue, gross margin, invoices and returns, with breakdowns by company, customer, item, salesperson, brand and item group.",
     icon: TrendingUp,
     source: "ZF_CSL_BI",
+    salesFilters: true,
   },
   {
     slug: "inventory",
@@ -61,6 +69,7 @@ export const DASHBOARDS: readonly Dashboard[] = [
       "The order book as of today: what customers have ordered that isn't delivered or invoiced yet, how old it is and who owns it, and orders booked in the period.",
     icon: ClipboardList,
     source: "ZF_SO_BI",
+    salesFilters: true,
   },
   {
     slug: "purchasing",
@@ -73,6 +82,7 @@ export const DASHBOARDS: readonly Dashboard[] = [
   {
     slug: "receivables-payables",
     title: "Receivables & payables",
+    shortTitle: "AR & AP",
     description:
       "Open customer and vendor balances as of today: aging, top customers and vendors, salesperson follow-up, PDCs and vendor prepayments.",
     icon: Scale,
@@ -88,6 +98,19 @@ export const SNAPSHOT = { href: "/snapshot", title: "Daily snapshot" } as const;
 
 export function dashboardHref(dashboard: Dashboard): string {
   return `/${dashboard.slug}`;
+}
+
+/**
+ * How a page applies the salesperson and brand filters: to every figure ("all"), to its sales
+ * figures only ("sales": the Overview), to its sales and open orders ("sales-orders": the
+ * customer and item pages), or not at all ("none").
+ */
+export type SalesFilterSupport = "all" | "sales" | "sales-orders" | "none";
+
+export function salesFilterSupport(pathname: string): SalesFilterSupport {
+  if (pathname === "/") return "sales";
+  if (pathname.startsWith("/customers/") || pathname.startsWith("/items/")) return "sales-orders";
+  return dashboardForPath(pathname)?.salesFilters ? "all" : "none";
 }
 
 /** The registry entry for a path like `/sales`, if any. */

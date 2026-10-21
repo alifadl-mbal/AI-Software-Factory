@@ -54,7 +54,7 @@ export const SALES_ORDER_KPI_GRID = "grid grid-cols-2 gap-3 sm:gap-4 lg:grid-col
 
 /** "As of today, AED orders from the last 2 years; …" */
 function asOfToday(age: OrderAge): string {
-  return `As of today, AED ${orderAgeScope(age)}; the company filter applies, the period doesn't`;
+  return `As of today, AED ${orderAgeScope(age)}; the company, salesperson and brand filters apply, the period doesn't`;
 }
 
 function totalOf(rows: LabelValue[]): number {
@@ -70,7 +70,7 @@ const NOTHING_OPEN = "No open sales orders for these companies.";
 export async function SalesOrderKpis({ filters, today, age }: SectionProps) {
   const result = await load(() =>
     Promise.all([
-      openBookKpis(filters.companies, today, age),
+      openBookKpis(filters, today, age),
       bookedKpis(filters),
       bookedKpis(previousYear(filters)),
       bookedMonthly(filters),
@@ -139,7 +139,7 @@ export function OrderAgeBar({ bookKey, ...props }: SectionProps & { bookKey: str
 async function HiddenBookNote({ filters, today, age }: SectionProps) {
   const cutoff = orderAgeCutoff(age, today);
   if (cutoff === null) return null;
-  const result = await load(() => openBookKpis(filters.companies, today, age));
+  const result = await load(() => openBookKpis(filters, today, age));
   if (!result.ok) return null;
   return (
     <OrderAgeNote
@@ -153,7 +153,7 @@ async function HiddenBookNote({ filters, today, age }: SectionProps) {
 
 /** Non-AED orders, which the AED figures leave out. Renders nothing when there are none. */
 export async function CurrencyNote({ filters, today, age }: SectionProps) {
-  const result = await load(() => openByCurrency(filters.companies, today, age));
+  const result = await load(() => openByCurrency(filters, today, age));
   if (!result.ok) return <ErrorCard message={result.message} />;
   const note = salesOrderCurrencyNote(result.data);
   if (note === null) return null;
@@ -166,7 +166,7 @@ export async function CurrencyNote({ filters, today, age }: SectionProps) {
 
 export async function OpenByAge({ filters, today, age }: SectionProps) {
   const title = "Open value by order age";
-  const result = await load(() => openByAge(filters.companies, today, age));
+  const result = await load(() => openByAge(filters, today, age));
   const total = result.ok ? result.data.reduce((sum, value) => sum + value, 0) : 0;
   return (
     <ChartCard
@@ -217,7 +217,7 @@ function StaleOrderNote({ oldest, total, age }: { oldest: number; total: number;
 
 export async function OpenBySalesperson({ filters, today, age }: SectionProps) {
   const title = "Open value by salesperson";
-  const result = await load(() => openBySalesperson(filters.companies, today, age));
+  const result = await load(() => openBySalesperson(filters, today, age));
   return (
     <ChartCard
       title={title}
@@ -250,7 +250,7 @@ const CUSTOMER_COLUMNS: ColumnSpec[] = [
 
 export async function OpenByCustomer({ filters, today, age }: SectionProps) {
   const title = "Top customers by open value";
-  const result = await load(() => openByCustomer(filters.companies, today, age));
+  const result = await load(() => openByCustomer(filters, today, age));
   const total = result.ok ? totalOf(result.data) : 0;
   // Grouped by name (codes sharing a name add up); a name links when only one code carries it.
   const codes = result.ok
@@ -327,8 +327,8 @@ export async function OpenLinesTable({ filters, today, age }: SectionProps) {
   const title = "Open order lines";
   const result = await load(() =>
     Promise.all([
-      openLines(filters.companies, today, age),
-      openBookKpis(filters.companies, today, age),
+      openLines(filters, today, age),
+      openBookKpis(filters, today, age),
       companies().then((list) => new Map(list.map((company) => [company.code, company.name]))),
     ]),
   );

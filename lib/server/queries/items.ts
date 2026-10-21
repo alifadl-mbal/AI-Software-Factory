@@ -229,7 +229,14 @@ export interface Cover {
  * own queries narrowed to the item (the Inventory KPI rule and the Sales revenue rows).
  */
 export async function itemCover(companies: string[], today: string, code: string): Promise<Cover> {
-  const window = { range: "12m" as const, ...presetRange("12m", today), companies };
+  // Stock has no salesperson or brand, so cover always compares with every sale of the item.
+  const window = {
+    range: "12m" as const,
+    ...presetRange("12m", today),
+    companies,
+    salespeople: [],
+    brands: [],
+  };
   const [stock, sales] = await Promise.all([
     stockByLocation(companies, code),
     salesKpis(window, { item: code }),

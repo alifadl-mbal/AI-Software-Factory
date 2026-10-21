@@ -15,6 +15,7 @@ import {
   type AccountMapping,
 } from "../chart-of-accounts";
 import { run } from "../db";
+import { companies as companyMaster } from "./common";
 import { ALL_OTHER, filterWhere, labelOrUnassigned, num } from "../sql";
 import type { Query, Row } from "../types";
 
@@ -439,4 +440,149 @@ export async function journalLines(
     totalCredit: num(rows[0]?.total_credit),
     limit,
   };
+}
+
+// ---------------------------------------------------------------------------------------------
+// Hover breakdown and drill-down of one P&L bar
+
+/** Companies on the hover card; the rest fold into 'All other'. */
+export const PNL_HOVER_TOP_N = 5;
+
+export interface PnlHover {
+  current: PnlSummary;
+  /** The same days a year earlier. */
+  lastYear: PnlSummary;
+  /**
+   * Net profit per company, largest (profit or loss) first, the rest folded into 'All other'.
+   * The rows add up to `current.netProfit`.
+   */
+  companies: { code: string | null; label: string; netProfit: number }[];
+}
+
+/** The group P&L from per-company P&Ls: every figure is a sum, so it matches `financeKpis`. */
+function addUp(rows: PnlSummary[]): PnlSummary {
+  const sum = (key: "revenue" | "costOfSales" | "generalAndAdmin" | "unmapped" | "unmappedAccounts") =>
+    rows.reduce((total, row) => total + row[key], 0);
+  const revenue = sum("revenue");
+  const grossProfit = revenue + sum("costOfSales");
+  const netProfit = grossProfit + sum("generalAndAdmin");
+  return {
+    revenue,
+    costOfSales: sum("costOfSales"),
+    grossProfit,
+    grossMarginPct: revenue ? grossProfit / revenue : null,
+    generalAndAdmin: sum("generalAndAdmin"),
+    netProfit,
+    netMarginPct: revenue ? netProfit / revenue : null,
+    unmapped: sum("unmapped"),
+    unmappedAccounts: sum("unmappedAccounts"),
+  };
+}
+
+/**
+ * What makes up one bar of the Monthly P&L: its P&L, the same days last year's, and net profit by
+ * company. `filters` is already narrowed to the bar's days. One aggregated query per period (by
+ * company and account), through `run` and its cache.
+ */
+export async function pnlHover(filters: Filters): Promise<PnlHover> {
+  const [current, previous, master] = await Promise.all([
+    financeByCompany(filters),
+    financeByCompany(previousYear(filters)),
+    companyMaster(),
+  ]);
+  const names = new Map(master.map((company) => [company.code, company.name]));
+  const ranked = current
+    .filter((row) => row.hasPnl)
+    .sort(
+      (a, b) =>
+        Math.abs(b.netProfit) - Math.abs(a.netProfit) ||
+        b.netProfit - a.netProfit ||
+        a.company.localeCompare(b.company),
+    )
+    .map((row) => ({
+      code: row.company,
+      label: names.get(row.company) ?? row.company,
+      netProfit: row.netProfit,
+    }));
+  const rest = ranked.slice(PNL_HOVER_TOP_N);
+  const companies =
+    rest.length === 0
+      ? ranked
+      : [
+          ...ranked.slice(0, PNL_HOVER_TOP_N),
+          { code: null, label: ALL_OTHER, netProfit: rest.reduce((total, row) => total + row.netProfit, 0) },
+        ];
+  return { current: addUp(current), lastYear: addUp(previous), companies };
+}
+
+/** One figure pair, already in display terms (costs positive). */
+export interface StatementAmounts {
+  current: number;
+  previous: number;
+  /**
+   * The change in signed (credit-positive) terms: above zero is favourable for every line, since
+   * more revenue and less cost both raise profit. `null` where good and bad don't apply.
+   */
+  signedChange: number | null;
+}
+
+export interface StatementAccountRow extends StatementAmounts {
+  mainAcnt: string;
+  name: string;
+}
+
+export interface StatementRow extends StatementAmounts {
+  id: string;
+  label: string;
+  /** `group` expands to its accounts; `subtotal` is gross or net profit; `unmapped` is flagged. */
+  kind: "group" | "subtotal" | "unmapped";
+  accounts: StatementAccountRow[];
+  note?: string;
+}
+
+/** Statement rows in display terms: costs flipped to positive, profit lines signed. */
+export function statementRows(groups: StatementGroup[]): StatementRow[] {
+  const find = (level1: string) =>
+    groups.find((group) => group.level1 === level1) ?? { level1, current: 0, previous: 0, accounts: [] };
+  const groupRow = (group: StatementGroup, label = group.level1): StatementRow => {
+    const sign = EXPENSE_LEVELS.includes(group.level1) ? -1 : 1;
+    const unmapped = group.level1 === UNMAPPED;
+    return {
+      id: group.level1.toLowerCase().replace(/[^a-z]+/g, "-"),
+      label,
+      kind: unmapped ? "unmapped" : "group",
+      current: sign * group.current,
+      previous: sign * group.previous,
+      signedChange: unmapped ? null : group.current - group.previous,
+      accounts: group.accounts.map((account) => ({
+        mainAcnt: account.mainAcnt,
+        name: account.name,
+        current: sign * account.current,
+        previous: sign * account.previous,
+        signedChange: unmapped ? null : account.current - account.previous,
+      })),
+      note: unmapped
+        ? "Accounts missing from the chart of accounts; kept out of profit. Net amount, credit − debit."
+        : undefined,
+    };
+  };
+  const subtotal = (id: string, label: string, parts: StatementGroup[]): StatementRow => {
+    const current = parts.reduce((total, group) => total + group.current, 0);
+    const previous = parts.reduce((total, group) => total + group.previous, 0);
+    return { id, label, kind: "subtotal", current, previous, signedChange: current - previous, accounts: [] };
+  };
+
+  const revenue = find(REVENUE);
+  const costOfSales = find(COST_OF_SALES);
+  const generalAndAdmin = find(GENERAL_AND_ADMIN);
+  const rows = [
+    groupRow(revenue),
+    groupRow(costOfSales),
+    subtotal("gross-profit", "Gross profit", [revenue, costOfSales]),
+    groupRow(generalAndAdmin),
+    subtotal("net-profit", "Net profit", [revenue, costOfSales, generalAndAdmin]),
+  ];
+  const unmapped = groups.find((group) => group.level1 === UNMAPPED);
+  if (unmapped) rows.push(groupRow(unmapped));
+  return rows;
 }

@@ -30,6 +30,8 @@ import {
   SummarySkeleton,
   TILE_GRID,
 } from "./_overview/sections";
+import { PnlDrillDialog } from "./finance/pnl-drill";
+import { SalesDrillDialog } from "./sales/sales-drill";
 import { SalesTrend } from "./sales/sections";
 
 function registryEntry(slug: string): Dashboard {
@@ -245,6 +247,8 @@ export default async function OverviewPage({ searchParams }: PageProps<"/">) {
           </div>
         </section>
       </div>
+      <SalesDrillDialog />
+      <PnlDrillDialog />
     </>
   );
 }

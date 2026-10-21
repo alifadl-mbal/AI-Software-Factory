@@ -149,3 +149,16 @@ export function rollUp<K extends string>(
   }
   return buckets.map((bucket) => ({ ...totals.get(bucket.key)!, month: bucket.key, bucket }));
 }
+
+const BUCKET_KEY_RE = /^\d{4}(-(0[1-9]|1[0-2]))?$/;
+
+/**
+ * The range narrowed to the bar named by `key` (`YYYY-MM` or `YYYY`), as a request names it;
+ * `null` when the key is malformed or outside the range.
+ */
+export function bucketFilters<T extends Pick<Filters, "start" | "end">>(
+  filters: T,
+  key: string | null | undefined,
+): T | null {
+  return key && BUCKET_KEY_RE.test(key) ? clipToBucket(filters, key) : null;
+}

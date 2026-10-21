@@ -356,6 +356,28 @@ Unassigned" as an `OR` of two subqueries. Oracle then re-ran the brand view for 
 (over 60 s, timed out). Each filter is now a single `IN` or `NOT IN` with no `OR` (blank codes are
 compared as a stand-in value), which Oracle runs as a semi- or anti-join in about 2 s.
 
+## Monthly P&L hover and drill-down (issue #51), 2026-10-21
+
+The app's own loaders run against live Orion (oracle mode, cache cleared before each period), for
+September 2026 and 1–21 October 2026, all companies and company 106. No amounts are recorded.
+
+**Figures.** For every period and company filter, to the fils:
+
+- the hover card's net profit and revenue (`pnlHover`) equal `financeKpis` for the same days, and its
+  last-year net profit equals the statement's last-year column;
+- its companies (top 5 plus `All other`) add up to net profit;
+- the drill-down's net profit (`pnlStatement` → `statementRows`) equals `financeKpis`;
+- the journal lines of the largest G&A account add up (debit − credit) to that account's figure.
+
+**Speed** (cold, seconds):
+
+| Section                                 | All companies | Company 106 |
+| --------------------------------------- | ------------- | ----------- |
+| Overview Monthly P&L (now vs last year) | 1.21          | 0.99        |
+| Hover card, one month                   | 0.12–0.23     | 0.12–0.22   |
+| Drill-down: P&L lines and accounts      | 0.14–0.18     | 0.15–0.16   |
+| Drill-down: journal lines               | 0.02–0.03     | 0.02–0.03   |
+
 ## Data quality on live Orion
 
 | Finding                                                                                                                                                                                                                                                                                                                         | Effect on screen                                                  | Note on the page                                                                                             |

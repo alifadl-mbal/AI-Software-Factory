@@ -628,3 +628,117 @@ export async function salesDocumentLines(
     };
   });
 }
+
+// ---------------------------------------------------------------------------------------------
+// Product mix
+
+/** One item's figures for a period, for the Product mix page. */
+export interface ItemMixFigures {
+  netRevenue: number;
+  cost: number;
+  /** `CSL_GROSS_SL_VALUE`, pre-discount; only the denominator of discount %. */
+  grossValue: number;
+  /** `CSL_NET_DISC_VALUE`, negative on returns like revenue. */
+  discount: number;
+  /** The `SARTN` part of net revenue (negative). */
+  returnsValue: number;
+  /** The `INV` part of net revenue: what was invoiced before returns. */
+  invoicedValue: number;
+}
+
+export interface ItemMixRow {
+  /** `CSL_ITEM_CODE` as stored (it may hold spaces), for the item page; `null` when blank. */
+  code: string | null;
+  name: string;
+  /** The brand map's name, or 'Unassigned'. */
+  brand: string;
+  current: ItemMixFigures;
+  /** The same days a year earlier: zeros for an item with no sales then. */
+  lastYear: ItemMixFigures;
+}
+
+/**
+ * Figures per item code (with its brand) for the period. Grouped by code, not by name: names
+ * aren't unique, and grouping by name merges and splits codes. The brand is the same expression
+ * the brand breakdown groups by, so brand totals match "Revenue by brand" on Sales.
+ */
+export function itemMixQuery(filters: Filters, scope?: SalesScope): Query {
+  const { sql, binds } = where(filters, scope);
+  const brand = labelOrUnassigned(DIMENSIONS.brand);
+  return {
+    sql: `
+SELECT ${brand} AS brand, ${ITEM_COLUMN} AS item_code, MAX(${labelOrUnassigned(DIMENSIONS.item)}) AS item,
+    SUM(${NET_VALUE}) AS net_revenue, SUM(${COST_VALUE}) AS cost, SUM(${GROSS_VALUE}) AS gross_value,
+    SUM(${DISCOUNT_VALUE}) AS discount,
+    SUM(CASE WHEN CSL_TXN_TYPE = 'SARTN' THEN ${NET_VALUE} ELSE 0 END) AS returns_value,
+    SUM(CASE WHEN CSL_TXN_TYPE = 'INV' THEN ${NET_VALUE} ELSE 0 END) AS invoiced_value
+FROM ${VIEW_WITH_BRAND}
+WHERE ${sql}
+GROUP BY ${brand}, ${ITEM_COLUMN}
+ORDER BY net_revenue DESC, item_code`,
+    binds,
+  };
+}
+
+const NO_FIGURES: ItemMixFigures = {
+  netRevenue: 0,
+  cost: 0,
+  grossValue: 0,
+  discount: 0,
+  returnsValue: 0,
+  invoicedValue: 0,
+};
+
+function toMixFigures(row: Record<string, unknown>): ItemMixFigures {
+  return {
+    netRevenue: num(row.net_revenue),
+    cost: num(row.cost),
+    grossValue: num(row.gross_value),
+    discount: num(row.discount),
+    returnsValue: num(row.returns_value),
+    invoicedValue: num(row.invoiced_value),
+  };
+}
+
+function itemCode(value: unknown): string | null {
+  return value === null || value === undefined || String(value).trim() === "" ? null : String(value);
+}
+
+/**
+ * Every item sold in the period or in the same days a year earlier, with both periods' figures.
+ * The period's rows add up to `salesKpis(filters)` exactly; an item sold only last year has zeros
+ * for this period.
+ */
+export async function salesItemMix(filters: Filters, scope?: SalesScope): Promise<ItemMixRow[]> {
+  const [current, previous] = await Promise.all([
+    run(itemMixQuery(filters, scope)),
+    run(itemMixQuery(previousYear(filters), scope)),
+  ]);
+  const items = new Map<string, ItemMixRow>();
+  // A blank code can only be Unassigned (the brand map joins on the code), so the key is unique.
+  const key = (row: Record<string, unknown>) => `${String(row.brand)}\u0000${itemCode(row.item_code) ?? ""}`;
+  for (const row of current) {
+    items.set(key(row), {
+      code: itemCode(row.item_code),
+      name: String(row.item),
+      brand: String(row.brand),
+      current: toMixFigures(row),
+      lastYear: NO_FIGURES,
+    });
+  }
+  for (const row of previous) {
+    const existing = items.get(key(row));
+    if (existing) {
+      existing.lastYear = toMixFigures(row);
+    } else {
+      items.set(key(row), {
+        code: itemCode(row.item_code),
+        name: String(row.item),
+        brand: String(row.brand),
+        current: NO_FIGURES,
+        lastYear: toMixFigures(row),
+      });
+    }
+  }
+  return [...items.values()];
+}

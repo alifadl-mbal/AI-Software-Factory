@@ -14,6 +14,8 @@ import FinancePage from "@/app/finance/page";
 import * as inventorySections from "@/app/inventory/sections";
 import InventoryPage from "@/app/inventory/page";
 import OverviewPage from "@/app/page";
+import * as productSections from "@/app/products/sections";
+import ProductsPage from "@/app/products/page";
 import * as purchasingSections from "@/app/purchasing/sections";
 import PurchasingPage from "@/app/purchasing/page";
 import * as arApSections from "@/app/receivables-payables/sections";
@@ -67,6 +69,7 @@ type Component = (props: Record<string, unknown>) => ReactNode | Promise<ReactNo
 const SECTION_MODULES: Record<string, unknown>[] = [
   overviewSections as Record<string, unknown>,
   salesSections as Record<string, unknown>,
+  productSections as Record<string, unknown>,
   financeSections as Record<string, unknown>,
   inventorySections as Record<string, unknown>,
   purchasingSections as Record<string, unknown>,
@@ -98,6 +101,7 @@ type PageComponent = (props: { searchParams: Promise<Record<string, string>> }) 
 const PAGES: [string, PageComponent][] = [
   ["/", OverviewPage as unknown as PageComponent],
   ["/sales", SalesPage as unknown as PageComponent],
+  ["/products", ProductsPage as unknown as PageComponent],
   ["/finance", FinancePage as unknown as PageComponent],
   ["/inventory", InventoryPage as unknown as PageComponent],
   ["/purchasing", PurchasingPage as unknown as PageComponent],

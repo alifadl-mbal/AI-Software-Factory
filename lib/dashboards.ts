@@ -3,6 +3,7 @@ import {
   ClipboardList,
   Landmark,
   LayoutDashboard,
+  LayoutGrid,
   Scale,
   ShoppingCart,
   TrendingUp,
@@ -88,6 +89,15 @@ export const DASHBOARDS: readonly Dashboard[] = [
     icon: Scale,
     source: "ZF_SOA_DETL_CUST_INV_SM_BI · ZF_SOAP_DETL_BI",
     dateFilter: false,
+  },
+  {
+    slug: "products",
+    title: "Product mix",
+    description:
+      "Where revenue comes from and where it is growing: a brand → item treemap coloured by change vs last year, and watchlists of growers, decliners, discounts and returns.",
+    icon: LayoutGrid,
+    source: "ZF_CSL_BI · ZF_STK_SO_PO_SL_BI",
+    salesFilters: true,
   },
 ];
 

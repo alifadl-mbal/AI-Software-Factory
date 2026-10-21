@@ -31,7 +31,7 @@ import {
   receiptsMonthly,
   zeroRateReceipts,
 } from "./queries/purchasing";
-import { salesBreakdown, salesKpis, salesMonthly, TOP_N as SALES_TOP_N } from "./queries/sales";
+import { salesBreakdown, salesDaily, salesKpis, salesMonthly, TOP_N as SALES_TOP_N } from "./queries/sales";
 import {
   bookedKpis,
   bookedMonthly,
@@ -112,6 +112,7 @@ export function warmPlan(today: string): Page[] {
           name: "KPIs",
           load: () => Promise.all([salesKpis(filters), salesKpis(lastYear), salesMonthly(filters)]),
         },
+        { name: "Sales by month, week and day", load: () => salesDaily(filters) },
         { name: "Revenue by company", load: () => salesBreakdown(filters, "company", undefined) },
         { name: "Revenue by item group", load: () => salesBreakdown(filters, "itemGroup", 12) },
         { name: "Revenue by salesperson", load: () => salesBreakdown(filters, "salesperson", 12) },

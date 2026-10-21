@@ -53,7 +53,7 @@ test("filters update every figure and the URL, and the back button restores them
       .locator("..")
       .textContent(),
   ).not.toBe(ytdTrend);
-  await expect(page.locator("tfoot td").nth(1)).toHaveText(mtdRevenue);
+  await expect(page.getByTestId("data-table-totals").first().locator("td").nth(1)).toHaveText(mtdRevenue);
 
   await page.getByTestId("company-trigger").click();
   await page.getByPlaceholder("Search companies…").fill("Sample Trading");
@@ -63,7 +63,9 @@ test("filters update every figure and the URL, and the back button restores them
   await page.keyboard.press("Escape");
   await waitForData(page);
   await expect.poll(() => kpiFull(page, "Net revenue")).not.toBe(mtdRevenue);
-  await expect(page.locator("tfoot td").nth(1)).toHaveText(await kpiFull(page, "Net revenue"));
+  await expect(page.getByTestId("data-table-totals").first().locator("td").nth(1)).toHaveText(
+    await kpiFull(page, "Net revenue"),
+  );
   await expect(page.getByTestId("period")).toContainText("1 company");
 
   // Shareable: opening the URL fresh gives the same figures.

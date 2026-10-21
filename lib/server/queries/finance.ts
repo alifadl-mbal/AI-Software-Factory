@@ -6,7 +6,6 @@ import {
   chartOfAccounts,
   classify,
   COST_OF_SALES,
-  EXPENSE_LEVELS,
   GENERAL_AND_ADMIN,
   PNL_LEVELS,
   PROFIT_AND_LOSS,
@@ -15,7 +14,7 @@ import {
   type AccountMapping,
 } from "../chart-of-accounts";
 import { run } from "../db";
-import { ALL_OTHER, filterWhere, labelOrUnassigned, num } from "../sql";
+import { filterWhere, num } from "../sql";
 import type { Query, Row } from "../types";
 
 /**
@@ -44,14 +43,6 @@ const NET_AMOUNT = `${CREDIT} - ${DEBIT}`;
 
 /** The drill-down shows at most this many journal lines. */
 export const JOURNAL_LINE_LIMIT = 500;
-
-/** Expense breakdown dimension → view column (`account` groups by GL main account). */
-export const EXPENSE_DIMENSIONS = {
-  division: "D_DIVN_NAME",
-  department: "D_DEPT_NAME",
-} as const;
-
-export type ExpenseDimension = keyof typeof EXPENSE_DIMENSIONS | "account";
 
 /** One GL main account's posted totals for a period, with its chart-of-accounts levels. */
 export interface AccountBalance extends AccountMapping {
@@ -95,12 +86,6 @@ export interface StatementGroup {
   current: number;
   previous: number;
   accounts: StatementAccount[];
-}
-
-export interface ExpenseRow {
-  label: string;
-  /** Signed (negative = cost), as in the data. */
-  net: number;
 }
 
 export interface JournalLine {
@@ -176,21 +161,6 @@ ORDER BY comp_code, main_acnt`,
   };
 }
 
-/** Posted net amount per GL main account and division or department. */
-export function accountByDimensionQuery(filters: Filters, dimension: keyof typeof EXPENSE_DIMENSIONS): Query {
-  const label = labelOrUnassigned(EXPENSE_DIMENSIONS[dimension]);
-  const { sql, binds } = where(filters);
-  return {
-    sql: `
-SELECT D_MAIN_ACNT AS main_acnt, ${label} AS label, SUM(${NET_AMOUNT}) AS net_amount
-FROM ${VIEW}
-WHERE ${sql}
-GROUP BY D_MAIN_ACNT, ${label}
-ORDER BY main_acnt, label`,
-    binds,
-  };
-}
-
 /** The newest posted lines on one account, at most `limit`, with the count and totals of all. */
 export function journalLinesQuery(filters: Filters, mainAcnt: string, limit = JOURNAL_LINE_LIMIT): Query {
   const { sql, binds } = where(filters);
@@ -229,10 +199,6 @@ function toBalance(accounts: Map<string, AccountMapping>, row: Row): AccountBala
 /** Is this an income-statement account (as opposed to balance sheet or unmapped)? */
 function isPnl(mapping: Pick<AccountMapping, "level0" | "level1">): boolean {
   return mapping.level0 === PROFIT_AND_LOSS && (PNL_LEVELS as readonly string[]).includes(mapping.level1);
-}
-
-function isExpense(mapping: Pick<AccountMapping, "level0" | "level1">): boolean {
-  return mapping.level0 === PROFIT_AND_LOSS && EXPENSE_LEVELS.includes(mapping.level1);
 }
 
 /** Roll account balances up into the P&L. Unmapped accounts are counted but kept out of profit. */
@@ -374,45 +340,6 @@ export async function pnlStatement(filters: Filters): Promise<StatementGroup[]> 
 /** Below half a fils: a balance that nets to nothing. */
 export function isZero(amount: number): boolean {
   return Math.abs(amount) < 0.005;
-}
-
-/** Fold everything past the first `topN` rows (biggest costs first) into 'All other'. */
-function topRows(rows: ExpenseRow[], topN?: number): ExpenseRow[] {
-  const sorted = [...rows].sort((a, b) => a.net - b.net || a.label.localeCompare(b.label));
-  if (topN === undefined || sorted.length <= topN) return sorted;
-  const rest = sorted.slice(topN).reduce((total, row) => total + row.net, 0);
-  return [...sorted.slice(0, topN), { label: ALL_OTHER, net: rest }];
-}
-
-/**
- * Costs (cost of sales and G&A) by GL main account, division or department, signed (negative =
- * cost). The cost accounts come from the chart of accounts, so the filtering happens after the
- * SQL aggregation. With `topN`, the rest is folded into 'All other' so the total still adds up.
- */
-export async function expenseBreakdown(
-  filters: Filters,
-  dimension: ExpenseDimension,
-  topN?: number,
-): Promise<ExpenseRow[]> {
-  const accounts = chartOfAccounts();
-  const totals = new Map<string, number>();
-  if (dimension === "account") {
-    for (const balance of await accountBalances(filters)) {
-      if (!isExpense(balance)) continue;
-      const label = `${balance.mainAcnt} · ${balance.name}`;
-      totals.set(label, (totals.get(label) ?? 0) + balance.net);
-    }
-  } else {
-    for (const row of await run(accountByDimensionQuery(filters, dimension))) {
-      if (!isExpense(classify(accounts, text(row.main_acnt), ""))) continue;
-      const label = String(row.label);
-      totals.set(label, (totals.get(label) ?? 0) + num(row.net_amount));
-    }
-  }
-  const rows = [...totals.entries()]
-    .map(([label, net]) => ({ label, net }))
-    .filter((row) => !isZero(row.net));
-  return topRows(rows, topN);
 }
 
 /** Posted journal lines on one account for the drill-down, newest first, capped at `limit`. */

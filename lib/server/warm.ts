@@ -12,13 +12,7 @@ import { apSplit, arBalances, arSummary } from "./queries/ar-ap";
 import { companies } from "./queries/common";
 import { customerCodesByName } from "./queries/customers";
 import { itemCodesByName } from "./queries/items";
-import {
-  expenseBreakdown,
-  financeKpis,
-  financeMonthly,
-  financeMonthlyVsLastYear,
-  pnlStatement,
-} from "./queries/finance";
+import { financeKpis, financeMonthly, financeMonthlyVsLastYear, pnlStatement } from "./queries/finance";
 import {
   deadStock,
   DEFAULT_DEAD_STOCK_MONTHS,
@@ -192,9 +186,6 @@ export function warmPlan(today: string): Page[] {
             ]),
         },
         { name: "P&L statement", load: () => pnlStatement(filters) },
-        { name: "Costs by GL account", load: () => expenseBreakdown(filters, "account", 12) },
-        { name: "Costs by division", load: () => expenseBreakdown(filters, "division", 12) },
-        { name: "Costs by department", load: () => expenseBreakdown(filters, "department", 12) },
       ],
     },
     {

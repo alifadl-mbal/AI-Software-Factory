@@ -2,7 +2,6 @@ import "server-only";
 
 import { AlertTriangle } from "lucide-react";
 
-import { BarBreakdown } from "@/components/dashboard/bar-breakdown";
 import { ChartCard } from "@/components/dashboard/chart-card";
 import { EmptyState } from "@/components/dashboard/empty-state";
 import { ErrorCard } from "@/components/dashboard/error-card";
@@ -23,13 +22,11 @@ import {
 import { dataAsOf } from "@/lib/server/db";
 import { load } from "@/lib/server/errors";
 import {
-  expenseBreakdown,
   financeKpis,
   financeMonthly,
   financeMonthlyVsLastYear,
   isZero,
   pnlStatement,
-  type ExpenseDimension,
   type StatementGroup,
 } from "@/lib/server/queries/finance";
 
@@ -226,49 +223,6 @@ export async function FinanceStatement({ filters }: { filters: Filters }) {
         <EmptyState />
       ) : (
         <PnlStatement rows={statementRows(result.data)} />
-      )}
-    </ChartCard>
-  );
-}
-
-/** Costs (cost of sales and G&A) by account, division or department, as positive bars. */
-export async function FinanceExpenseChart({
-  filters,
-  dimension,
-  title,
-  description,
-  topN,
-}: {
-  filters: Filters;
-  dimension: ExpenseDimension;
-  title: string;
-  description: string;
-  topN?: number;
-}) {
-  const result = await load(() => expenseBreakdown(filters, dimension, topN));
-  const rows = result.ok ? result.data.map((row) => ({ label: row.label, value: -row.net })) : [];
-  const total = rows.reduce((sum, row) => sum + row.value, 0);
-  return (
-    <ChartCard
-      title={title}
-      description={description}
-      action={
-        rows.length > 0 ? <span className="tabular text-sm font-medium">{formatAed(total)}</span> : undefined
-      }
-    >
-      {!result.ok ? (
-        <ErrorCard message={result.message} />
-      ) : rows.length === 0 ? (
-        <EmptyState />
-      ) : (
-        <BarBreakdown
-          data={rows}
-          label="Cost"
-          ariaLabel={`${title}: ${rows
-            .slice(0, 5)
-            .map((row) => `${row.label} ${formatAed(row.value)}`)
-            .join(", ")}`}
-        />
       )}
     </ChartCard>
   );

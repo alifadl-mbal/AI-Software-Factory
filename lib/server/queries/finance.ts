@@ -162,6 +162,20 @@ ORDER BY gl_month, main_acnt`,
   };
 }
 
+/** Posted net amount per company and GL main account. */
+export function companyAccountQuery(filters: Filters): Query {
+  const { sql, binds } = where(filters);
+  return {
+    sql: `
+SELECT ${COMPANY_COLUMN} AS comp_code, D_MAIN_ACNT AS main_acnt, SUM(${NET_AMOUNT}) AS net_amount
+FROM ${VIEW}
+WHERE ${sql}
+GROUP BY ${COMPANY_COLUMN}, D_MAIN_ACNT
+ORDER BY comp_code, main_acnt`,
+    binds,
+  };
+}
+
 /** Posted net amount per GL main account and division or department. */
 export function accountByDimensionQuery(filters: Filters, dimension: keyof typeof EXPENSE_DIMENSIONS): Query {
   const label = labelOrUnassigned(EXPENSE_DIMENSIONS[dimension]);
@@ -256,6 +270,32 @@ export async function accountBalances(filters: Filters): Promise<AccountBalance[
 /** Headline P&L figures for the period. */
 export async function financeKpis(filters: Filters): Promise<PnlSummary> {
   return summarise(await accountBalances(filters));
+}
+
+export interface CompanyPnl extends PnlSummary {
+  /** `D_COMP_CODE`. */
+  company: string;
+  /** Has a non-zero posted balance on an income-statement account in the period. */
+  hasPnl: boolean;
+}
+
+/**
+ * The P&L per company for the period, each rolled up exactly as `financeKpis` rolls up the
+ * period with only that company selected. Companies without any posted line are not returned.
+ */
+export async function financeByCompany(filters: Filters): Promise<CompanyPnl[]> {
+  const rows = await run(companyAccountQuery(filters));
+  const accounts = chartOfAccounts();
+  const byCompany = new Map<string, AccountBalance[]>();
+  for (const row of rows) {
+    const company = text(row.comp_code);
+    byCompany.set(company, [...(byCompany.get(company) ?? []), toBalance(accounts, row)]);
+  }
+  return [...byCompany.entries()].map(([company, balances]) => ({
+    company,
+    ...summarise(balances),
+    hasPnl: balances.some((balance) => isPnl(balance) && !isZero(balance.net)),
+  }));
 }
 
 /** Every month of the period with its P&L. Months without postings are zeros. */

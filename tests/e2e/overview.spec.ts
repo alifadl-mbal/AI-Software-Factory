@@ -176,3 +176,87 @@ test("keyboard focus on a tile link is visible", async ({ page }) => {
   const ring = await link.evaluate((element) => getComputedStyle(element).boxShadow);
   expect(ring).not.toBe("none");
 });
+
+/** `AED 1,234` / `-AED 1,234` → 1234 / -1234. */
+function aed(text: string): number {
+  const amount = Number(text.replace(/[^\d.]/g, ""));
+  return text.trim().startsWith("-") ? -amount : amount;
+}
+
+async function kpiShown(page: Page, label: string): Promise<string> {
+  const card = page
+    .getByTestId("kpi-card")
+    .filter({ has: page.getByText(label, { exact: true }) })
+    .first();
+  return ((await card.getByTestId("kpi-value").textContent()) ?? "").trim();
+}
+
+test("the summary sentence uses the tiles' figures and names the ranking's leader", async ({ page }) => {
+  await page.goto("/");
+  await waitForData(page);
+  const summary = page.getByTestId("overview-summary");
+  await expect(summary).toHaveText(/^Year to date, net revenue was AED /);
+  await expect(summary).not.toHaveText(/NaN|Infinity|—/);
+  await expect(summary).toContainText(`net revenue was ${await kpiShown(page, "Net revenue")}`);
+  const netProfit = aed(await kpiFull(page, "Net profit"));
+  if (netProfit > 0)
+    await expect(summary).toContainText(`at a ${await kpiShown(page, "Net margin %")} net margin`);
+  const leader = page.getByTestId("ranking-row").first();
+  const leaderName = (await leader.getByTestId("ranking-company-link").textContent())!.trim();
+  await expect(summary).toContainText(`${leaderName} led with`);
+});
+
+test("the company ranking adds up to the net profit tile, and a company click filters to it", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await waitForData(page);
+  const rows = page.getByTestId("ranking-row");
+  expect(await rows.count()).toBeGreaterThan(1);
+  const profits = (await page.getByTestId("ranking-net-profit").allTextContents()).map(aed);
+  expect(profits).toEqual([...profits].sort((a, b) => b - a));
+  const tile = await kpiFull(page, "Net profit");
+  await expect(page.getByTestId("ranking-total")).toHaveText(tile);
+  // Each row is rounded to the dirham, so the sum may be a few dirhams off the rounded total.
+  expect(Math.abs(profits.reduce((sum, value) => sum + value, 0) - aed(tile))).toBeLessThanOrEqual(
+    await rows.count(),
+  );
+
+  const second = rows.nth(1);
+  const code = (await second.getAttribute("data-company"))!;
+  const rowProfit = (await second.getByTestId("ranking-net-profit").textContent())!.trim();
+  await second.getByTestId("ranking-company-link").click();
+  await expect(page).toHaveURL(new RegExp(`/\?company=${code}$`));
+  await waitForData(page);
+  await expect(page.getByTestId("ranking-row")).toHaveCount(1);
+  await expect(page.getByTestId("ranking-company-link")).toHaveCount(0);
+  expect(await kpiFull(page, "Net profit")).toBe(rowProfit);
+  await expect(page.getByTestId("overview-summary")).not.toContainText("led with");
+
+  await page.goto(`/finance?company=${code}`);
+  await waitForData(page);
+  expect(await kpiFull(page, "Net profit")).toBe(rowProfit);
+});
+
+test("the company ranking scrolls inside its card at 390px", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+  await waitForData(page);
+  await expect(page.getByTestId("company-ranking")).toBeVisible();
+  const overflow = await page.evaluate(
+    () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+  );
+  expect(overflow).toBeLessThanOrEqual(0);
+});
+
+test("a company in the ranking is reachable by keyboard with a visible focus ring", async ({ page }) => {
+  await page.goto("/");
+  await waitForData(page);
+  const link = page.getByTestId("ranking-company-link").first();
+  await link.focus();
+  await expect(link).toBeFocused();
+  const ring = await link.evaluate((element) => getComputedStyle(element).boxShadow);
+  expect(ring).not.toBe("none");
+  await page.keyboard.press("Enter");
+  await expect(page).toHaveURL(/\/\?company=/);
+});

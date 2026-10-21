@@ -49,15 +49,26 @@ export default async function SalesPage({ searchParams }: PageProps<"/sales">) {
           </Suspense>
         </div>
 
-        <Suspense key={`salesperson${key}`} fallback={<ChartCardSkeleton />}>
-          <SalesBreakdownChart
-            filters={filters}
-            dimension="salesperson"
-            title="Revenue by salesperson"
-            description="Top 12 salespeople; the rest are grouped as “All other”"
-            topN={12}
-          />
-        </Suspense>
+        <div className="grid gap-6 lg:grid-cols-2">
+          <Suspense key={`salesperson${key}`} fallback={<ChartCardSkeleton />}>
+            <SalesBreakdownChart
+              filters={filters}
+              dimension="salesperson"
+              title="Revenue by salesperson"
+              description="Top 12 salespeople; the rest are grouped as “All other”"
+              topN={12}
+            />
+          </Suspense>
+          <Suspense key={`brand${key}`} fallback={<ChartCardSkeleton />}>
+            <SalesBreakdownChart
+              filters={filters}
+              dimension="brand"
+              title="Revenue by brand"
+              description="Top 12 brands; the rest are grouped as “All other”. Items without a brand are Unassigned"
+              topN={12}
+            />
+          </Suspense>
+        </div>
 
         <div className="grid gap-6 2xl:grid-cols-2">
           <Suspense key={`customers${key}`} fallback={<ChartCardSkeleton height={420} />}>

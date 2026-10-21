@@ -458,6 +458,35 @@ Filters live in the query string, so links are shareable and the back button wor
 comma-separated list of company codes; absent means all. "Today" is today in Asia/Dubai. Pages read
 them with `parseFilters(await searchParams, todayIso())`; client components use `useShell()`.
 
+`salesperson` and `brand` are comma-separated codes too (`/sales?salesperson=S01,S07&brand=NW`),
+validated and sorted like `company`; absent means all, and `_none` stands for Unassigned.
+Salesperson is `ZF_CSL_BI.CSL_SM_CODE`. Brand isn't a column of the sales view: it comes from a
+per-item map on `ZF_STK_SO_PO_SL_BI` (`lib/server/brand-map.ts`; why that source is in its header
+and in `docs/live-check.md`), and items without a brand are Unassigned. The top bar lists only
+salespeople and brands with sales in the selected companies and period (`GET /api/filter-options`).
+
+They reach SQL through the shared helpers, so a new query gets them for free: `where()` in
+`lib/server/queries/sales.ts` for anything on `ZF_CSL_BI`, or `filterWhere(filters, date, company,
+{ salesperson, item })` / `salesWhere(filters, { salesperson, item })` in `lib/server/sql.ts` for
+another view with a salesperson code or an item code. Sales, Sales orders and the sales parts of
+the Overview, customer and item pages follow them. Pages whose data has neither (Finance,
+Inventory, Purchasing, AR/AP) show the two controls disabled, and when one is set the scope line
+says it doesn't apply there. Set `salesFilters: true` on a registry entry whose figures all follow
+them (`lib/dashboards.ts`).
+
+Under every page title the **scope line** says what the figures cover in one sentence, e.g. "Year to
+date (1 Jan 2026 – 21 Oct 2026) · 2 companies · salespeople: 3 of 14 · all brands · compared with
+the same period last year", so a screenshot explains itself (`components/dashboard/scope-line.tsx`).
+Under 768 px all the filters move into a **Filters** drawer.
+
+### Company logos
+
+With exactly one company selected the sidebar shows that company's name and logo; with several or
+all it shows "MBAL BI". No logos ship with the app. To add one, drop a square file named after the
+company code into `public/logos/`: `public/logos/101.svg` or `public/logos/101.png` (an `.svg` wins
+when both exist). It shows on the next page load, no restart needed. A company without a file gets
+a monogram badge of its initials.
+
 `since` is the **order age** of the two as-of-today order books, pending POs on Purchasing and the
 open book on Sales orders: `2y` (orders placed in the last 2 years, the default, left out of the
 URL), `12m` or `all` (`lib/order-age.ts`, read with `parseOrderAge`). The sidebar carries it from
@@ -528,6 +557,9 @@ Say, Inventory on `ZF_CURR_STK_BI`:
 - `CSL_GROSS_SL_VALUE` (pre-discount) is never used as revenue.
 - Invoices = distinct `INV` documents with a non-zero net value (zero-value delivery notes excluded).
 - Blank customers, salespeople, item groups etc. show as **Unassigned**.
+- Brand = the item's brand in `ZF_STK_SO_PO_SL_BI` (`"Brand"`, `"Brand_Name"`), joined on the item
+  code; items it doesn't list are **Unassigned** (about 5.5% of revenue year to date). The TNS
+  dashboard's "brand" was `CSL_GROUP_NAME`, which is our item group.
 
 ## Business rules (Receivables & payables)
 

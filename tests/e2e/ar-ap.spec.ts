@@ -1,7 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
-import { aedNumber, kpiFull, waitForData, watchConsole } from "./helpers";
+import { aedNumber, kpiFull, pickCompany, waitForData, watchConsole } from "./helpers";
 
 const PATH = "/receivables-payables";
 const LADDER = ["<30 D", "1-2 M", "2-3 M", "3-6 M", "6-12 M", "1-2 Y", "2+ Y"];
@@ -94,11 +94,8 @@ test("the company filter changes the balances and stays in the URL", async ({ pa
   await waitForData(page);
   const allCompanies = await kpiFull(page, "AR outstanding");
 
-  await page.getByTestId("company-trigger").click();
-  await page.getByPlaceholder("Search companies…").fill("Sample Trading");
-  await page.getByRole("option", { name: /Sample Trading/ }).click();
+  await pickCompany(page, /Sample Trading/);
   await expect(page).toHaveURL(/[?&]company=101/);
-  await page.keyboard.press("Escape");
   await waitForData(page);
   await expect.poll(() => kpiFull(page, "AR outstanding")).not.toBe(allCompanies);
   await expect(page.getByTestId("period")).toContainText("1 company");

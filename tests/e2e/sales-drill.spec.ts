@@ -68,7 +68,7 @@ test("the open drill-down survives a reload", async ({ page }) => {
   const dialog = page.getByRole("dialog");
   await expect(dialog).toBeVisible();
   await expect(dialog.getByTestId("drill-total-net-revenue")).toHaveText(expected);
-  // The sidebar doesn't carry the drill to other pages.
+  // The nav rail does not carry the drill to other pages.
   await page.keyboard.press("Escape");
   await expect(page.getByRole("link", { name: "Inventory" })).toHaveAttribute("href", "/inventory");
 });

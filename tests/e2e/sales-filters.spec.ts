@@ -4,19 +4,24 @@ import { expect, test, type Page } from "@playwright/test";
 import { kpiFull, waitForData, watchConsole } from "./helpers";
 
 // The salesperson and brand filters, the scope line under the title and the company identity in the
-// sidebar, against the sample data (data/sample: salesperson codes S01–S07, brands from
+// nav rail, against the sample data (data/sample: salesperson codes S01–S07, brands from
 // ZF_STK_SO_PO_SL_BI.csv). The shared checks in app.spec.ts cover the pages themselves.
 
+/** The group in the Filters panel beside the content. */
+function group(page: Page, testId: "salesperson" | "brand") {
+  return page.getByTestId("filters-panel").getByTestId(`${testId}-group`);
+}
+
 async function pick(page: Page, testId: "salesperson" | "brand", name: string) {
-  await page.getByTestId(`${testId}-trigger`).click();
-  await expect(page.getByTestId(`${testId}-count`)).toHaveText(/^\d+ of \d+$/);
-  await page.getByRole("button", { name: "None", exact: true }).click();
-  await page
-    .getByRole("combobox", { name: `Search ${testId === "brand" ? "brands" : "salespeople"}` })
+  const panel = group(page, testId);
+  await expect(panel.getByTestId(`${testId}-count`)).toHaveText(/^\d+ of \d+$/);
+  await panel.getByRole("button", { name: "None", exact: true }).click();
+  await panel
+    .getByRole("searchbox", { name: `Search ${testId === "brand" ? "brands" : "salespeople"}` })
     .fill(name);
-  await page.getByRole("option", { name }).click();
-  await expect(page.getByTestId(`${testId}-count`)).toHaveText(/^1 of \d+$/);
-  await page.getByTestId(`${testId}-apply`).click();
+  await panel.getByRole("checkbox", { name }).check();
+  await expect(panel.getByTestId(`${testId}-count`)).toHaveText(/^1 of \d+$/);
+  await panel.getByTestId(`${testId}-apply`).click();
 }
 
 test("picking a salesperson changes the URL, the scope line and every figure", async ({ page }) => {
@@ -36,7 +41,8 @@ test("picking a salesperson changes the URL, the scope line and every figure", a
   for (const table of await page.getByTestId("data-table").all()) {
     await expect(table.locator("tfoot td").nth(1)).toHaveText(revenue);
   }
-  await expect(page.getByTestId("salesperson-trigger")).toContainText("Priya Nair");
+  await expect(group(page, "salesperson").getByRole("checkbox", { name: "Priya Nair" })).toBeChecked();
+  await expect(group(page, "salesperson").getByTestId("salesperson-count")).toHaveText(/^1 of \d+$/);
 
   // Reload keeps it, back removes it.
   await page.reload();
@@ -61,9 +67,8 @@ test("a brand narrows the sales and can be cleared with All", async ({ page }) =
   await expect(page.getByTestId("period")).toContainText("brand: Northwind");
   await expect.poll(() => kpiFull(page, "Net revenue")).not.toBe(allRevenue);
 
-  await page.getByTestId("brand-trigger").click();
-  await page.getByRole("button", { name: "All", exact: true }).click();
-  await page.getByTestId("brand-apply").click();
+  await group(page, "brand").getByRole("button", { name: "All", exact: true }).click();
+  await group(page, "brand").getByTestId("brand-apply").click();
   await expect(page).not.toHaveURL(/brand=/);
   await waitForData(page);
   await expect(page.getByTestId("period")).toContainText("all brands");
@@ -77,7 +82,7 @@ test("sales orders follow the salesperson filter", async ({ page }) => {
   await page.goto("/sales-orders?salesperson=S06");
   await waitForData(page);
   expect(await kpiFull(page, "Open order value")).not.toBe(all);
-  await expect(page.getByTestId("salesperson-trigger")).toBeEnabled();
+  await expect(group(page, "salesperson")).toBeVisible();
   await expect(page.locator("main")).not.toContainText("follows only the company filter");
   await expect(page.locator("main")).toContainText("follows the company, salesperson and brand filters");
 });
@@ -93,13 +98,14 @@ test("customer and item pages say open orders follow the salesperson filter", as
   }
 });
 
-test("pages without salesperson or brand show the filters disabled and say an active one doesn't apply", async ({
+test("pages without salesperson or brand leave those groups out and say an active one doesn't apply", async ({
   page,
 }) => {
   await page.goto("/finance");
   await waitForData(page);
-  await expect(page.getByTestId("salesperson-trigger")).toBeDisabled();
-  await expect(page.getByTestId("brand-trigger")).toBeDisabled();
+  await expect(page.getByTestId("filters-panel")).toBeVisible();
+  await expect(page.getByTestId("salesperson-group")).toHaveCount(0);
+  await expect(page.getByTestId("brand-group")).toHaveCount(0);
   await expect(page.getByTestId("sales-filter-hint")).toHaveText("No salesperson or brand here");
   await expect(page.getByTestId("period")).not.toContainText("salespeople");
 
@@ -141,13 +147,16 @@ test.describe("mobile 390px", () => {
     const overflow = () =>
       page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     expect(await overflow()).toBeLessThanOrEqual(0);
-    await expect(page.getByTestId("salesperson-trigger")).toBeHidden();
+    await expect(page.getByTestId("filters-panel")).toBeHidden();
     await page.getByTestId("filters-trigger").click();
     const drawer = page.getByTestId("filters-drawer");
-    await expect(drawer.getByTestId("salesperson-trigger")).toContainText("Priya Nair");
-    await expect(drawer.getByTestId("brand-trigger")).toContainText("Northwind");
-    await drawer.getByTestId("brand-trigger").click();
-    await expect(page.getByTestId("brand-count")).toHaveText(/^1 of \d+$/);
+    await expect(
+      drawer.getByTestId("salesperson-group").getByRole("checkbox", { name: "Priya Nair" }),
+    ).toBeChecked();
+    await expect(
+      drawer.getByTestId("brand-group").getByRole("checkbox", { name: "Northwind" }),
+    ).toBeChecked();
+    await expect(drawer.getByTestId("brand-count")).toHaveText(/^1 of \d+$/);
     expect(await overflow()).toBeLessThanOrEqual(0);
   });
 
@@ -187,12 +196,11 @@ test.describe("mobile 390px", () => {
 });
 
 for (const theme of ["light", "dark"] as const) {
-  test(`axe: sales with the salesperson checklist open (${theme})`, async ({ page }) => {
+  test(`axe: sales with the salesperson checklist loaded (${theme})`, async ({ page }) => {
     await page.emulateMedia({ colorScheme: theme });
     await page.goto("/sales?salesperson=S06");
     await waitForData(page);
-    await page.getByTestId("salesperson-trigger").click();
-    await expect(page.getByTestId("salesperson-count")).toHaveText(/^\d+ of \d+$/);
+    await expect(group(page, "salesperson").getByTestId("salesperson-count")).toHaveText(/^\d+ of \d+$/);
     const results = await new AxeBuilder({ page }).analyze();
     const serious = results.violations.filter(
       (violation) => violation.impact === "serious" || violation.impact === "critical",

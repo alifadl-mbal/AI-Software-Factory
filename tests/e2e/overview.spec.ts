@@ -168,6 +168,8 @@ test("the period moves the period tiles; as-of-today tiles follow only the compa
 test("keyboard focus on a tile link is visible", async ({ page }) => {
   await page.goto("/");
   await waitForData(page);
+  // Shift+Tab lands in the Filters panel before the tile: let its lists finish loading first.
+  await expect(page.getByTestId("filters-panel").getByTestId("brand-count")).toHaveText(/^\d+ of \d+$/);
   const link = page.getByTestId("area-link-sales");
   await link.focus();
   await page.keyboard.press("Shift+Tab");

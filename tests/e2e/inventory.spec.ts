@@ -2,7 +2,7 @@ import { readFile } from "node:fs/promises";
 
 import { expect, test, type Page } from "@playwright/test";
 
-import { kpiFull, waitForData, watchConsole } from "./helpers";
+import { kpiFull, pickCompany, waitForData, watchConsole } from "./helpers";
 
 // The shared checks in app.spec.ts (console errors, 390px, axe in both themes) cover /inventory too
 // through PAGES. These are the Inventory-specific ones.
@@ -26,7 +26,9 @@ test("shows live stock as of today, with only the company filter", async ({ page
   await waitForData(page);
   await expect(page.getByTestId("period")).toContainText("As of today");
   await expect(page.getByTestId("date-range-trigger")).toHaveCount(0);
-  await expect(page.getByTestId("company-trigger")).toBeVisible();
+  await expect(page.getByTestId("year-group")).toHaveCount(0);
+  await expect(page.getByTestId("month-group")).toHaveCount(0);
+  await expect(page.getByTestId("filters-panel").getByTestId("company-group")).toBeVisible();
   await expect(page.getByTestId("kpi-card")).toHaveCount(5);
   await expect(page.getByTestId("error-card")).toHaveCount(0);
   await expect(page.getByText(/is provisional/)).toBeVisible();
@@ -85,11 +87,8 @@ test("the company filter changes every figure", async ({ page }) => {
   await waitForData(page);
   const allValue = await kpiFull(page, "Stock value");
   const allRisk = await valueAtRisk(page);
-  await page.getByTestId("company-trigger").click();
-  await page.getByPlaceholder("Search companies…").fill("Sample Trading");
-  await page.getByRole("option", { name: /Sample Trading/ }).click();
+  await pickCompany(page, /Sample Trading/);
   await expect(page).toHaveURL(/[?&]company=101/);
-  await page.keyboard.press("Escape");
   await waitForData(page);
   await expect.poll(() => kpiFull(page, "Stock value")).not.toBe(allValue);
   expect(await valueAtRisk(page)).toBeLessThan(allRisk);

@@ -1,7 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
-import { kpiFull, PAGES, waitForData, watchConsole } from "./helpers";
+import { kpiFull, PAGES, pickCompany, waitForData, watchConsole } from "./helpers";
 
 for (const { path, heading, kpis, headline } of PAGES) {
   test(`${path} loads with real figures and no console errors`, async ({ page }) => {
@@ -55,12 +55,9 @@ test("filters update every figure and the URL, and the back button restores them
   ).not.toBe(ytdTrend);
   await expect(page.getByTestId("data-table-totals").first().locator("td").nth(1)).toHaveText(mtdRevenue);
 
-  await page.getByTestId("company-trigger").click();
-  await page.getByPlaceholder("Search companies…").fill("Sample Trading");
-  await page.getByRole("option", { name: /Sample Trading/ }).click();
+  await pickCompany(page, /Sample Trading/);
   await expect(page).toHaveURL(/[?&]company=101/);
   await expect(page).toHaveURL(/[?&]range=mtd/);
-  await page.keyboard.press("Escape");
   await waitForData(page);
   await expect.poll(() => kpiFull(page, "Net revenue")).not.toBe(mtdRevenue);
   await expect(page.getByTestId("data-table-totals").first().locator("td").nth(1)).toHaveText(
@@ -119,7 +116,7 @@ test.describe("mobile 390px", () => {
   test.use({ viewport: { width: 390, height: 844 } });
 
   for (const { path } of PAGES) {
-    test(`${path}: sidebar is a drawer and nothing scrolls sideways`, async ({ page }) => {
+    test(`${path}: the nav is a drawer and nothing scrolls sideways`, async ({ page }) => {
       await page.goto(path);
       await waitForData(page);
       const overflow = await page.evaluate(

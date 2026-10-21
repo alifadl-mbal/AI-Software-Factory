@@ -2,13 +2,12 @@ import "server-only";
 
 import { AlertTriangle } from "lucide-react";
 
-import { ChartCard } from "@/components/dashboard/chart-card";
+import { ChartCard, HOVER_CARD_FRAME } from "@/components/dashboard/chart-card";
 import { DataTable, type ColumnSpec } from "@/components/dashboard/data-table";
 import { EmptyState } from "@/components/dashboard/empty-state";
 import { ErrorCard } from "@/components/dashboard/error-card";
 import { KpiCard } from "@/components/dashboard/kpi-card";
 import { MonthEndChart } from "@/components/dashboard/month-end-chart";
-import { TrendChart } from "@/components/dashboard/trend-chart";
 import { ReportAsOf } from "@/components/shell/shell-context";
 import { Badge } from "@/components/ui/badge";
 import { customerHref } from "@/lib/customers";
@@ -26,6 +25,8 @@ import { lastClosed } from "@/lib/server/overview";
 import { itemPending, PO_LEAD_DAYS } from "@/lib/server/queries/purchasing";
 import { itemOpenBook } from "@/lib/server/queries/sales-orders";
 import { salesBreakdown, salesKpis, salesMonthly } from "@/lib/server/queries/sales";
+
+import { ItemTrendChart } from "./charts";
 
 /**
  * The item page's sections. Sales follow the filters; stock, POs and open orders are as of `today`
@@ -273,7 +274,8 @@ export async function ItemTrend({ code, filters }: ItemProps) {
     <div className="grid gap-6 lg:grid-cols-2">
       <ChartCard
         title="Monthly units sold"
-        description="This item, net of returns, this year against the same months last year"
+        className={HOVER_CARD_FRAME}
+        description="This item, net of returns, this year against the same months last year; hover or tap a bar for its companies"
         action={result.ok ? <Total>{formatQty(totalQty)}</Total> : undefined}
       >
         {!result.ok ? (
@@ -281,20 +283,24 @@ export async function ItemTrend({ code, filters }: ItemProps) {
         ) : empty ? (
           <EmptyState title="No sales" message={NO_SALES} />
         ) : (
-          <TrendChart
-            format="qty"
+          <ItemTrendChart
+            code={code}
+            measure="qty"
             ariaLabel="Monthly units sold of this item, this year compared with last year"
             data={result.data.map((month) => ({
               month: month.month,
               thisYear: month.quantity,
               lastYear: month.lastYearQuantity,
             }))}
+            start={filters.start}
+            end={filters.end}
           />
         )}
       </ChartCard>
       <ChartCard
         title="Monthly net revenue"
-        description="This item, this year against the same months last year"
+        className={HOVER_CARD_FRAME}
+        description="This item, this year against the same months last year; hover or tap a bar for its companies"
         action={result.ok ? <Total>{formatAed(totalRevenue)}</Total> : undefined}
       >
         {!result.ok ? (
@@ -302,13 +308,17 @@ export async function ItemTrend({ code, filters }: ItemProps) {
         ) : empty ? (
           <EmptyState title="No sales" message={NO_SALES} />
         ) : (
-          <TrendChart
+          <ItemTrendChart
+            code={code}
+            measure="revenue"
             ariaLabel="Monthly net revenue of this item, this year compared with last year"
             data={result.data.map((month) => ({
               month: month.month,
               thisYear: month.netRevenue,
               lastYear: month.lastYearNetRevenue,
             }))}
+            start={filters.start}
+            end={filters.end}
           />
         )}
       </ChartCard>

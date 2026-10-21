@@ -5,7 +5,15 @@ import { ArrowDownRight, ArrowUpRight, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { formatAed, formatAedCompact, formatDeltaPct, formatPct, pctChange } from "@/lib/format";
+import {
+  formatAed,
+  formatAedCompact,
+  formatCompact,
+  formatDeltaPct,
+  formatPct,
+  formatQty,
+  pctChange,
+} from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 /**
@@ -45,7 +53,7 @@ export interface HoverFigure {
 
 export interface HoverView {
   total: number;
-  /** The same days a year earlier; left out for figures with no history, such as balances. */
+  /** The same days a year earlier; leave out where there is no last year (an "as of today" bar). */
   lastYear?: number;
   figures?: HoverFigure[];
   sections: HoverSection[];
@@ -56,8 +64,20 @@ export interface HoverText {
   totalLabel: string;
   /** Shown when every section is empty, such as "No sales in this period." */
   emptyText: string;
-  /** False for figures with no last year (balances as of today): the card leaves that row out. */
+  /** `aed` for money (the default), `qty` for quantities. */
+  format?: "aed" | "qty";
+  /** False for figures with no last year to compare with, such as open orders as of today. */
   compare?: boolean;
+}
+
+/** The full and the compact way to write a value in `format`. */
+function formatters(format: HoverText["format"]): {
+  full: (value: number) => string;
+  compact: (value: number) => string;
+} {
+  return format === "qty"
+    ? { full: formatQty, compact: formatCompact }
+    : { full: formatAed, compact: formatAedCompact };
 }
 
 type Entry = { status: "loading" } | { status: "ok"; data: unknown } | { status: "error"; message: string };
@@ -181,7 +201,16 @@ function Figures({ figures }: { figures: HoverFigure[] }) {
   );
 }
 
-function Slices({ section, total }: { section: HoverSection; total: number }) {
+function Slices({
+  section,
+  total,
+  format,
+}: {
+  section: HoverSection;
+  total: number;
+  format: HoverText["format"];
+}) {
+  const { full, compact } = formatters(format);
   const largest = Math.max(...section.rows.map((row) => Math.abs(row.value)), 1);
   return (
     <section className="flex flex-col gap-1" data-testid={`breakdown-${section.id}`}>
@@ -209,12 +238,8 @@ function Slices({ section, total }: { section: HoverSection; total: number }) {
               />
               <span className="relative px-1">{row.label}</span>
             </span>
-            <span
-              className="tabular text-right font-medium"
-              title={formatAed(row.value)}
-              data-value={row.value}
-            >
-              {formatAedCompact(row.value)}
+            <span className="tabular text-right font-medium" title={full(row.value)} data-value={row.value}>
+              {compact(row.value)}
             </span>
             {section.share && (
               <span className="tabular text-right text-muted-foreground">
@@ -263,6 +288,8 @@ export function HoverBreakdown<T>({
   const view = entry.status === "ok" ? toView(entry.data as T) : undefined;
   const total = view ? view.total : current;
   const previous = view ? view.lastYear : lastYear;
+  const compare = text.compare !== false;
+  const { full } = formatters(text.format);
   return (
     <div
       className={cn(
@@ -277,15 +304,15 @@ export function HoverBreakdown<T>({
         <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
           <span className="text-muted-foreground">{text.totalLabel}</span>
           <span className="tabular text-sm font-semibold text-foreground" data-testid="breakdown-total">
-            {total === undefined ? "…" : formatAed(total)}
+            {total === undefined ? "…" : full(total)}
           </span>
         </div>
-        {text.compare !== false && (
+        {compare && (
           <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
             <span className="text-muted-foreground">
               Last year{" "}
               <span className="tabular" data-testid="breakdown-last-year">
-                {previous === undefined ? "…" : formatAed(previous)}
+                {previous === undefined ? "…" : full(previous)}
               </span>
             </span>
             {total !== undefined && previous !== undefined && (
@@ -311,7 +338,9 @@ export function HoverBreakdown<T>({
               {text.emptyText}
             </p>
           ) : (
-            view.sections.map((section) => <Slices key={section.id} section={section} total={view.total} />)
+            view.sections.map((section) => (
+              <Slices key={section.id} section={section} total={view.total} format={text.format} />
+            ))
           )}
         </>
       )}

@@ -14,8 +14,9 @@ export const BRAND_NOUN: Noun = { one: "brand", many: "brands" };
 
 /**
  * The salesperson and brand filters. Their choices cascade from the companies (and, for sales
- * data, the period). On pages whose data lacks one, that one is disabled, with a hint, and the hint
- * says so when it is set: an active filter is never ignored silently.
+ * data, the period). On pages whose data lacks one (salesperson on Inventory and Purchasing, brand
+ * on Receivables & payables), that one is disabled, with a hint, and the hint says so when it is
+ * set: an active filter is never ignored silently.
  */
 export function SalesFilterSelects() {
   const pathname = usePathname();
@@ -61,7 +62,8 @@ export function SalesFilterSelects() {
         disabled={!support.brands}
         disabledHint={brandHint}
       />
-      {(!support.salespeople || !support.brands) && (
+      {/* With one control left, its disabled twin needs a word only when it is set. */}
+      {(both || (!support.salespeople && salespersonSet) || (!support.brands && brandSet)) && (
         <span
           className="text-xs text-muted-foreground lg:max-w-44 lg:leading-tight"
           data-testid="sales-filter-hint"
@@ -70,13 +72,9 @@ export function SalesFilterSelects() {
             ? hasSalesFilter(filters)
               ? "Salesperson and brand don't apply here"
               : "No salesperson or brand here"
-            : !support.salespeople
-              ? salespersonSet
-                ? "Salesperson doesn't apply here"
-                : "No salesperson here"
-              : brandSet
-                ? "Brand doesn't apply here"
-                : "No brand here"}
+            : !support.salespeople && salespersonSet
+              ? "Salesperson doesn't apply here"
+              : "Brand doesn't apply here"}
         </span>
       )}
     </>

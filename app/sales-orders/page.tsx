@@ -8,6 +8,7 @@ import { filtersToSearch, parseFilters, todayIso } from "@/lib/filters";
 import { formatDate } from "@/lib/format";
 import { orderAgeScope, parseOrderAge } from "@/lib/order-age";
 
+import { SalesOrdersDrillDialogs } from "./charts";
 import {
   BookedTrend,
   CurrencyNote,
@@ -32,7 +33,7 @@ export default async function SalesOrdersPage({ searchParams }: PageProps<"/sale
   // A new key per filter set, so each section shows its skeleton while the new figures stream in.
   // The open book only depends on the companies and the order age.
   const key = filtersToSearch(filters) || "default";
-  const bookKey = `${today}|${filters.companies.join(",") || "all"}|${age}`;
+  const bookKey = `${today}|${filters.companies.join(",") || "all"}|${filters.salespeople.join(",")}|${filters.brands.join(",")}|${age}`;
   const scope = { filters, today, age };
 
   return (
@@ -46,7 +47,7 @@ export default async function SalesOrdersPage({ searchParams }: PageProps<"/sale
       <div className="flex flex-col gap-6">
         <Suspense
           key={`kpis${key}|${age}`}
-          fallback={<KpiRowSkeleton count={6} grid={SALES_ORDER_KPI_GRID} />}
+          fallback={<KpiRowSkeleton count={8} grid={SALES_ORDER_KPI_GRID} />}
         >
           <SalesOrderKpis {...scope} />
         </Suspense>
@@ -79,6 +80,7 @@ export default async function SalesOrdersPage({ searchParams }: PageProps<"/sale
           <OpenLinesTable {...scope} />
         </Suspense>
       </div>
+      <SalesOrdersDrillDialogs />
     </>
   );
 }

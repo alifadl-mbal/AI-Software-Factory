@@ -99,7 +99,7 @@ test("Inventory: the brand filter applies, and the salesperson filter is disable
   await waitForData(page);
   await expect(page.getByTestId("brand-trigger")).toBeEnabled();
   await expect(page.getByTestId("salesperson-trigger")).toBeDisabled();
-  await expect(page.getByTestId("sales-filter-hint")).toHaveText("No salesperson here");
+  await expect(page.getByTestId("sales-filter-hint")).toHaveCount(0);
   await expect(page.getByTestId("period")).toContainText("brand: Contoso");
   const contoso = aedNumber(await kpiFull(page, "Stock value"));
   expect(contoso).toBeGreaterThan(0);
@@ -193,7 +193,7 @@ test("AR: the salesperson filter applies to receivables only, with AR's own sale
 
   // The choices are the customers' salespeople on open AR.
   await expect(page.getByTestId("brand-trigger")).toBeDisabled();
-  await expect(page.getByTestId("sales-filter-hint")).toHaveText("No brand here");
+  await expect(page.getByTestId("sales-filter-hint")).toHaveCount(0);
   await page.getByTestId("salesperson-trigger").click();
   await expect(page.getByTestId("salesperson-count")).toHaveText(/^\d+ of \d+$/);
   await page.getByRole("button", { name: "None", exact: true }).click();

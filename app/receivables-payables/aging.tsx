@@ -115,12 +115,12 @@ export function AgingHoverChart({
             ? undefined
             : (point) => (
                 <HoverBreakdown
-                  url={urlFor(String(point.index))}
+                  url={urlFor(String(point.index - 1))}
                   title={point.bucket}
                   toView={agingView}
                   text={text}
                   current={point.value}
-                  prefetch={neighbours(KEYS, String(point.index)).map(urlFor)}
+                  prefetch={neighbours(KEYS, String(point.index - 1)).map(urlFor)}
                 />
               )
         }
@@ -128,17 +128,19 @@ export function AgingHoverChart({
           isMobile
             ? (point) =>
                 setSelected({
-                  url: urlFor(String(point.index)),
+                  url: urlFor(String(point.index - 1)),
                   title: point.bucket,
                   description: SHEET_DESCRIPTION[side],
                   current: point.value,
-                  drill: drill && point.value ? agingParam(side, point.index) : undefined,
+                  drill: drill && point.value ? agingParam(side, point.index - 1) : undefined,
                 })
             : undefined
         }
         // On phones a tap opens the sheet, and the sheet's button opens the drill-down.
-        onSelectBar={drill && !isMobile ? open : undefined}
-        drillValue={(index) => agingParam(side, index)}
+        onSelectBucket={drill && !isMobile ? open : undefined}
+        selectHint={side === "ar" ? "List its customers" : "List its vendors"}
+        // The chart numbers columns from 1; the drill-down's parameter is the 0-based ladder index.
+        drillValue={(index) => agingParam(side, index - 1)}
       />
       <HoverSheet
         selected={selected}

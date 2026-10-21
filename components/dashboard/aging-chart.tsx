@@ -23,10 +23,10 @@ import { SelectableBar } from "./selectable-bar";
 /** Buckets from this index on are more than about 90 days old and drawn in the warning colour. */
 const OLD_FROM = AGING_BUCKETS.indexOf("3-6 M");
 
-/** One column: a bucket of the ladder and its balance. */
+/** One column: its bucket label, its 1-based position on the ladder and its value. */
 export interface AgingPoint {
   bucket: string;
-  /** Ladder index, 0 = `<30 D`. */
+  /** 1 = `<30 D` … 7 = `2+ Y`, as the order-age SQL numbers them. */
   index: number;
   value: number;
 }
@@ -35,10 +35,10 @@ export interface AgingPoint {
  * Balances over the aging ladder, one column per bucket, always in ladder order. `values` has one
  * number per bucket. Older buckets are drawn in a second colour so the overdue part stands out.
  *
- * As on `TrendChart`, `renderTooltip` replaces the tooltip on hover or keyboard focus, `onSelect` is
- * called when a column is tapped or clicked (the bottom sheet on phones), and with `onSelectBar`
- * each column with a balance is a button that passes `drillValue(index)`, which also marks it as
- * `data-drill` for focus to return to.
+ * `renderTooltip` replaces the tooltip on hover or keyboard focus, `onSelect` is called when a
+ * column is tapped or clicked (the bottom sheet on phones), and with `onSelectBucket` each column
+ * with a value is a button that passes its 1-based `index` as text, or `drillValue(index)` when given
+ * (two charts on one page, such as AR and AP, need different values to return focus to).
  */
 export function AgingChart({
   values,
@@ -47,7 +47,8 @@ export function AgingChart({
   height = 280,
   renderTooltip,
   onSelect,
-  onSelectBar,
+  onSelectBucket,
+  selectHint = "List its orders",
   drillValue = String,
 }: {
   values: number[];
@@ -57,8 +58,10 @@ export function AgingChart({
   height?: number;
   renderTooltip?: (point: AgingPoint) => ReactNode;
   onSelect?: (point: AgingPoint) => void;
-  onSelectBar?: (value: string) => void;
-  /** What selecting the column at a ladder index opens; by default the index. */
+  onSelectBucket?: (index: string) => void;
+  /** What selecting a column does, for its accessible name. */
+  selectHint?: string;
+  /** What selecting the column at a 1-based index passes and marks as `data-drill`. */
   drillValue?: (index: number) => string;
 }) {
   const config = {
@@ -67,10 +70,9 @@ export function AgingChart({
   } satisfies ChartConfig;
   const data: AgingPoint[] = AGING_BUCKETS.map((bucket, index) => ({
     bucket,
-    index,
+    index: index + 1,
     value: values[index] ?? 0,
   }));
-  const byBucket = new Map(data.map((point) => [point.bucket, point]));
   const hasNegative = data.some((point) => point.value < 0);
   // On phones seven value labels don't fit over the columns; the tooltip and the tables have them.
   const isMobile = useIsMobile();
@@ -80,7 +82,7 @@ export function AgingChart({
       className="aspect-auto w-full"
       style={{ height }}
       // Buttons can't sit inside an image: a chart with selectable columns is a group.
-      role={onSelectBar ? "group" : "img"}
+      role={onSelectBucket ? "group" : "img"}
       aria-label={ariaLabel}
     >
       <BarChart data={data} margin={{ top: isMobile ? 8 : 32, right: 4, left: 4, bottom: 0 }}>
@@ -108,7 +110,7 @@ export function AgingChart({
             renderTooltip ? (
               (props) => {
                 const point = props.active
-                  ? byBucket.get(String(props.payload?.[0]?.payload?.bucket ?? ""))
+                  ? (props.payload?.[0]?.payload as AgingPoint | undefined)
                   : undefined;
                 return point ? renderTooltip(point) : null;
               }
@@ -123,25 +125,25 @@ export function AgingChart({
           radius={4}
           maxBarSize={56}
           className={onSelect ? "cursor-pointer" : undefined}
-          // The tapped column comes from the click itself, as on the trend charts.
+          // The tapped column comes from the click itself, as in TrendChart.
           onClick={
             onSelect
-              ? (item) => {
-                  const point = byBucket.get(String((item.payload as AgingPoint | undefined)?.bucket ?? ""));
+              ? (_, index) => {
+                  const point = data[index];
                   if (point) onSelect(point);
                 }
               : undefined
           }
           shape={
-            onSelectBar
+            onSelectBucket
               ? (props: BarShapeProps) => {
-                  const point = byBucket.get(String((props.payload as AgingPoint | undefined)?.bucket ?? ""));
+                  const point = props.payload as AgingPoint;
                   return (
                     <SelectableBar
                       {...props}
-                      select={onSelectBar}
-                      period={point && point.value !== 0 ? drillValue(point.index) : null}
-                      label={point ? `${point.bucket}: ${formatAed(point.value)}. List its accounts` : ""}
+                      select={onSelectBucket}
+                      period={point.value ? drillValue(point.index) : null}
+                      label={`${point.bucket}: ${formatAed(point.value)}. ${selectHint}`}
                     />
                   );
                 }

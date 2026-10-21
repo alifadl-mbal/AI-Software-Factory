@@ -360,22 +360,25 @@ export interface HoverBreakdown {
   netRevenue: number;
   /** The same days a year earlier. */
   lastYearNetRevenue: number;
+  /** Units sold less units returned, and last year's; only meaningful for one item. */
+  quantity: number;
+  lastYearQuantity: number;
   breakdowns: { dimension: Dimension; rows: BreakdownRow[] }[];
 }
 
 /**
  * What makes up one bar: its net revenue, last year's, and the top `HOVER_TOP_N` of each dimension
  * plus 'All other'. `filters` is already narrowed to the bar's days (a month bar) and `slice`
- * narrows it to one breakdown bar (a company bar), `customer` to one customer (the customer page).
- * Each dimension's rows add up to `netRevenue`.
+ * narrows it to one breakdown bar (a company bar); `detail` to one customer (the customer page) or
+ * one item (the item page). Each dimension's rows add up to `netRevenue` (and `quantity`).
  */
 export async function salesHoverBreakdown(
   filters: Filters,
   dimensions: readonly Dimension[],
   slice?: SalesSlice,
-  customer?: string,
+  detail?: { customer?: string; item?: string },
 ): Promise<HoverBreakdown> {
-  const scope = slice || customer !== undefined ? { slice, customer } : undefined;
+  const scope = slice || detail ? { slice, ...detail } : undefined;
   const [[current], [previous], breakdowns] = await Promise.all([
     run(kpiQuery(filters, scope)),
     run(kpiQuery(previousYear(filters), scope)),
@@ -384,6 +387,8 @@ export async function salesHoverBreakdown(
   return {
     netRevenue: toKpis(current).netRevenue,
     lastYearNetRevenue: toKpis(previous).netRevenue,
+    quantity: toKpis(current).quantity,
+    lastYearQuantity: toKpis(previous).quantity,
     breakdowns: dimensions.map((dimension, index) => ({ dimension, rows: breakdowns[index] })),
   };
 }

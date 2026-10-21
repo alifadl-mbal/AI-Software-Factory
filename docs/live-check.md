@@ -431,6 +431,42 @@ On reorder alerts (live stock joined to the item master) Oracle's plan for it ra
 timeout, and it did so again on a rerun. Inventory now LEFT JOINs the grouped brand map and filters
 on its brand code (about 1 s). With no brand set, every Inventory query's SQL is unchanged.
 
+## Purchasing, Sales orders and item page hover and drill-down (issue #52), 2026-10-21
+
+The app's own loaders run against live Orion (oracle mode, cache cleared before each call), year to
+date (1 Jan – 21 Oct 2026), all companies and company 106, for September and 1–21 October 2026. No
+amounts are recorded.
+
+**Figures.** For every bar and company filter, to the fils:
+
+- receipts: the hover card's spend equals `receiptsMonthly` for the month, and its companies,
+  suppliers and brands (top 5 plus `All other`) each add up to it; the drill's totals equal it, and
+  the largest receipt's lines add up to that receipt;
+- brand filter on Purchasing (the top-selling brand): receipts by month add up to receipts spend
+  and pending by bucket to pending value, both below the unfiltered figures (about 37% of spend and
+  31% of pending value for all companies);
+- orders booked: the card's value and order count equal `bookedMonthly`, its companies, salespeople
+  and brands each add up to it, the drill's totals and order count equal it, and the largest
+  order's lines add up to that order;
+- order age (`<30 D`, `3-6 M`, `1-2 Y`, last 2 years): the card equals the column of
+  `openByAge`, its companies and salespeople add up to it, the drill's total equals it, and the
+  largest order's open lines add up to that order;
+- item page (the top-selling item, September): the card's net revenue and units equal
+  `salesMonthly` for the item, and its companies add up to them.
+
+**Speed** (cold, seconds; the slowest of the two months or three columns):
+
+| Section                                  | All companies | Company 106 |
+| ---------------------------------------- | ------------- | ----------- |
+| Receipts hover card, one month           | 0.99          | 0.87        |
+| Receipts drill: receipts / lines         | 0.03 / 0.02   | 0.05 / 0.03 |
+| Purchasing with a brand: KPIs, by bucket | 0.89, 0.83    | 0.89, 0.84  |
+| Booked hover card, one month             | 1.04          | 1.07        |
+| Booked drill: orders / lines             | 0.70 / 0.07   | 0.96 / 0.25 |
+| Order-age hover card, one column         | 0.84          | 0.79        |
+| Order-age drill: orders / lines          | 0.93 / 0.07   | 0.76 / 0.04 |
+| Item page hover card                     | 0.08          | 0.02        |
+
 ## Data quality on live Orion
 
 | Finding                                                                                                                                                                                                                                                                                                                         | Effect on screen                                                  | Note on the page                                                                                             |

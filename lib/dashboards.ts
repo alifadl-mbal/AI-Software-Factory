@@ -104,6 +104,8 @@ export const DASHBOARDS: readonly Dashboard[] = [
       "Pending purchase orders with aging and overdue lines as of today, and receipts spend by month and supplier.",
     icon: ShoppingCart,
     source: "ZF_PO_PENDING_BI · ZF_CPR_BI",
+    // Brand through the per-item map on PO and receipt lines. No salesperson on purchases.
+    salesFilters: { salespeople: false, brands: true },
   },
   {
     slug: "receivables-payables",

@@ -39,7 +39,7 @@ export async function GET(request: Request) {
     const result = await load(() =>
       customer === null
         ? salesHoverBreakdown(clipped, MONTH_CARD_DIMENSIONS)
-        : salesHoverBreakdown(clipped, CUSTOMER_CARD_DIMENSIONS, undefined, customer),
+        : salesHoverBreakdown(clipped, CUSTOMER_CARD_DIMENSIONS, undefined, { customer }),
     );
     return Response.json(result, { status: result.ok ? 200 : 502 });
   }

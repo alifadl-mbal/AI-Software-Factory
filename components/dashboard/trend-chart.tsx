@@ -59,6 +59,7 @@ export function TrendChart({
   renderTooltip,
   onSelect,
   onSelectMonth,
+  selectHint = "List its documents",
 }: {
   data: TrendPoint[];
   height?: number;
@@ -69,6 +70,8 @@ export function TrendChart({
   renderTooltip?: (bar: TrendBar) => ReactNode;
   onSelect?: (bar: TrendBar) => void;
   onSelectMonth?: (month: string) => void;
+  /** What selecting a bar does, for its accessible name. */
+  selectHint?: string;
 }) {
   const full = format === "qty" ? formatQty : formatAed;
   const compact = format === "qty" ? formatCompact : formatAedCompact;
@@ -170,7 +173,7 @@ export function TrendChart({
                         {...props}
                         select={onSelectMonth}
                         period={point.thisYear ? barPeriod(point) : null}
-                        label={`${title}: ${full(point.thisYear)}. List its documents`}
+                        label={`${title}: ${full(point.thisYear)}. ${selectHint}`}
                       />
                     );
                   }

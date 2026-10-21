@@ -48,10 +48,13 @@ export function scopeSentence({
     parts.push(`${range} (${formatDate(filters.start)} – ${formatDate(filters.end)})`);
   }
   parts.push(companiesPart(filters.companies));
-  if (support !== "none") {
+  if (support === "brand") {
+    parts.push(codesPart(filters.brands, brands, BRAND_NOUN));
+    if (filters.salespeople.length > 0) parts.push("the salesperson filter doesn't apply here");
+  } else if (support !== "none") {
     const sales = `${codesPart(filters.salespeople, salespeople, SALESPERSON_NOUN)} · ${codesPart(filters.brands, brands, BRAND_NOUN)}`;
     const only = { all: "", sales: " (sales figures only)", "sales-orders": " (sales and open orders only)" }[
-      support
+      support as Exclude<SalesFilterSupport, "brand" | "none">
     ];
     parts.push(hasSalesFilter(filters) ? `${sales}${only}` : sales);
   } else if (hasSalesFilter(filters)) {

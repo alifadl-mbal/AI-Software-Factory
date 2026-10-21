@@ -12,6 +12,7 @@ import {
 import { orderAgeCutoff, type OrderAge } from "@/lib/order-age";
 import { orionDateSql, parseOrionDate } from "@/lib/orion-date";
 
+import { BRAND_MAP } from "../brand-map";
 import { run } from "../db";
 import {
   ALL_OTHER,
@@ -22,8 +23,11 @@ import {
   salesWhere,
   type SalesColumns,
 } from "../sql";
+import type { DocumentKey } from "@/lib/sales-drill";
+
 import type { Binds, Query } from "../types";
 import { agingBinds, bucketCase } from "./ar-ap";
+import { companies as loadCompanies } from "./common";
 
 /**
  * Sales-order book queries on `MBALI.ZF_SO_BI`. What was checked on live Orion (2026-10-20):
@@ -693,13 +697,26 @@ export interface BookedMonth extends BookedKpis {
   lastYearValue: number;
 }
 
-function bookedLines(filters: Filters): Query {
+/** The view with each line's brand as `brand_map.brand_name`, for the brand breakdown only. */
+const BOOKED_WITH_BRAND = `${VIEW}
+    LEFT JOIN (${BRAND_MAP}) brand_map ON brand_map.item_code = TRIM(D_ITEM_CODE)`;
+
+/**
+ * Booked lines with their month, order and AED value, plus `columns`. With `withBrand` each line
+ * also has its brand as `brand_map.brand_name`, from the per-item map.
+ */
+function bookedLines(filters: Filters, columns: string[] = [], withBrand = false): Query {
   const { sql, binds } = filterWhere(filters, "H_DT", "H_COMP_CODE", SALES_COLUMNS);
+  const select = [
+    "TO_CHAR(H_DT, 'YYYY-MM') AS order_month",
+    `${ORDER_KEY} AS order_key`,
+    `CASE WHEN H_CURR_CODE = '${AED}' THEN ${BOOKED_VALUE} ELSE 0 END AS aed_value`,
+    ...columns,
+  ];
   return {
     sql: `
-    SELECT TO_CHAR(H_DT, 'YYYY-MM') AS order_month, ${ORDER_KEY} AS order_key,
-        CASE WHEN H_CURR_CODE = '${AED}' THEN ${BOOKED_VALUE} ELSE 0 END AS aed_value
-    FROM ${VIEW}
+    SELECT ${select.join(",\n        ")}
+    FROM ${withBrand ? BOOKED_WITH_BRAND : VIEW}
     WHERE ${BOOKED_LINE} AND ${sql}`,
     binds,
   };
@@ -750,4 +767,379 @@ export async function bookedMonthly(filters: Filters): Promise<BookedMonth[]> {
     lastYearOrders: num(lastYear.get(month)?.order_count),
     lastYearValue: num(lastYear.get(month)?.booked_value),
   }));
+}
+
+// ---------------------------------------------------------------------------------------------
+// Hover cards and drill-downs
+
+/** Slices per dimension on the hover card; the rest fold into 'All other'. */
+export const HOVER_TOP_N = 5;
+
+export type OrderDimension = "company" | "salesperson" | "brand";
+
+/** What a booked-month card, and an order-age column's card, break their bar down by. */
+export const BOOKED_CARD_DIMENSIONS: readonly OrderDimension[] = ["company", "salesperson", "brand"];
+export const AGE_CARD_DIMENSIONS: readonly OrderDimension[] = ["company", "salesperson"];
+
+/** Company is by code; the cards name it from the company master. Brand only on booked lines. */
+const ORDER_DIMENSION_COLUMNS: Record<OrderDimension, string> = {
+  company: "H_COMP_CODE",
+  salesperson: "H_SM_NAME",
+  brand: "brand_map.brand_name",
+};
+
+export interface OrderBreakdown {
+  dimension: OrderDimension;
+  rows: LabelValue[];
+}
+
+/** Company codes in `breakdowns` replaced by their names. */
+async function nameCompanies(breakdowns: OrderBreakdown[]): Promise<OrderBreakdown[]> {
+  if (!breakdowns.some((breakdown) => breakdown.dimension === "company")) return breakdowns;
+  const names = new Map((await loadCompanies()).map((company) => [company.code, company.name]));
+  return breakdowns.map((breakdown) =>
+    breakdown.dimension !== "company"
+      ? breakdown
+      : {
+          ...breakdown,
+          rows: breakdown.rows.map((row) => ({ ...row, label: names.get(row.label) ?? row.label })),
+        },
+  );
+}
+
+/** AED value booked by one dimension: the top `topN` plus 'All other'. */
+export function bookedByDimensionQuery(
+  filters: Filters,
+  dimension: OrderDimension,
+  topN = HOVER_TOP_N,
+): Query {
+  const lines = bookedLines(
+    filters,
+    [`${labelOrUnassigned(ORDER_DIMENSION_COLUMNS[dimension])} AS label`],
+    dimension === "brand",
+  );
+  const grouped = `
+            SELECT label, SUM(aed_value) AS amount
+            FROM (${lines.sql}
+            ) booked
+            GROUP BY label`;
+  return foldTopN(grouped, lines.binds, topN);
+}
+
+export interface BookedHover {
+  value: number;
+  /** The same days a year earlier. */
+  lastYearValue: number;
+  orders: number;
+  breakdowns: OrderBreakdown[];
+}
+
+/**
+ * What makes up one bar of the booked trend: its AED value, last year's, and the top
+ * `HOVER_TOP_N` companies, salespeople and brands plus 'All other'. `filters` is already narrowed
+ * to the bar's days. Each dimension's rows add up to `value`.
+ */
+export async function bookedHover(
+  filters: Filters,
+  dimensions: readonly OrderDimension[] = BOOKED_CARD_DIMENSIONS,
+): Promise<BookedHover> {
+  const [current, previous, breakdowns] = await Promise.all([
+    bookedKpis(filters),
+    bookedKpis(previousYear(filters)),
+    Promise.all(dimensions.map((dimension) => labelValues(bookedByDimensionQuery(filters, dimension)))),
+  ]);
+  return {
+    value: current.value,
+    lastYearValue: previous.value,
+    orders: current.orders,
+    breakdowns: await nameCompanies(
+      dimensions.map((dimension, index) => ({ dimension, rows: breakdowns[index] })),
+    ),
+  };
+}
+
+/** Open AED value in one order-age bucket, per lines' `label`. */
+const IN_BUCKET_VALUE = `CASE WHEN bucket = :age_bucket THEN ${OPEN_AED_VALUE} ELSE 0 END`;
+const IN_BUCKET_LINE = `CASE WHEN bucket = :age_bucket THEN ${OPEN_AED_LINE} ELSE 0 END`;
+
+/** Open AED value of one order-age column by one dimension: the top `topN` plus 'All other'. */
+export function openAgeByDimensionQuery(
+  companies: BookCompanies,
+  today: string,
+  age: OrderAge,
+  bucket: number,
+  dimension: Exclude<OrderDimension, "brand">,
+  topN = HOVER_TOP_N,
+): Query {
+  const lines = bookLines(companies, today, age, [
+    `${labelOrUnassigned(ORDER_DIMENSION_COLUMNS[dimension])} AS label`,
+  ]);
+  const grouped = `
+            SELECT label, SUM(${IN_BUCKET_VALUE}) AS amount
+            FROM (${lines.sql}
+            ) book
+            GROUP BY label
+            HAVING SUM(${IN_BUCKET_VALUE}) <> 0`;
+  return foldTopN(grouped, { ...lines.binds, age_bucket: bucket }, topN);
+}
+
+export interface AgeHover {
+  /** Open AED value in the column, as the chart shows it. */
+  value: number;
+  breakdowns: OrderBreakdown[];
+}
+
+/**
+ * What makes up one column of "Open value by order age": its value (the chart's own query) and the
+ * top `HOVER_TOP_N` companies and salespeople plus 'All other'. As of today: no last year.
+ */
+export async function openAgeHover(
+  companies: BookCompanies,
+  today: string,
+  age: OrderAge,
+  bucket: number,
+): Promise<AgeHover> {
+  const [values, breakdowns] = await Promise.all([
+    openByAge(companies, today, age),
+    Promise.all(
+      AGE_CARD_DIMENSIONS.map((dimension) =>
+        labelValues(
+          openAgeByDimensionQuery(
+            companies,
+            today,
+            age,
+            bucket,
+            dimension as Exclude<OrderDimension, "brand">,
+          ),
+        ),
+      ),
+    ),
+  ]);
+  return {
+    value: values[bucket - 1] ?? 0,
+    breakdowns: await nameCompanies(
+      AGE_CARD_DIMENSIONS.map((dimension, index) => ({ dimension, rows: breakdowns[index] })),
+    ),
+  };
+}
+
+/** The drill-downs list at most this many orders (the largest first). */
+export const ORDER_LIMIT = 300;
+
+export interface OrderSummary extends DocumentKey {
+  /** YYYY-MM-DD. */
+  date: string;
+  customerCode: string;
+  customer: string;
+  salesperson: string;
+  currency: string;
+  lineCount: number;
+  /** AED: booked value, or open value for the order-age drill; 0 on other currencies. */
+  value: number;
+}
+
+export interface OrderList {
+  orders: OrderSummary[];
+  /** Every order in the bar; `orders` stops at `limit`. */
+  total: number;
+  /** The bar's exact value and order count, whatever the limit. */
+  totals: { value: number; orders: number };
+  limit: number;
+}
+
+export interface OrderLine {
+  itemCode: string;
+  item: string;
+  currency: string;
+  orderedQty: number;
+  deliveredQty: number;
+  invoicedQty: number;
+  /** AED: booked value, or open value for the order-age drill; 0 on other currencies. */
+  value: number;
+}
+
+/**
+ * Rank per-order rows (`grouped`: company_code, txn_code, txn_no, order_date, cust_code,
+ * salesperson, currency, line_count, amount) by value and keep `limit`, named from the customer
+ * master afterwards: `H_CUST_NAME` is a per-row lookup in Orion's view (see `openByCustomerQuery`).
+ */
+function rankOrders(grouped: string, binds: Binds, limit: number): Query {
+  return {
+    sql: `
+SELECT ranked.*, ${labelOrUnassigned("c.CUST_NAME")} AS customer
+FROM (
+    SELECT company_code, txn_code, txn_no, order_date, cust_code, salesperson, currency, line_count, amount,
+        COUNT(*) OVER () AS total_orders,
+        ROW_NUMBER() OVER (ORDER BY ABS(amount) DESC, order_date, company_code, txn_code, txn_no) AS rn
+    FROM (${grouped}
+    ) grouped
+) ranked
+LEFT JOIN ${CUSTOMER_VIEW} c ON c.CUST_CODE = ranked.cust_code
+WHERE ranked.rn <= :row_limit
+ORDER BY ranked.rn`,
+    binds: { ...binds, row_limit: limit },
+  };
+}
+
+const ORDER_COLUMNS = [
+  "H_COMP_CODE AS company_code",
+  "H_TXN_CODE AS txn_code",
+  "H_TXN_NO AS txn_no",
+  "TO_CHAR(H_DT, 'YYYY-MM-DD') AS order_date",
+  "TRIM(H_CUST_CODE) AS cust_code",
+  `${labelOrUnassigned("H_SM_NAME")} AS salesperson`,
+  `${labelOrUnassigned("H_CURR_CODE")} AS currency`,
+];
+
+/** The orders booked in the period (already narrowed to a bar's days), largest AED value first. */
+export function bookedOrdersQuery(filters: Filters, limit = ORDER_LIMIT): Query {
+  const lines = bookedLines(filters, ORDER_COLUMNS);
+  const grouped = `
+        SELECT company_code, txn_code, txn_no, MIN(order_date) AS order_date, MAX(cust_code) AS cust_code,
+            MAX(salesperson) AS salesperson, MAX(currency) AS currency, COUNT(*) AS line_count,
+            SUM(aed_value) AS amount
+        FROM (${lines.sql}
+        ) booked
+        GROUP BY company_code, txn_code, txn_no`;
+  return rankOrders(grouped, lines.binds, limit);
+}
+
+/** The orders in one order-age column, largest open AED value first. */
+export function openAgeOrdersQuery(
+  companies: BookCompanies,
+  today: string,
+  age: OrderAge,
+  bucket: number,
+  limit = ORDER_LIMIT,
+): Query {
+  const lines = bookLines(companies, today, age, ORDER_COLUMNS);
+  const grouped = `
+        SELECT company_code, txn_code, txn_no, MIN(order_date) AS order_date, MAX(cust_code) AS cust_code,
+            MAX(salesperson) AS salesperson, MAX(currency) AS currency, SUM(${IN_BUCKET_LINE}) AS line_count,
+            SUM(${IN_BUCKET_VALUE}) AS amount
+        FROM (${lines.sql}
+        ) book
+        GROUP BY company_code, txn_code, txn_no
+        HAVING SUM(${IN_BUCKET_LINE}) > 0`;
+  return rankOrders(grouped, { ...lines.binds, age_bucket: bucket }, limit);
+}
+
+function toOrders(rows: Record<string, unknown>[], totals: OrderList["totals"], limit: number): OrderList {
+  return {
+    orders: rows.map((row) => ({
+      date: text(row.order_date),
+      company: text(row.company_code),
+      txnCode: text(row.txn_code),
+      // TXN_NO is a NUMBER; format it here so no ".0" can creep in.
+      no: String(num(row.txn_no)),
+      customerCode: text(row.cust_code),
+      customer: text(row.customer),
+      salesperson: text(row.salesperson),
+      currency: text(row.currency),
+      lineCount: num(row.line_count),
+      value: num(row.amount),
+    })),
+    total: num(rows[0]?.total_orders),
+    totals,
+    limit,
+  };
+}
+
+/** The orders behind a booked bar, at most `limit`, with the bar's exact totals from the KPI query. */
+export async function bookedOrders(filters: Filters, limit = ORDER_LIMIT): Promise<OrderList> {
+  const [rows, kpis] = await Promise.all([run(bookedOrdersQuery(filters, limit)), bookedKpis(filters)]);
+  return toOrders(rows, { value: kpis.value, orders: kpis.orders }, limit);
+}
+
+/** The orders in one order-age column, at most `limit`, with the column's value from the chart's query. */
+export async function openAgeOrders(
+  companies: BookCompanies,
+  today: string,
+  age: OrderAge,
+  bucket: number,
+  limit = ORDER_LIMIT,
+): Promise<OrderList> {
+  const [rows, values] = await Promise.all([
+    run(openAgeOrdersQuery(companies, today, age, bucket, limit)),
+    openByAge(companies, today, age),
+  ]);
+  return toOrders(rows, { value: values[bucket - 1] ?? 0, orders: num(rows[0]?.total_orders) }, limit);
+}
+
+const LINE_COLUMNS = [
+  "D_ITEM_CODE AS item_code",
+  "COALESCE(NULLIF(TRIM(D_ITEM_DESC), ''), D_ITEM_CODE) AS item",
+  `${labelOrUnassigned("H_CURR_CODE")} AS currency`,
+  "D_QTY AS ordered_qty",
+  "NVL(D_DELIVERED_QTY, 0) AS delivered_qty",
+  "NVL(D_INVOICED_QTY, 0) AS invoiced_qty",
+  "H_COMP_CODE AS company_code",
+  "H_TXN_CODE AS txn_code",
+  "H_TXN_NO AS txn_no",
+];
+
+const ORDER_MATCH = "company_code = :doc_company AND txn_code = :doc_txn_code AND txn_no = :doc_no";
+
+function docBinds(doc: DocumentKey): Binds {
+  return { doc_company: doc.company, doc_txn_code: doc.txnCode, doc_no: doc.no };
+}
+
+/** One booked order's lines within the period, largest first. */
+export function bookedOrderLinesQuery(filters: Filters, doc: DocumentKey): Query {
+  const lines = bookedLines(filters, LINE_COLUMNS);
+  return {
+    sql: `
+SELECT item_code, item, currency, ordered_qty, delivered_qty, invoiced_qty, aed_value AS amount
+FROM (${lines.sql}
+) booked
+WHERE ${ORDER_MATCH}
+ORDER BY ABS(aed_value) DESC, item_code`,
+    binds: { ...lines.binds, ...docBinds(doc) },
+  };
+}
+
+/** One order's open AED lines in an order-age column, largest pending value first. */
+export function openOrderLinesQuery(
+  companies: BookCompanies,
+  today: string,
+  age: OrderAge,
+  bucket: number,
+  doc: DocumentKey,
+): Query {
+  const lines = bookLines(companies, today, age, LINE_COLUMNS);
+  return {
+    sql: `
+SELECT item_code, item, currency, ordered_qty, delivered_qty, invoiced_qty, pend_value AS amount
+FROM (${lines.sql}
+) book
+WHERE ${ORDER_MATCH} AND ${IN_BUCKET_LINE} = 1
+ORDER BY pend_value DESC, item_code`,
+    binds: { ...lines.binds, ...docBinds(doc), age_bucket: bucket },
+  };
+}
+
+function toLines(rows: Record<string, unknown>[]): OrderLine[] {
+  return rows.map((row) => ({
+    itemCode: text(row.item_code).trim(),
+    item: text(row.item),
+    currency: text(row.currency),
+    orderedQty: num(row.ordered_qty),
+    deliveredQty: num(row.delivered_qty),
+    invoicedQty: num(row.invoiced_qty),
+    value: num(row.amount),
+  }));
+}
+
+export async function bookedOrderLines(filters: Filters, doc: DocumentKey): Promise<OrderLine[]> {
+  return toLines(await run(bookedOrderLinesQuery(filters, doc)));
+}
+
+export async function openOrderLines(
+  companies: BookCompanies,
+  today: string,
+  age: OrderAge,
+  bucket: number,
+  doc: DocumentKey,
+): Promise<OrderLine[]> {
+  return toLines(await run(openOrderLinesQuery(companies, today, age, bucket, doc)));
 }

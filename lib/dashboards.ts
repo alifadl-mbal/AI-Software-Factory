@@ -21,6 +21,8 @@ export type FilterGroup = (typeof FILTER_GROUPS)[number];
 const ALL_FILTERS: readonly FilterGroup[] = FILTER_GROUPS;
 /** The period and the companies, for pages whose views have no salesperson or brand. */
 const PERIOD_AND_COMPANY: readonly FilterGroup[] = ["year", "month", "company"];
+/** The period, the companies and the brand, for pages with an item code but no salesperson. */
+const PERIOD_COMPANY_AND_BRAND: readonly FilterGroup[] = ["year", "month", "company", "brand"];
 /** "As of today" pages: only the companies apply. */
 const COMPANY_ONLY: readonly FilterGroup[] = ["company"];
 
@@ -94,7 +96,8 @@ export const DASHBOARDS: readonly Dashboard[] = [
       "Pending purchase orders with aging and overdue lines as of today, and receipts spend by month and supplier.",
     icon: ShoppingCart,
     source: "ZF_PO_PENDING_BI · ZF_CPR_BI",
-    filters: PERIOD_AND_COMPANY,
+    // Receipts have an item code, so the brand map applies; there is no salesperson.
+    filters: PERIOD_COMPANY_AND_BRAND,
   },
   {
     slug: "receivables-payables",
@@ -138,14 +141,16 @@ export function dashboardHref(dashboard: Dashboard): string {
 /**
  * How a page applies the salesperson and brand filters: to every figure ("all"), to its sales
  * figures only ("sales": the Overview), to its sales and open orders ("sales-orders": the
- * customer and item pages), or not at all ("none").
+ * customer and item pages), brand only, to every figure ("brand": Purchasing), or not at all
+ * ("none").
  */
-export type SalesFilterSupport = "all" | "sales" | "sales-orders" | "none";
+export type SalesFilterSupport = "all" | "sales" | "sales-orders" | "brand" | "none";
 
 export function salesFilterSupport(pathname: string): SalesFilterSupport {
   if (pathname === "/") return "sales";
   if (pathname.startsWith("/customers/") || pathname.startsWith("/items/")) return "sales-orders";
-  return dashboardForPath(pathname)?.filters.includes("salesperson") ? "all" : "none";
+  const filters = dashboardForPath(pathname)?.filters ?? [];
+  return filters.includes("salesperson") ? "all" : filters.includes("brand") ? "brand" : "none";
 }
 
 /** The Filters panel groups for a page; none on pages that aren't dashboards (the snapshot). */

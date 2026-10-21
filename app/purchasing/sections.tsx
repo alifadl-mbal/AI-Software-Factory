@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import { AlertTriangle } from "lucide-react";
 
 import { BarBreakdown } from "@/components/dashboard/bar-breakdown";
-import { ChartCard } from "@/components/dashboard/chart-card";
+import { ChartCard, HOVER_CARD_FRAME } from "@/components/dashboard/chart-card";
 import { DataQualityNote } from "@/components/dashboard/data-quality-note";
 import { DataTable, type ColumnSpec } from "@/components/dashboard/data-table";
 import { EmptyState } from "@/components/dashboard/empty-state";
@@ -13,7 +13,6 @@ import { KpiCard } from "@/components/dashboard/kpi-card";
 import { OrderAgeNote } from "@/components/dashboard/order-age-note";
 import { OrderAgeToggle } from "@/components/dashboard/order-age-toggle";
 import { KPI_GRID } from "@/components/dashboard/skeletons";
-import { TrendChart } from "@/components/dashboard/trend-chart";
 import { ReportAsOf } from "@/components/shell/shell-context";
 import { filtersToSearch, previousYear, type Filters } from "@/lib/filters";
 import { formatAed, formatInt, formatNumber, formatPct } from "@/lib/format";
@@ -37,9 +36,11 @@ import {
   type LabelValue,
 } from "@/lib/server/queries/purchasing";
 
+import { ReceiptsTrendChart } from "./charts";
+
 /**
  * Pending POs are as of `today` and follow the order-age choice; receipts follow the date filter.
- * Both follow the company filter.
+ * Both follow the company and brand filters.
  */
 interface SectionProps {
   filters: Filters;
@@ -82,7 +83,7 @@ function bars(title: string, rows: LabelValue[]) {
 export async function PurchasingKpis({ filters, today, age }: SectionProps) {
   const result = await load(() =>
     Promise.all([
-      pendingKpis(filters.companies, today, age),
+      pendingKpis(filters, today, age),
       receiptsKpis(filters),
       receiptsKpis(previousYear(filters)),
       receiptsMonthly(filters),
@@ -140,7 +141,7 @@ export function OrderAgeBar({ pendingKey, ...props }: SectionProps & { pendingKe
 async function HiddenPendingNote({ filters, today, age }: SectionProps) {
   const cutoff = orderAgeCutoff(age, today);
   if (cutoff === null) return null;
-  const result = await load(() => pendingKpis(filters.companies, today, age));
+  const result = await load(() => pendingKpis(filters, today, age));
   if (!result.ok) return null;
   return (
     <OrderAgeNote
@@ -154,7 +155,7 @@ async function HiddenPendingNote({ filters, today, age }: SectionProps) {
 
 export async function PendingByBucket({ filters, today, age }: SectionProps) {
   const title = "Pending value by aging";
-  const result = await load(() => pendingByBucket(filters.companies, today, age));
+  const result = await load(() => pendingByBucket(filters, today, age));
   const total = result.ok ? totalOf(result.data) : 0;
   return (
     <ChartCard
@@ -207,7 +208,7 @@ function StalePoNote({ buckets, total, age }: { buckets: LabelValue[]; total: nu
 
 export async function PendingBySupplier({ filters, today, age }: SectionProps) {
   const title = "Pending value by supplier";
-  const result = await load(() => pendingBySupplier(filters.companies, today, age));
+  const result = await load(() => pendingBySupplier(filters, today, age));
   return (
     <ChartCard
       title={title}
@@ -230,9 +231,7 @@ export async function PendingBySupplier({ filters, today, age }: SectionProps) {
 
 export async function PendingByCompany({ filters, today, age }: SectionProps) {
   const title = "Pending value by company";
-  const result = await load(() =>
-    Promise.all([pendingByCompany(filters.companies, today, age), companyNames()]),
-  );
+  const result = await load(() => Promise.all([pendingByCompany(filters, today, age), companyNames()]));
   const rows = result.ok
     ? result.data[0].map((row) => ({ label: result.data[1].get(row.label) ?? row.label, value: row.value }))
     : [];
@@ -271,11 +270,7 @@ const OVERDUE_COLUMNS: ColumnSpec[] = [
 export async function OverdueLinesTable({ filters, today, age }: SectionProps) {
   const title = "Overdue PO lines";
   const result = await load(() =>
-    Promise.all([
-      overdueLines(filters.companies, today, age),
-      pendingKpis(filters.companies, today, age),
-      companyNames(),
-    ]),
+    Promise.all([overdueLines(filters, today, age), pendingKpis(filters, today, age), companyNames()]),
   );
   let description = `${asOfToday(age)}: open lines past PO date + 84 days`;
   if (result.ok) {
@@ -322,7 +317,8 @@ export async function ReceiptsTrend({ filters }: { filters: Filters }) {
   return (
     <ChartCard
       title="Monthly receipts spend"
-      description="Landed value of goods received, net of returns to suppliers, against the same months last year"
+      className={HOVER_CARD_FRAME}
+      description="Landed value of goods received, net of returns to suppliers, against the same months last year; hover or tap a bar for its breakdown, select it to list its receipts"
       action={result.ok ? <Total value={total} /> : undefined}
     >
       {!result.ok ? (
@@ -330,13 +326,14 @@ export async function ReceiptsTrend({ filters }: { filters: Filters }) {
       ) : result.data.every((month) => month.spend === 0 && month.lastYearSpend === 0) ? (
         <EmptyState />
       ) : (
-        <TrendChart
-          ariaLabel="Monthly receipts spend, this year compared with last year"
+        <ReceiptsTrendChart
           data={result.data.map((month) => ({
             month: month.month,
             thisYear: month.spend,
             lastYear: month.lastYearSpend,
           }))}
+          start={filters.start}
+          end={filters.end}
         />
       )}
     </ChartCard>

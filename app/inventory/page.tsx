@@ -7,6 +7,7 @@ import { DASHBOARDS } from "@/lib/dashboards";
 import { filtersToSearch, parseFilters, todayIso } from "@/lib/filters";
 import { parseDeadStockMonths } from "@/lib/server/queries/inventory";
 
+import { MonthEndDrillDialog } from "./month-end";
 import {
   DeadStockSection,
   InventoryKpis,
@@ -24,9 +25,10 @@ export default async function InventoryPage({ searchParams }: PageProps<"/invent
   const today = todayIso();
   const filters = parseFilters(params, today);
   const deadMonths = parseDeadStockMonths(params.dead);
-  // Only the company filter applies here: stock is as of today whatever the date range says.
-  const { companies } = filters;
-  const key = companies.join(",") || "all";
+  // The company and brand filters apply here: stock is as of today whatever the date range says.
+  const { companies, brands } = filters;
+  const scope = { companies, brands };
+  const key = `${companies.join(",") || "all"}|${brands.join(",") || "all"}`;
   // Item names link to the item page with the filters kept.
   const search = filtersToSearch(filters);
 
@@ -40,17 +42,17 @@ export default async function InventoryPage({ searchParams }: PageProps<"/invent
       />
       <div className="flex flex-col gap-6">
         <Suspense key={`kpis${key}`} fallback={<KpiRowSkeleton count={5} />}>
-          <InventoryKpis companies={companies} />
+          <InventoryKpis scope={scope} />
         </Suspense>
 
         <Suspense key={`trend${key}`} fallback={<ChartCardSkeleton height={300} />}>
-          <MonthEndTrend companies={companies} />
+          <MonthEndTrend scope={scope} />
         </Suspense>
 
         <div className="grid gap-6 lg:grid-cols-2">
           <Suspense key={`company${key}`} fallback={<ChartCardSkeleton />}>
             <StockBreakdownChart
-              companies={companies}
+              scope={scope}
               dimension="company"
               title="Stock value by company"
               description="Live stock value per company"
@@ -58,7 +60,7 @@ export default async function InventoryPage({ searchParams }: PageProps<"/invent
           </Suspense>
           <Suspense key={`group${key}`} fallback={<ChartCardSkeleton />}>
             <StockBreakdownChart
-              companies={companies}
+              scope={scope}
               dimension="itemGroup"
               title="Stock value by item group"
               description="Top 12 item groups; the rest are grouped as “All other”"
@@ -67,7 +69,7 @@ export default async function InventoryPage({ searchParams }: PageProps<"/invent
           </Suspense>
           <Suspense key={`location${key}`} fallback={<ChartCardSkeleton />}>
             <StockBreakdownChart
-              companies={companies}
+              scope={scope}
               dimension="location"
               title="Stock value by location"
               description="Top 12 locations; the rest are grouped as “All other”"
@@ -76,7 +78,7 @@ export default async function InventoryPage({ searchParams }: PageProps<"/invent
           </Suspense>
           <Suspense key={`grade${key}`} fallback={<ChartCardSkeleton />}>
             <StockBreakdownChart
-              companies={companies}
+              scope={scope}
               dimension="grade"
               title="Stock value by grade"
               description="Top 12 grades; the rest are grouped as “All other”"
@@ -86,13 +88,14 @@ export default async function InventoryPage({ searchParams }: PageProps<"/invent
         </div>
 
         <Suspense key={`dead${key}-${deadMonths}`} fallback={<ChartCardSkeleton height={420} />}>
-          <DeadStockSection companies={companies} months={deadMonths} search={search} />
+          <DeadStockSection scope={scope} months={deadMonths} search={search} />
         </Suspense>
 
         <Suspense key={`reorder${key}`} fallback={<ChartCardSkeleton height={420} />}>
-          <ReorderAlertsSection companies={companies} search={search} />
+          <ReorderAlertsSection scope={scope} search={search} />
         </Suspense>
       </div>
+      <MonthEndDrillDialog />
     </>
   );
 }

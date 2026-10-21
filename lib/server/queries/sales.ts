@@ -353,6 +353,8 @@ export const HOVER_TOP_N = 5;
 /** What the card of a month bar, and of a "Revenue by company" bar, breaks it down by. */
 export const MONTH_CARD_DIMENSIONS: readonly Dimension[] = ["company", "salesperson", "itemGroup"];
 export const COMPANY_CARD_DIMENSIONS: readonly Dimension[] = ["salesperson", "itemGroup"];
+/** What the card of a month bar on the customer page breaks it down by. */
+export const CUSTOMER_CARD_DIMENSIONS: readonly Dimension[] = ["company", "itemGroup"];
 
 export interface HoverBreakdown {
   netRevenue: number;
@@ -367,16 +369,16 @@ export interface HoverBreakdown {
 /**
  * What makes up one bar: its net revenue, last year's, and the top `HOVER_TOP_N` of each dimension
  * plus 'All other'. `filters` is already narrowed to the bar's days (a month bar) and `slice`
- * narrows it to one breakdown bar (a company bar); `item` to one item (the item page). Each
- * dimension's rows add up to `netRevenue` (and `quantity`).
+ * narrows it to one breakdown bar (a company bar); `detail` to one customer (the customer page) or
+ * one item (the item page). Each dimension's rows add up to `netRevenue` (and `quantity`).
  */
 export async function salesHoverBreakdown(
   filters: Filters,
   dimensions: readonly Dimension[],
   slice?: SalesSlice,
-  item?: string,
+  detail?: { customer?: string; item?: string },
 ): Promise<HoverBreakdown> {
-  const scope = slice || item !== undefined ? { slice, item } : undefined;
+  const scope = slice || detail ? { slice, ...detail } : undefined;
   const [[current], [previous], breakdowns] = await Promise.all([
     run(kpiQuery(filters, scope)),
     run(kpiQuery(previousYear(filters), scope)),

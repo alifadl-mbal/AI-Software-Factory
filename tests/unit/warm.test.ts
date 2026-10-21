@@ -183,6 +183,7 @@ describe("POST /api/cron/warm", () => {
       "/receivables-payables",
       "/receivables-payables",
       "/receivables-payables",
+      "/receivables-payables",
     ]);
     expect(failed[0].message).toContain("Couldn't connect to Orion (ORA-12541)");
     expect(body.sections.filter((section) => section.ok).length).toBeGreaterThan(30);

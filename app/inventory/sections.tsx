@@ -1,17 +1,16 @@
 import "server-only";
 
 import { BarBreakdown } from "@/components/dashboard/bar-breakdown";
-import { ChartCard } from "@/components/dashboard/chart-card";
+import { ChartCard, HOVER_CARD_FRAME } from "@/components/dashboard/chart-card";
 import { DataQualityNote } from "@/components/dashboard/data-quality-note";
 import { DataTable, type ColumnSpec } from "@/components/dashboard/data-table";
 import { EmptyState } from "@/components/dashboard/empty-state";
 import { ErrorCard } from "@/components/dashboard/error-card";
 import { KpiCard } from "@/components/dashboard/kpi-card";
-import { MonthEndChart } from "@/components/dashboard/month-end-chart";
 import { KPI_GRID } from "@/components/dashboard/skeletons";
 import { ReportAsOf } from "@/components/shell/shell-context";
 import { Badge } from "@/components/ui/badge";
-import { todayIso } from "@/lib/filters";
+import { shiftMonth, todayIso } from "@/lib/filters";
 import { formatAed, formatAedCompact, formatDeltaPct, formatInt, formatMonth, pctChange } from "@/lib/format";
 import { itemHref } from "@/lib/items";
 import { dataAsOf } from "@/lib/server/db";
@@ -30,25 +29,30 @@ import {
   type DeadStockMonths,
   type InventoryDimension,
   type MonthEnd,
+  type StockScope,
 } from "@/lib/server/queries/inventory";
 
 import { DeadStockToggle } from "./dead-stock-toggle";
+import { MonthEndHoverChart } from "./month-end";
 
 /** The current month, `YYYY-MM`: its month-end is provisional. */
 function currentMonth(): string {
   return todayIso().slice(0, 7);
 }
 
-/** The five headline cards: live stock as of today, and the change since the last month-end. */
-export async function InventoryKpis({ companies }: { companies: string[] }) {
-  const result = await load(() =>
-    Promise.all([inventoryKpis(companies), monthEndTrend(companies, todayIso())]),
-  );
+/**
+ * The five headline cards: live stock as of today, and the change since the last month-end. Stock
+ * value is compared with the same month-end a year earlier, the only history stock has.
+ */
+export async function InventoryKpis({ scope }: { scope: StockScope }) {
+  const result = await load(() => Promise.all([inventoryKpis(scope), monthEndTrend(scope, todayIso())]));
   if (!result.ok) return <ErrorCard message={result.message} />;
   const [kpis, months] = result.data;
   const closed = lastClosed(months);
   const change = closed ? kpis.stockValue - closed.closeValue : null;
   const spark = months.map((month) => month.closeValue);
+  const lastYearMonth = shiftMonth(currentMonth(), -1);
+  const lastYear = months.find((month) => month.month === lastYearMonth);
 
   return (
     <div className={KPI_GRID} data-testid="inventory-kpis">
@@ -56,8 +60,16 @@ export async function InventoryKpis({ companies }: { companies: string[] }) {
       <KpiCard
         label="Stock value"
         value={kpis.stockValue}
+        previous={lastYear?.closeValue}
         spark={spark}
-        hint={kpis.frozenValue ? `${formatAedCompact(kpis.frozenValue)} in frozen items` : undefined}
+        hint={
+          [
+            lastYear ? `vs ${formatMonth(lastYear.month)} month-end` : null,
+            kpis.frozenValue ? `${formatAedCompact(kpis.frozenValue)} in frozen items` : null,
+          ]
+            .filter(Boolean)
+            .join("; ") || undefined
+        }
       />
       <KpiCard
         label="Available value"
@@ -96,19 +108,19 @@ function formatPctOf(part: number, whole: number): string {
 
 /** Live stock value by one dimension as ranked bars. */
 export async function StockBreakdownChart({
-  companies,
+  scope,
   dimension,
   title,
   description,
   topN,
 }: {
-  companies: string[];
+  scope: StockScope;
   dimension: InventoryDimension;
   title: string;
   description: string;
   topN?: number;
 }) {
-  const result = await load(() => stockBreakdown(companies, dimension, topN));
+  const result = await load(() => stockBreakdown(scope, dimension, topN));
   const total = result.ok ? result.data.reduce((sum, row) => sum + row.value, 0) : 0;
   return (
     <ChartCard
@@ -123,7 +135,7 @@ export async function StockBreakdownChart({
       {!result.ok ? (
         <ErrorCard message={result.message} />
       ) : result.data.length === 0 || total === 0 ? (
-        <EmptyState title="No stock for these companies" message="Try more companies." />
+        <EmptyState title="No stock for these filters" message="Try more companies or brands." />
       ) : (
         <BarBreakdown
           data={result.data.map((row) => ({ label: row.label, value: row.value }))}
@@ -139,14 +151,15 @@ export async function StockBreakdownChart({
 }
 
 /** Closing stock value for the last 24 month-ends; the current month is provisional. */
-export async function MonthEndTrend({ companies }: { companies: string[] }) {
-  const result = await load(() => monthEndTrend(companies, todayIso()));
+export async function MonthEndTrend({ scope }: { scope: StockScope }) {
+  const result = await load(() => monthEndTrend(scope, todayIso()));
   const current = currentMonth();
   const closed = result.ok ? lastClosed(result.data) : undefined;
   return (
     <ChartCard
       title="Month-end stock value"
-      description={`Closing stock value for the last ${TREND_PERIODS} month-ends; ${formatMonth(current)} is provisional and still changing`}
+      className={HOVER_CARD_FRAME}
+      description={`Closing stock value for the last ${TREND_PERIODS} month-ends; ${formatMonth(current)} is provisional and still changing. Hover or tap a bar for its breakdown, select it to list its items`}
       action={
         closed ? (
           <span className="tabular text-sm font-medium" title={`${formatMonth(closed.month)} close`}>
@@ -158,10 +171,10 @@ export async function MonthEndTrend({ companies }: { companies: string[] }) {
       {!result.ok ? (
         <ErrorCard message={result.message} />
       ) : result.data.every((month) => month.closeValue === 0) ? (
-        <EmptyState title="No month-end stock for these companies" message="Try more companies." />
+        <EmptyState title="No month-end stock for these filters" message="Try more companies or brands." />
       ) : (
         <div className="flex flex-col gap-4">
-          <MonthEndChart
+          <MonthEndHoverChart
             data={result.data.map((month) => ({
               month: month.month,
               value: month.closeValue,
@@ -203,16 +216,16 @@ const DEAD_STOCK_COLUMNS: ColumnSpec[] = [
 
 /** Stock with no movement for N months, ranked by value, with the total value at risk. */
 export async function DeadStockSection({
-  companies,
+  scope,
   months,
   search,
 }: {
-  companies: string[];
+  scope: StockScope;
   months: DeadStockMonths;
   /** The page's filters as a query string, kept on the item links. */
   search: string;
 }) {
-  const result = await load(() => deadStock(companies, months, todayIso()));
+  const result = await load(() => deadStock(scope, months, todayIso()));
   const asOf = result.ok && result.data.asOfMonth ? formatMonth(result.data.asOfMonth) : null;
   return (
     <ChartCard
@@ -269,8 +282,8 @@ const REORDER_COLUMNS: ColumnSpec[] = [
 ];
 
 /** Active items at or below their reorder level. */
-export async function ReorderAlertsSection({ companies, search }: { companies: string[]; search: string }) {
-  const result = await load(() => reorderAlerts(companies));
+export async function ReorderAlertsSection({ scope, search }: { scope: StockScope; search: string }) {
+  const result = await load(() => reorderAlerts(scope));
   return (
     <ChartCard
       title="Reorder alerts"

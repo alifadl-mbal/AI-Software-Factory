@@ -37,7 +37,8 @@ export interface AgingPoint {
  *
  * `renderTooltip` replaces the tooltip on hover or keyboard focus, `onSelect` is called when a
  * column is tapped or clicked (the bottom sheet on phones), and with `onSelectBucket` each column
- * with a value is a button that passes its 1-based `index` as text.
+ * with a value is a button that passes its 1-based `index` as text, or `drillValue(index)` when given
+ * (two charts on one page, such as AR and AP, need different values to return focus to).
  */
 export function AgingChart({
   values,
@@ -48,6 +49,7 @@ export function AgingChart({
   onSelect,
   onSelectBucket,
   selectHint = "List its orders",
+  drillValue = String,
 }: {
   values: number[];
   /** Series name in the tooltip, e.g. "Outstanding". */
@@ -59,6 +61,8 @@ export function AgingChart({
   onSelectBucket?: (index: string) => void;
   /** What selecting a column does, for its accessible name. */
   selectHint?: string;
+  /** What selecting the column at a 1-based index passes and marks as `data-drill`. */
+  drillValue?: (index: number) => string;
 }) {
   const config = {
     value: { label, color: "var(--chart-1)" },
@@ -138,7 +142,7 @@ export function AgingChart({
                     <SelectableBar
                       {...props}
                       select={onSelectBucket}
-                      period={point.value ? String(point.index) : null}
+                      period={point.value ? drillValue(point.index) : null}
                       label={`${point.bucket}: ${formatAed(point.value)}. ${selectHint}`}
                     />
                   );

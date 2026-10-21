@@ -289,7 +289,9 @@ describe("Item page: hover by company", () => {
   it("a month of one item adds up to its units and net revenue", async () => {
     for (const code of ["I1", "I2", "I3"]) {
       for (const bar of await salesMonthly(Q1_2025, { item: code })) {
-        const hover = await salesHoverBreakdown(month(Q1_2025, bar.month), ["company"], undefined, code);
+        const hover = await salesHoverBreakdown(month(Q1_2025, bar.month), ["company"], undefined, {
+          item: code,
+        });
         expect(hover.netRevenue).toBeCloseTo(bar.netRevenue);
         expect(hover.quantity).toBeCloseTo(bar.quantity);
         expect(hover.lastYearNetRevenue).toBeCloseTo(bar.lastYearNetRevenue);

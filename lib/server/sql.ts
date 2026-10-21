@@ -145,3 +145,25 @@ export function num(value: unknown): number {
   const result = Number(value);
   return Number.isFinite(result) ? result : 0;
 }
+
+/** A labelled amount, such as one slice of a hover card. */
+export interface LabelledValue {
+  label: string;
+  value: number;
+}
+
+/**
+ * `values` summed per label, the `topN` largest (by size: a negative amount can be large) first and
+ * the rest as one 'All other' row, so the rows still add up to the same total.
+ */
+export function foldTop(values: Iterable<LabelledValue>, topN: number): LabelledValue[] {
+  const totals = new Map<string, number>();
+  for (const { label, value } of values) totals.set(label, (totals.get(label) ?? 0) + value);
+  const ranked = [...totals.entries()]
+    .map(([label, value]) => ({ label, value }))
+    .sort((a, b) => Math.abs(b.value) - Math.abs(a.value) || a.label.localeCompare(b.label));
+  const rest = ranked.slice(topN);
+  return rest.length === 0
+    ? ranked
+    : [...ranked.slice(0, topN), { label: ALL_OTHER, value: rest.reduce((sum, row) => sum + row.value, 0) }];
+}

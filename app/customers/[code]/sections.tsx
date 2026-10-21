@@ -1,12 +1,10 @@
 import "server-only";
 
-import { AgingChart } from "@/components/dashboard/aging-chart";
-import { ChartCard } from "@/components/dashboard/chart-card";
+import { ChartCard, HOVER_CARD_FRAME } from "@/components/dashboard/chart-card";
 import { DataTable, type ColumnSpec } from "@/components/dashboard/data-table";
 import { EmptyState } from "@/components/dashboard/empty-state";
 import { ErrorCard } from "@/components/dashboard/error-card";
 import { KpiCard } from "@/components/dashboard/kpi-card";
-import { TrendChart } from "@/components/dashboard/trend-chart";
 import { ReportAsOf } from "@/components/shell/shell-context";
 import { AGING_BUCKETS } from "@/lib/aging";
 import { previousYear, type Filters } from "@/lib/filters";
@@ -32,6 +30,9 @@ import {
   salesMonthly,
   salesReturns,
 } from "@/lib/server/queries/sales";
+
+import { AgingHoverChart } from "@/app/receivables-payables/aging";
+import { CustomerTrendChart } from "./charts";
 
 /**
  * The customer page's sections. Period figures follow the filters; AR and the open order book are
@@ -163,7 +164,8 @@ export async function CustomerTrend({ code, filters }: CustomerProps) {
   return (
     <ChartCard
       title="Monthly net revenue"
-      description="This customer, this year against the same months last year"
+      className={HOVER_CARD_FRAME}
+      description="This customer, this year against the same months last year; hover or tap a bar for its breakdown"
       action={result.ok ? <Total value={total} /> : undefined}
     >
       {!result.ok ? (
@@ -174,13 +176,15 @@ export async function CustomerTrend({ code, filters }: CustomerProps) {
           message="This customer bought nothing in this period or the same period last year."
         />
       ) : (
-        <TrendChart
-          ariaLabel="Monthly net revenue of this customer, this year compared with last year"
+        <CustomerTrendChart
+          code={code}
           data={result.data.map((month) => ({
             month: month.month,
             thisYear: month.netRevenue,
             lastYear: month.lastYearNetRevenue,
           }))}
+          start={filters.start}
+          end={filters.end}
         />
       )}
     </ChartCard>
@@ -239,7 +243,8 @@ export async function CustomerArAging({ code, filters, today }: CustomerProps) {
   return (
     <ChartCard
       title={title}
-      description={`${AR_AS_OF_TODAY}. Outstanding net of PDCs by document age; orange columns are 3 months old or more.`}
+      className={HOVER_CARD_FRAME}
+      description={`${AR_AS_OF_TODAY}. Outstanding net of PDCs by document age; orange columns are 3 months old or more. Hover or tap a column for its breakdown.`}
       action={summary && result.ok && result.data.length > 0 ? <Total value={summary.balance} /> : undefined}
     >
       {!result.ok ? (
@@ -247,7 +252,10 @@ export async function CustomerArAging({ code, filters, today }: CustomerProps) {
       ) : result.data.length === 0 ? (
         <EmptyState title="Nothing outstanding" message={NO_AR} />
       ) : (
-        <AgingChart
+        <AgingHoverChart
+          side="ar"
+          customer={code}
+          drill={false}
           values={summary!.buckets}
           label="Outstanding"
           ariaLabel={`${title}: ${AGING_BUCKETS.map((bucket, index) => `${bucket} ${formatAed(summary!.buckets[index])}`).join(", ")}`}

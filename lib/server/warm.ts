@@ -8,7 +8,7 @@ import { refreshedSince } from "./db";
 import { friendlyMessage } from "./errors";
 import { companyRanking, financeVsLastYear, salesVsLastYear, stockPosition } from "./overview";
 import { productMix } from "./product-mix";
-import { apSplit, arBalances, arSummary } from "./queries/ar-ap";
+import { apSplit, arAgingCube, arBalances, arSummary } from "./queries/ar-ap";
 import { companies } from "./queries/common";
 import { customerCodesByName } from "./queries/customers";
 import { itemCodesByName } from "./queries/items";
@@ -233,6 +233,7 @@ export function warmPlan(today: string): Page[] {
         },
         { name: "AR by salesperson", load: () => arBalances(today, all, "salesperson") },
         { name: "AR collection", load: () => arBalances(today, all, "collector") },
+        { name: "AR aging hover and drill-down", load: () => arAgingCube(today, all) },
         { name: "AP (KPIs, aging, vendors, prepayments)", load: () => apSplit(today, all) },
       ],
     },

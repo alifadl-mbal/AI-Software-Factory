@@ -493,15 +493,30 @@ validated and sorted like `company`; absent means all, and `_none` stands for Un
 Salesperson is `ZF_CSL_BI.CSL_SM_CODE`. Brand isn't a column of the sales view: it comes from a
 per-item map on `ZF_STK_SO_PO_SL_BI` (`lib/server/brand-map.ts`; why that source is in its header
 and in `docs/live-check.md`), and items without a brand are Unassigned. The Filters panel lists only
-salespeople and brands with sales in the selected companies and period (`GET /api/filter-options`).
+salespeople and brands with sales in the selected companies and period (`GET /api/filter-options`),
+except on two pages that list their own:
+
+- **Inventory** follows the **brand** filter, through the same per-item map, on every figure: live
+  stock, the month-end trend, dead stock and reorder alerts. Its choices are the brands of the items
+  in live stock for the selected companies (`?source=stock`). Stock has no
+  salesperson, so the Filters panel leaves Salesman out there.
+- **Receivables & payables** follows the **salesperson** filter on AR only, on the customer's own
+  salesperson (`SDR_CUST_SM_CODE`, the code space of `CSL_SM_CODE`), as the customer page shows it:
+  the AR cards, aging, by salesperson, top customers and collection follow it; AP and the brand
+  filter don't apply. Its choices are the salespeople with open AR (`?source=receivables`, from the
+  page's own "Outstanding by salesperson" query), so salespeople without sales this year can be
+  picked. The scope line says "(receivables only)" while one is set.
 
 They reach SQL through the shared helpers, so a new query gets them for free: `where()` in
 `lib/server/queries/sales.ts` for anything on `ZF_CSL_BI`, or `filterWhere(filters, date, company,
 { salesperson, item })` / `salesWhere(filters, { salesperson, item })` in `lib/server/sql.ts` for
 another view with a salesperson code or an item code. Sales, Sales orders and the sales parts of
-the Overview, customer and item pages follow them. Pages whose data has neither (Finance,
-Inventory, AR/AP) leave the two groups out of the Filters panel, and when one is set the
-panel and the scope line say it doesn't apply there.
+the Overview, customer and item pages follow them; Inventory and Purchasing follow brand, and AR
+salesperson, as above. Pages whose data has neither (Finance) leave the two groups out of the
+Filters panel, a page whose data lacks one leaves that one out, and when one is set the panel and
+the scope line say it doesn't apply there. On AR the registry entry's `salesFiltersOnly` names the
+figures that follow it (the scope line adds it in brackets), and `filterOptions` on Inventory and
+AR says where the choices come from (`sales`, the default, `stock` or `receivables`).
 
 **The Filters panel** (`components/shell/filters-panel.tsx`) shows the groups listed in the page's
 registry entry, `filters: ["year", "month", "company", "salesperson", "brand"]` or a subset
@@ -643,6 +658,25 @@ Where they are:
 | Sales orders | Monthly orders booked   | company, salesperson, brand               | orders → order lines (`drill`, `doc`)          |
 | Sales orders | Open value by order age | company, salesperson (as of today, no LY) | open orders → open lines (`bucket=1…7`, `doc`) |
 | Item page    | Monthly units, revenue  | company                                   | —                                              |
+
+The same pieces serve the other charts:
+
+- **Inventory**, month-end stock value: the card is the month-end by company, brand and item group
+  against the same month-end a year earlier (`/api/inventory/month-end?month=`); the drill
+  (`?stockMonth=`) lists its items, linking to the item page (`/api/inventory/month-end-items`).
+  Brand comes from the per-item map and item group from `ZF_ITEM.IM_GROUP_NAME`.
+- **Receivables & payables**, AR and AP aging: the card is the column by company and by the
+  customer's salesperson (AR) or the top 5 vendors (AP); balances have no last year, so the card
+  leaves that row out (`HoverText.compare: false`). The drill (`?aging=ar-3`, `&agingAccount=`)
+  lists the column's customers or vendors, then one account's open documents. Every AR query costs
+  8-12 s on live Orion whatever it groups by, so the card and the first level read one cached
+  aggregate (`arAgingCube`), started as the page renders and warmed by the cron job; only a
+  customer's documents are read on demand, which is under 1 s narrowed to the customer.
+- **Customer page**: the trend has partial months, growth and the Sales card narrowed to the
+  customer, by company and item group (`/api/sales/breakdown?period=…&customer=`); the aging chart
+  has the AR card narrowed to the customer. Neither has a drill-down.
+- Tests: `tests/unit/stock-drill.test.ts`, `tests/unit/aging-drill.test.ts` and
+  `tests/e2e/stock-aging-drill.spec.ts`.
 
 ## Business rules (Finance)
 

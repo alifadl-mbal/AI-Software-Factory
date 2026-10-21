@@ -3,7 +3,7 @@
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, useTransition } from "react";
 
-import { salesFilterSupport } from "@/lib/dashboards";
+import { hasSalesFilterSupport, salesFilterSupport, type FilterOptionsSource } from "@/lib/dashboards";
 import { filtersToSearch, parseFilters, type Filters } from "@/lib/filters";
 import type { SalesFilterOptions } from "@/lib/server/queries/sales-filters";
 
@@ -35,7 +35,11 @@ export function ShellProvider({ today, children }: { today: string; children: Re
   const [isPending, startTransition] = useTransition();
   const [asOf, setAsOf] = useState<string | null>(null);
   const filters = useMemo(() => parseFilters(searchParams, today), [searchParams, today]);
-  const salesOptions = useSalesOptions(filters, salesFilterSupport(pathname) !== "none");
+  const support = salesFilterSupport(pathname);
+  const salesOptions = useSalesOptions(
+    filters,
+    hasSalesFilterSupport(support) ? (support.options ?? "sales") : null,
+  );
 
   const setFilters = useCallback(
     (changes: Partial<Filters>) => {
@@ -54,16 +58,19 @@ export function ShellProvider({ today, children }: { today: string; children: Re
 
 /**
  * Fetches the salesperson and brand choices whenever the companies or the period change (not when
- * a salesperson or brand is picked: the lists don't depend on those). `enabled` false on pages the
- * filters don't apply to.
+ * a salesperson or brand is picked: the lists don't depend on those), from `source`. `null` on
+ * pages the filters don't apply to.
  */
-function useSalesOptions(filters: Filters, enabled: boolean): SalesOptionsState {
-  const scope = filtersToSearch({
+function useSalesOptions(filters: Filters, source: FilterOptionsSource | null): SalesOptionsState {
+  const enabled = source !== null;
+  const search = filtersToSearch({
     range: filters.range,
     start: filters.start,
     end: filters.end,
     companies: filters.companies,
   });
+  const scope =
+    source === null || source === "sales" ? search : `${search}${search ? "&" : "?"}source=${source}`;
   const [loaded, setLoaded] = useState<{ scope: string; state: SalesOptionsState } | null>(null);
   useEffect(() => {
     if (!enabled) return;

@@ -109,12 +109,26 @@ test("pages without salesperson or brand leave those groups out and say an activ
   await expect(page.getByTestId("sales-filter-hint")).toHaveText("No salesperson or brand here");
   await expect(page.getByTestId("period")).not.toContainText("salespeople");
 
-  await page.goto("/inventory?salesperson=S06");
+  await page.goto("/finance?salesperson=S06");
   await waitForData(page);
   await expect(page.getByTestId("sales-filter-hint")).toHaveText("Salesperson and brand don't apply here");
   await expect(page.getByTestId("period")).toContainText(
     "the salesperson and brand filters don't apply here",
   );
+
+  // Inventory has brand but no salesperson, Receivables & payables the reverse.
+  await page.goto("/inventory?salesperson=S06");
+  await waitForData(page);
+  await expect(page.getByTestId("salesperson-group")).toHaveCount(0);
+  await expect(group(page, "brand")).toBeVisible();
+  await expect(page.getByTestId("sales-filter-hint")).toHaveText("Salesperson doesn't apply here");
+  await expect(page.getByTestId("period")).toContainText("the salesperson filter doesn't apply here");
+  await page.goto("/receivables-payables?brand=NW");
+  await waitForData(page);
+  await expect(group(page, "salesperson")).toBeVisible();
+  await expect(page.getByTestId("brand-group")).toHaveCount(0);
+  await expect(page.getByTestId("sales-filter-hint")).toHaveText("Brand doesn't apply here");
+  await expect(page.getByTestId("period")).toContainText("the brand filter doesn't apply here");
 });
 
 test("the Overview applies them to its sales figures only, and says so", async ({ page }) => {

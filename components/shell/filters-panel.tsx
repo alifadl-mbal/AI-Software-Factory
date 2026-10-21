@@ -99,7 +99,8 @@ function FiltersBody({
 }) {
   const { filters } = useShell();
   const salespersonHidden = !groups.includes("salesperson");
-  const salesHidden = salespersonHidden && !groups.includes("brand");
+  const brandHidden = !groups.includes("brand");
+  const salesHidden = salespersonHidden && brandHidden;
   return (
     <>
       {groups.includes("year") && <PeriodFilter />}
@@ -120,16 +121,20 @@ function FiltersBody({
         </Suspense>
       )}
       <SalesFilters groups={groups} />
-      {salespersonHidden && (
+      {(salespersonHidden || brandHidden) && (
         // An active filter is never ignored silently.
         <p className="text-xs text-muted-foreground" data-testid="sales-filter-hint">
           {salesHidden
             ? hasSalesFilter(filters)
               ? "Salesperson and brand don't apply here"
               : "No salesperson or brand here"
-            : filters.salespeople.length > 0
-              ? "Salesperson doesn't apply here"
-              : "No salesperson here"}
+            : salespersonHidden
+              ? filters.salespeople.length > 0
+                ? "Salesperson doesn't apply here"
+                : "No salesperson here"
+              : filters.brands.length > 0
+                ? "Brand doesn't apply here"
+                : "No brand here"}
         </p>
       )}
     </>

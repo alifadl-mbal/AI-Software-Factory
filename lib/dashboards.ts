@@ -23,8 +23,9 @@ const ALL_FILTERS: readonly FilterGroup[] = FILTER_GROUPS;
 const PERIOD_AND_COMPANY: readonly FilterGroup[] = ["year", "month", "company"];
 /** The period, the companies and the brand, for pages with an item code but no salesperson. */
 const PERIOD_COMPANY_AND_BRAND: readonly FilterGroup[] = ["year", "month", "company", "brand"];
-/** "As of today" pages: only the companies apply. */
-const COMPANY_ONLY: readonly FilterGroup[] = ["company"];
+
+/** Where the Filters panel gets the salesperson and brand choices from. */
+export type FilterOptionsSource = "sales" | "stock" | "receivables";
 
 /**
  * The dashboard registry: the single list the nav rail and the Overview page are built from.
@@ -44,12 +45,33 @@ export interface Dashboard {
   /** The Orion view(s) the dashboard reads, shown on the Overview card. */
   source: string;
   /**
-   * The Filters panel groups that apply to every figure on the page. Leave out "year" and "month"
-   * for "as of today" pages, and "salesperson" and "brand" where the views have neither: the panel
-   * then hides them, and the scope line says when one is set but doesn't apply. Adding a group here
-   * is all it takes to show it on the page.
+   * The Filters panel groups that apply to the page. Leave out "year" and "month" for "as of
+   * today" pages, and "salesperson" and "brand" where the views have neither: the panel then hides
+   * them, and the scope line says when one is set but doesn't apply. Adding a group here is all it
+   * takes to show it on the page.
    */
   filters: readonly FilterGroup[];
+  /**
+   * Which figures follow the salesperson and brand filters, when not every figure does, such as
+   * "receivables only". The scope line adds it in brackets while one of them is set.
+   */
+  salesFiltersOnly?: string;
+  /**
+   * Where the salesperson and brand choices come from: those with sales in the companies and period
+   * (`sales`, the default), brands of the items in live stock (`stock`), or the customers'
+   * salespeople on open receivables (`receivables`).
+   */
+  filterOptions?: FilterOptionsSource;
+}
+
+/** How a page applies the salesperson and brand filters, derived from its registry `filters`. */
+export interface SalesFilterSupport {
+  salespeople: boolean;
+  brands: boolean;
+  /** See `Dashboard.salesFiltersOnly`. */
+  only?: string;
+  /** See `Dashboard.filterOptions`. */
+  options?: FilterOptionsSource;
 }
 
 export const DASHBOARDS: readonly Dashboard[] = [
@@ -69,7 +91,9 @@ export const DASHBOARDS: readonly Dashboard[] = [
       "Stock value as of today, the month-end trend, dead and slow stock, and items at or below their reorder level.",
     icon: Boxes,
     source: "ZF_CURR_STK_BI · ZF_STK_MTH_SUMM_BI · ZF_ITEM",
-    filters: COMPANY_ONLY,
+    // Brand through the per-item map, as on Sales. Stock has no salesperson.
+    filters: ["company", "brand"],
+    filterOptions: "stock",
   },
   {
     slug: "finance",
@@ -96,7 +120,7 @@ export const DASHBOARDS: readonly Dashboard[] = [
       "Pending purchase orders with aging and overdue lines as of today, and receipts spend by month and supplier.",
     icon: ShoppingCart,
     source: "ZF_PO_PENDING_BI · ZF_CPR_BI",
-    // Receipts have an item code, so the brand map applies; there is no salesperson.
+    // Brand through the per-item map on PO and receipt lines. No salesperson on purchases.
     filters: PERIOD_COMPANY_AND_BRAND,
   },
   {
@@ -107,7 +131,10 @@ export const DASHBOARDS: readonly Dashboard[] = [
       "Open customer and vendor balances as of today: aging, top customers and vendors, salesperson follow-up, PDCs and vendor prepayments.",
     icon: Scale,
     source: "ZF_SOA_DETL_CUST_INV_SM_BI · ZF_SOAP_DETL_BI",
-    filters: COMPANY_ONLY,
+    // The customer's own salesperson (`SDR_CUST_SM_CODE`) on AR. AP has no salesperson, no view brand.
+    filters: ["company", "salesperson"],
+    salesFiltersOnly: "receivables only",
+    filterOptions: "receivables",
   },
   {
     slug: "products",
@@ -139,18 +166,27 @@ export function dashboardHref(dashboard: Dashboard): string {
 }
 
 /**
- * How a page applies the salesperson and brand filters: to every figure ("all"), to its sales
- * figures only ("sales": the Overview), to its sales and open orders ("sales-orders": the
- * customer and item pages), brand only, to every figure ("brand": Purchasing), or not at all
- * ("none").
+ * How the page at `pathname` applies the salesperson and brand filters: as its registry `filters`
+ * say, to the Overview's sales figures only, and to the customer and item pages' sales and open
+ * orders.
  */
-export type SalesFilterSupport = "all" | "sales" | "sales-orders" | "brand" | "none";
-
 export function salesFilterSupport(pathname: string): SalesFilterSupport {
-  if (pathname === "/") return "sales";
-  if (pathname.startsWith("/customers/") || pathname.startsWith("/items/")) return "sales-orders";
-  const filters = dashboardForPath(pathname)?.filters ?? [];
-  return filters.includes("salesperson") ? "all" : filters.includes("brand") ? "brand" : "none";
+  const groups = filterGroupsForPath(pathname);
+  const support: SalesFilterSupport = {
+    salespeople: groups.includes("salesperson"),
+    brands: groups.includes("brand"),
+  };
+  if (pathname === OVERVIEW.href) return { ...support, only: "sales figures only" };
+  if (pathname.startsWith("/customers/") || pathname.startsWith("/items/")) {
+    return { ...support, only: "sales and open orders only" };
+  }
+  const dashboard = dashboardForPath(pathname);
+  return { ...support, only: dashboard?.salesFiltersOnly, options: dashboard?.filterOptions };
+}
+
+/** True when the page follows at least one of the two filters. */
+export function hasSalesFilterSupport(support: SalesFilterSupport): boolean {
+  return support.salespeople || support.brands;
 }
 
 /** The Filters panel groups for a page; none on pages that aren't dashboards (the snapshot). */

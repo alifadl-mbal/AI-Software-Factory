@@ -183,7 +183,8 @@ export function TopBar({
               data-testid="sample-badge"
             >
               <Database className="size-3" aria-hidden />
-              Sample data
+              {/* "Sample" alone on the narrowest phones, so the page name fits beside it. */}
+              Sample<span className="max-[399px]:sr-only"> data</span>
             </Badge>
           )}
         </div>

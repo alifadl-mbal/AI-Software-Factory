@@ -151,14 +151,22 @@ test.describe("mobile 390px", () => {
     expect(await overflow()).toBeLessThanOrEqual(0);
   });
 
-  for (const url of ["/sales", "/?salesperson=S06", "/finance?salesperson=S06"]) {
-    test(`the title and the sample badge keep their row clear of the Filters button: ${url}`, async ({
+  for (const [width, url] of [
+    [390, "/sales"],
+    [390, "/?salesperson=S06"],
+    [360, "/finance?salesperson=S06"],
+    [360, "/?salesperson=S06"],
+  ] as const) {
+    test(`the title and the sample badge keep their row clear of the Filters button: ${url} at ${width}px`, async ({
       page,
     }) => {
+      await page.setViewportSize({ width, height: 844 });
       await page.goto(url);
       await waitForData(page);
       const title = await page.getByTestId("page-title").boundingBox();
       expect(title!.width).toBeGreaterThan(0);
+      // The whole page name, not "Fin…".
+      expect(await page.getByTestId("page-title").evaluate((el) => el.scrollWidth - el.clientWidth)).toBe(0);
       const trigger = (await page.getByTestId("filters-trigger").boundingBox())!;
       const boxes = [title!];
       const badge = page.getByTestId("sample-badge");

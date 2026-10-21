@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { Bar, BarChart, CartesianGrid, LabelList, ReferenceLine, XAxis, YAxis } from "recharts";
 
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
@@ -61,15 +62,23 @@ function ValueLabel({ x = 0, y = 0, width = 0, height = 0, value = 0 }: LabelPro
   );
 }
 
-/** Ranked horizontal bars, one per label, with the compact value printed at the end of each bar. */
+/**
+ * Ranked horizontal bars, one per label, with the compact value printed at the end of each bar.
+ * `renderTooltip` replaces the tooltip on hover or keyboard focus; `onSelect` is called when a bar
+ * is tapped or clicked.
+ */
 export function BarBreakdown({
   data,
   label = "Net revenue",
   ariaLabel,
+  renderTooltip,
+  onSelect,
 }: {
   data: BreakdownPoint[];
   label?: string;
   ariaLabel: string;
+  renderTooltip?: (point: BreakdownPoint) => ReactNode;
+  onSelect?: (point: BreakdownPoint) => void;
 }) {
   const config = { value: { ...CONFIG.value, label } } satisfies ChartConfig;
   const isMobile = useIsMobile();
@@ -88,6 +97,14 @@ export function BarBreakdown({
         layout="vertical"
         margin={{ top: 0, right: 88, left: 0, bottom: 0 }}
         barCategoryGap={6}
+        onClick={
+          onSelect
+            ? (state) => {
+                const point = data.find((entry) => entry.label === state.activeLabel);
+                if (point) onSelect(point);
+              }
+            : undefined
+        }
       >
         <CartesianGrid horizontal={false} strokeDasharray="3 3" />
         <XAxis type="number" hide domain={DOMAIN} />
@@ -102,10 +119,29 @@ export function BarBreakdown({
         />
         <ChartTooltip
           cursor={{ fill: "var(--muted)", opacity: 0.6 }}
-          content={<ChartTooltipContent valueFormatter={(value) => formatAed(value)} />}
+          allowEscapeViewBox={renderTooltip ? { x: false, y: true } : undefined}
+          wrapperStyle={renderTooltip ? { zIndex: 40 } : undefined}
+          content={
+            renderTooltip ? (
+              (props) => {
+                const point = props.active
+                  ? (props.payload?.[0]?.payload as BreakdownPoint | undefined)
+                  : undefined;
+                return point ? renderTooltip(point) : null;
+              }
+            ) : (
+              <ChartTooltipContent valueFormatter={(value) => formatAed(value)} />
+            )
+          }
         />
         {hasNegative && <ReferenceLine x={0} stroke="var(--muted-foreground)" strokeOpacity={0.6} />}
-        <Bar dataKey="value" fill="var(--color-value)" radius={4} maxBarSize={22}>
+        <Bar
+          dataKey="value"
+          fill="var(--color-value)"
+          radius={4}
+          maxBarSize={22}
+          className={onSelect ? "cursor-pointer" : undefined}
+        >
           <LabelList dataKey="value" content={<ValueLabel />} />
         </Bar>
       </BarChart>

@@ -23,7 +23,7 @@ export function DataQualityNote({
       <AlertTriangle className="mt-0.5 size-4 shrink-0 text-amber-700 dark:text-amber-400" aria-hidden />
       <p>
         <span className="font-semibold">Data quality: {title}</span>{" "}
-        <span className="text-muted-foreground">{children}</span>
+        <span className="text-foreground/75">{children}</span>
       </p>
     </div>
   );

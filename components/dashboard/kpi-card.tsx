@@ -74,33 +74,18 @@ export function KpiCard({
         : formatDeltaPct(change);
 
   return (
-    <Card className="gap-0 py-0" data-testid="kpi-card">
-      <CardContent className="flex flex-col gap-2 p-4 sm:gap-3 sm:p-5">
-        <p className="text-sm font-medium text-muted-foreground">{label}</p>
-        {valueText !== undefined ? (
-          <p
-            className="text-lg font-semibold tracking-tight text-foreground sm:text-xl"
-            data-testid="kpi-value"
-          >
-            {valueText}
-          </p>
-        ) : (
-          <p
-            className="tabular text-xl font-semibold tracking-tight text-foreground sm:text-2xl"
-            title={formatValue(fullFormat, value)}
-            data-testid="kpi-value"
-          >
-            {formatValue(format, value)}
-          </p>
-        )}
-        <div className="flex min-h-5 flex-wrap items-center gap-x-2 gap-y-1 text-xs">
-          {changeText !== null ? (
+    <Card className="gap-0 rounded-[20px] py-0" data-testid="kpi-card">
+      <CardContent className="flex flex-col gap-2.5 p-4">
+        {/* The TNS card: label and delta chip, the value, then last year under a divider. */}
+        <div className="flex items-start justify-between gap-2">
+          <p className="text-[13px] font-medium text-muted-foreground">{label}</p>
+          {changeText !== null && (
             <span
               className={cn(
-                "tabular inline-flex items-center gap-0.5 rounded-md px-1.5 py-0.5 font-medium",
-                good && "bg-positive/12 text-positive",
-                bad && "bg-negative/12 text-negative",
-                direction === "flat" && "bg-muted text-muted-foreground",
+                "tabular inline-flex shrink-0 items-center gap-0.5 rounded-lg px-1.75 py-0.5 text-[11px] font-semibold",
+                good && "bg-good/10 text-positive",
+                bad && "bg-bad/10 text-negative",
+                direction === "flat" && "bg-panel text-muted-foreground",
               )}
             >
               <Arrow className="size-3.5" aria-hidden />
@@ -111,20 +96,30 @@ export function KpiCard({
                 {changeText}
               </span>
             </span>
-          ) : previous !== undefined ? (
-            <span className="text-muted-foreground">No comparison</span>
-          ) : null}
-          {previous !== undefined && (
-            <span
-              className="truncate text-muted-foreground"
-              title={`Last year: ${formatValue(fullFormat, previous)}`}
-            >
-              vs {formatValue(format, previous)}
-              <span className="sr-only"> last year</span>
-            </span>
           )}
         </div>
-        {hint && <p className="-mt-1 text-xs text-muted-foreground">{hint}</p>}
+        {valueText !== undefined ? (
+          <p className="text-lg font-semibold tracking-tight text-foreground" data-testid="kpi-value">
+            {valueText}
+          </p>
+        ) : (
+          <p
+            className="tabular truncate text-[22px] leading-tight font-semibold tracking-[-0.02em] text-foreground"
+            title={formatValue(fullFormat, value)}
+            data-testid="kpi-value"
+          >
+            {formatValue(format, value)}
+          </p>
+        )}
+        {previous !== undefined && (
+          <p className="truncate border-t border-border pt-1.5 text-[11px] text-muted-foreground">
+            {changeText === null && <span>No comparison · </span>}
+            <span title={`Last year: ${formatValue(fullFormat, previous)}`}>
+              vs {formatValue(format, previous)} last year
+            </span>
+          </p>
+        )}
+        {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
       </CardContent>
       {spark && spark.length > 1 && (
         <ChartContainer config={SPARK_CONFIG} className="aspect-auto h-12 w-full" aria-hidden>

@@ -397,7 +397,7 @@ export async function ZeroRateCallout({ filters }: { filters: Filters }) {
           Data quality: {formatInt(lineCount)} receipt {lineCount === 1 ? "line" : "lines"} in foreign
           currency with an exchange rate of 0
         </h2>
-        <p className="text-muted-foreground">
+        <p className="text-foreground/75">
           Their AED value is recorded as {formatAed(recorded)}, so receipts spend above is understated.
           Foreign-currency value:{" "}
           {result.data

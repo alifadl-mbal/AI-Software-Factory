@@ -357,14 +357,14 @@ export async function CompanyRanking({ filters }: { filters: Filters }) {
       ) : (
         <div className="flex flex-col gap-3">
           <div
-            className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground"
+            className="flex w-fit flex-wrap items-center gap-x-4 gap-y-1 rounded-full bg-panel px-3.5 py-2 text-xs text-muted-foreground"
             aria-hidden
           >
             <span className="inline-flex items-center gap-1.5">
-              <span className="size-2.5 rounded-sm bg-chart-1" /> This period
+              <span className="size-2.5 rounded-full bg-chart-cy" /> This period
             </span>
             <span className="inline-flex items-center gap-1.5">
-              <span className="size-2.5 rounded-sm bg-chart-1/35" /> Same days last year
+              <span className="size-2.5 rounded-full bg-chart-py" /> Same days last year
             </span>
           </div>
           <Table className="min-w-[36rem]" data-testid="company-ranking">
@@ -400,13 +400,8 @@ export async function CompanyRanking({ filters }: { filters: Filters }) {
                       <span className="tabular font-medium" data-testid="ranking-net-profit">
                         {formatAed(row.current.netProfit)}
                       </span>
-                      <ProfitBar value={row.current.netProfit} min={min} max={max} className="bg-chart-1" />
-                      <ProfitBar
-                        value={row.previous.netProfit}
-                        min={min}
-                        max={max}
-                        className="bg-chart-1/35"
-                      />
+                      <ProfitBar value={row.current.netProfit} min={min} max={max} className="bg-chart-cy" />
+                      <ProfitBar value={row.previous.netProfit} min={min} max={max} className="bg-chart-py" />
                       <span className="tabular text-xs text-muted-foreground">
                         Last year {formatAed(row.previous.netProfit)}
                       </span>

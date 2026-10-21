@@ -120,7 +120,7 @@ export async function FinanceUnmapped({ filters }: { filters: Filters }) {
         <span className="font-semibold">
           Unmapped accounts: <span className="tabular">{formatAed(unmapped)}</span>
         </span>{" "}
-        <span className="text-muted-foreground">
+        <span className="text-foreground/75">
           (net, credit − debit) on {formatInt(unmappedAccounts)}{" "}
           {unmappedAccounts === 1 ? "account" : "accounts"} missing from the chart of accounts. They are
           listed as “{UNMAPPED}” in the P&amp;L statement and kept out of profit until finance adds them to{" "}

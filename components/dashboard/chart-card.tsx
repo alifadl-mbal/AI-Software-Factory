@@ -26,7 +26,7 @@ export function ChartCard({
   return (
     <Card id={id} className={cn("min-w-0 scroll-mt-20 gap-4", className)}>
       <CardHeader>
-        <CardTitle className="text-base">
+        <CardTitle className="text-lg font-semibold tracking-tight">
           <h2>{title}</h2>
         </CardTitle>
         {description && <CardDescription>{description}</CardDescription>}

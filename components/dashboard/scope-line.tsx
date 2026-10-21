@@ -2,8 +2,7 @@
 
 import { usePathname } from "next/navigation";
 
-import { selectionLabel, type Noun } from "@/components/shell/code-multi-select";
-import { BRAND_NOUN, SALESPERSON_NOUN } from "@/components/shell/sales-filters";
+import { BRAND_NOUN, SALESPERSON_NOUN, selectionLabel, type Noun } from "@/components/shell/checklist-filter";
 import { useShell } from "@/components/shell/shell-context";
 import { salesFilterSupport, type SalesFilterSupport } from "@/lib/dashboards";
 import { DATE_PRESETS, hasSalesFilter, type Filters } from "@/lib/filters";
@@ -67,7 +66,7 @@ export function ScopeLine({ filters, asOf }: { filters: Filters; asOf?: string }
   const { salesOptions } = useShell();
   const data = salesOptions.status === "ok" ? salesOptions.data : null;
   return (
-    <p className="tabular text-xs text-muted-foreground" data-testid="period">
+    <p className="tabular text-sm text-pretty text-muted-foreground" data-testid="period">
       {scopeSentence({
         filters,
         asOf,

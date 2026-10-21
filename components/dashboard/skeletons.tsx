@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
  * row), all five on one row on wide screens. Use it for the cards and their skeleton alike.
  */
 export const KPI_GRID =
-  "grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-5 [&>*:last-child:nth-child(odd)]:col-span-2 xl:[&>*:last-child:nth-child(odd)]:col-span-1";
+  "grid grid-cols-2 gap-3 xl:grid-cols-5 [&>*:last-child:nth-child(odd)]:col-span-2 xl:[&>*:last-child:nth-child(odd)]:col-span-1";
 
 /** Placeholder for a row of KPI cards while they stream in. `grid` replaces the default layout. */
 export function KpiRowSkeleton({
@@ -23,12 +23,12 @@ export function KpiRowSkeleton({
     <div className={cn(grid, className)} aria-busy="true" aria-label="Loading">
       {Array.from({ length: count }, (_, index) => (
         <Card key={index} className="gap-0 py-0">
-          <CardContent className="flex flex-col gap-3 p-5">
+          <CardContent className="flex flex-col gap-2.5 p-4">
             <Skeleton className="h-4 w-24" />
-            <Skeleton className="h-8 w-32" />
-            <Skeleton className="h-4 w-40" />
+            <Skeleton className="h-7 w-32" />
+            <Skeleton className="h-3 w-40" />
           </CardContent>
-          <Skeleton className="h-12 rounded-none rounded-b-xl" />
+          <Skeleton className="h-12 rounded-none rounded-b-[20px]" />
         </Card>
       ))}
     </div>

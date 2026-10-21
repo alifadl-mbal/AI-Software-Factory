@@ -45,8 +45,8 @@ export interface HoverFigure {
 
 export interface HoverView {
   total: number;
-  /** The same days a year earlier. */
-  lastYear: number;
+  /** The same days a year earlier; left out for figures with no history, such as balances. */
+  lastYear?: number;
   figures?: HoverFigure[];
   sections: HoverSection[];
 }
@@ -56,6 +56,8 @@ export interface HoverText {
   totalLabel: string;
   /** Shown when every section is empty, such as "No sales in this period." */
   emptyText: string;
+  /** False for figures with no last year (balances as of today): the card leaves that row out. */
+  compare?: boolean;
 }
 
 type Entry = { status: "loading" } | { status: "ok"; data: unknown } | { status: "error"; message: string };
@@ -278,17 +280,19 @@ export function HoverBreakdown<T>({
             {total === undefined ? "…" : formatAed(total)}
           </span>
         </div>
-        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
-          <span className="text-muted-foreground">
-            Last year{" "}
-            <span className="tabular" data-testid="breakdown-last-year">
-              {previous === undefined ? "…" : formatAed(previous)}
+        {text.compare !== false && (
+          <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+            <span className="text-muted-foreground">
+              Last year{" "}
+              <span className="tabular" data-testid="breakdown-last-year">
+                {previous === undefined ? "…" : formatAed(previous)}
+              </span>
             </span>
-          </span>
-          {total !== undefined && previous !== undefined && (
-            <Change current={total} previous={previous} testId="breakdown-yoy" />
-          )}
-        </div>
+            {total !== undefined && previous !== undefined && (
+              <Change current={total} previous={previous} testId="breakdown-yoy" />
+            )}
+          </div>
+        )}
       </div>
       {entry.status === "loading" ? (
         <p className="flex items-center gap-2 text-muted-foreground" role="status">

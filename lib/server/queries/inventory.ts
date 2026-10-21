@@ -1,23 +1,66 @@
 import "server-only";
 
+import { UNASSIGNED_CODE } from "@/lib/filters";
+
+import { BRAND_MAP } from "../brand-map";
 import { run } from "../db";
-import { ALL_OTHER, companyWhere as companyFilter, labelOrUnassigned, num } from "../sql";
+import {
+  ALL_OTHER,
+  companyWhere as companyFilter,
+  foldTop,
+  labelOrUnassigned,
+  num,
+  salesWhere,
+  UNASSIGNED,
+} from "../sql";
 import type { Binds, Query } from "../types";
 import { companies } from "./common";
+import type { FilterOption } from "./sales-filters";
 
-/** The company filter as a `WHERE` fragment; `1 = 1` when every company is selected. */
-function companyWhere(companyCodes: readonly string[], companyColumn: string): { sql: string; binds: Binds } {
-  return companyFilter(companyCodes, companyColumn) ?? { sql: "1 = 1", binds: {} };
+/**
+ * What the inventory figures cover: the selected companies, or the companies and the brand filter
+ * (brand codes of the per-item map in `brand-map.ts`, `UNASSIGNED_CODE` for items without one). A
+ * plain list is the companies alone, as the Overview and the item page pass it.
+ */
+export type StockScope = readonly string[] | { companies: readonly string[]; brands?: readonly string[] };
+
+function scopeParts(scope: StockScope): { companies: readonly string[]; brands: readonly string[] } {
+  return isCompanyList(scope)
+    ? { companies: scope, brands: [] }
+    : { companies: scope.companies, brands: scope.brands ?? [] };
 }
 
-/** The company filter, narrowed to one item code when the item page passes one. */
+function isCompanyList(scope: StockScope): scope is readonly string[] {
+  return Array.isArray(scope);
+}
+
+/**
+ * The company and brand filters as a `WHERE` fragment; `1 = 1` when every company and brand is
+ * selected. Brand goes through `salesWhere`, the same clause as Sales, on the item code.
+ */
+function companyWhere(
+  scope: StockScope,
+  companyColumn: string,
+  itemColumn: string,
+): { sql: string; binds: Binds } {
+  const { companies: codes, brands } = scopeParts(scope);
+  const company = companyFilter(codes, companyColumn);
+  const brand = salesWhere({ brands: [...brands] }, { item: itemColumn });
+  const clauses = [company?.sql, brand?.sql].filter((clause): clause is string => !!clause);
+  return {
+    sql: clauses.length > 0 ? clauses.join(" AND ") : "1 = 1",
+    binds: { ...company?.binds, ...brand?.binds },
+  };
+}
+
+/** The company and brand filters, narrowed to one item code when the item page passes one. */
 function scopeWhere(
-  companyCodes: readonly string[],
+  scope: StockScope,
   companyColumn: string,
   item: string | undefined,
   itemColumn: string,
 ): { sql: string; binds: Binds } {
-  const where = companyWhere(companyCodes, companyColumn);
+  const where = companyWhere(scope, companyColumn, itemColumn);
   if (item === undefined) return where;
   return { sql: `${where.sql} AND ${itemColumn} = :item_code`, binds: { ...where.binds, item_code: item } };
 }
@@ -43,6 +86,9 @@ function scopeWhere(
  *   month is its closing qty minus the previous month's closing qty. The current month keeps
  *   receiving adjustments and is shown as provisional.
  * - The date filter doesn't apply: live stock is as of today, the trend is the last 24 periods.
+ *
+ * Every query follows the brand filter (`StockScope`) through the per-item brand map, as Sales does;
+ * without one the SQL is exactly the company-only SQL. Stock has no salesperson.
  *
  * The month-end trend and reorder alerts take an optional item code (`ZSL_ITEM_CODE`, `CS_ITEM_CODE`:
  * the code space of `ZF_ITEM.IM_ITEM_CODE`) for the item page; without one the SQL is the dashboard's.
@@ -180,8 +226,8 @@ async function companyNames(): Promise<Map<string, string>> {
   return new Map((await companies()).map((company) => [company.code, company.name]));
 }
 
-export function kpiQuery(companyCodes: string[]): Query {
-  const where = companyWhere(companyCodes, "s.CS_COMP_CODE");
+export function kpiQuery(scope: StockScope): Query {
+  const where = companyWhere(scope, "s.CS_COMP_CODE", "s.CS_ITEM_CODE");
   return {
     sql: `
 SELECT
@@ -198,10 +244,10 @@ WHERE ${where.sql}`,
 }
 
 /** Live stock value by one dimension. With `topN`, the rest is folded into 'All other'. */
-export function breakdownQuery(companyCodes: string[], dimension: InventoryDimension, topN?: number): Query {
+export function breakdownQuery(scope: StockScope, dimension: InventoryDimension, topN?: number): Query {
   // labelOrUnassigned trims, which also takes the padding off CS_GRADE.
   const label = labelOrUnassigned(DIMENSIONS[dimension]);
-  const where = companyWhere(companyCodes, "s.CS_COMP_CODE");
+  const where = companyWhere(scope, "s.CS_COMP_CODE", "s.CS_ITEM_CODE");
   const grouped = `
 SELECT ${label} AS label, SUM(${STOCK_VALUE}) AS stock_value
 FROM ${STOCK} s
@@ -233,12 +279,12 @@ ORDER BY sort_order`,
  * it on lines with a negative closing quantity (month-end stock can go below zero; live stock can't).
  */
 export function monthEndQuery(
-  companyCodes: string[],
+  scope: StockScope,
   today: string,
   periods = TREND_PERIODS,
   item?: string,
 ): Query {
-  const where = scopeWhere(companyCodes, "z.ZSL_COMP_CODE", item, "z.ZSL_ITEM_CODE");
+  const where = scopeWhere(scope, "z.ZSL_COMP_CODE", item, "z.ZSL_ITEM_CODE");
   return {
     sql: `
 WITH ${RANKED_PERIODS}
@@ -261,12 +307,12 @@ ORDER BY z.ZSL_PERIOD`,
  * periods. Ranked by closing value, with the count and value of every dead item on each row.
  */
 export function deadStockQuery(
-  companyCodes: string[],
+  scope: StockScope,
   months: DeadStockMonths,
   today: string,
   topN = DEAD_STOCK_TOP_N,
 ): Query {
-  const where = companyWhere(companyCodes, "z.ZSL_COMP_CODE");
+  const where = companyWhere(scope, "z.ZSL_COMP_CODE", "z.ZSL_ITEM_CODE");
   return {
     sql: `
 WITH ${RANKED_PERIODS},
@@ -313,8 +359,8 @@ ORDER BY row_num`,
  * Active items at or below their reorder level, per company × location × item (grades added
  * together). Only items with a reorder level above zero alert.
  */
-export function reorderAlertsQuery(companyCodes: string[], item?: string): Query {
-  const where = scopeWhere(companyCodes, "s.CS_COMP_CODE", item, "s.CS_ITEM_CODE");
+export function reorderAlertsQuery(scope: StockScope, item?: string): Query {
+  const where = scopeWhere(scope, "s.CS_COMP_CODE", item, "s.CS_ITEM_CODE");
   return {
     // A LEFT JOIN like everywhere else; the WHERE on the item columns then keeps only matched,
     // active items, which is right here: an item with no master row has no reorder level.
@@ -350,8 +396,8 @@ export interface StockLocation {
  * One item's live stock per company × location (grades added together), with the same quantity
  * and value rules as the dashboard's KPIs, so its rows add up to the item's share of them.
  */
-export function stockByLocationQuery(companyCodes: string[], item: string): Query {
-  const where = scopeWhere(companyCodes, "s.CS_COMP_CODE", item, "s.CS_ITEM_CODE");
+export function stockByLocationQuery(scope: StockScope, item: string): Query {
+  const where = scopeWhere(scope, "s.CS_COMP_CODE", item, "s.CS_ITEM_CODE");
   return {
     sql: `
 SELECT s.CS_COMP_CODE AS comp_code, s.CS_LOCN_CODE AS locn_code, MAX(s.CS_LOCN_NAME) AS locn_name,
@@ -366,8 +412,8 @@ ORDER BY SUM(${STOCK_VALUE}) DESC, s.CS_COMP_CODE, s.CS_LOCN_CODE`,
 }
 
 /** Headline figures for live stock. */
-export async function inventoryKpis(companyCodes: string[]): Promise<InventoryKpis> {
-  const [row] = await run(kpiQuery(companyCodes));
+export async function inventoryKpis(scope: StockScope): Promise<InventoryKpis> {
+  const [row] = await run(kpiQuery(scope));
   const stockValue = num(row?.stock_value);
   const availableValue = num(row?.available_value);
   return {
@@ -382,12 +428,12 @@ export async function inventoryKpis(companyCodes: string[]): Promise<InventoryKp
 
 /** Live stock value by one dimension; companies are shown by name. */
 export async function stockBreakdown(
-  companyCodes: string[],
+  scope: StockScope,
   dimension: InventoryDimension,
   topN?: number,
 ): Promise<StockBreakdownRow[]> {
   const [rows, names] = await Promise.all([
-    run(breakdownQuery(companyCodes, dimension, topN)),
+    run(breakdownQuery(scope, dimension, topN)),
     dimension === "company" ? companyNames() : Promise.resolve(new Map<string, string>()),
   ]);
   return rows.map((row) => ({
@@ -398,12 +444,12 @@ export async function stockBreakdown(
 
 /** Closing value of the newest periods as of `today`, oldest first. */
 export async function monthEndTrend(
-  companyCodes: string[],
+  scope: StockScope,
   today: string,
   periods = TREND_PERIODS,
   item?: string,
 ): Promise<MonthEnd[]> {
-  const rows = await run(monthEndQuery(companyCodes, today, periods, item));
+  const rows = await run(monthEndQuery(scope, today, periods, item));
   return rows.map((row) => ({
     month: periodToMonth(row.period),
     closeValue: num(row.close_value),
@@ -414,15 +460,12 @@ export async function monthEndTrend(
 }
 
 export async function deadStock(
-  companyCodes: string[],
+  scope: StockScope,
   months: DeadStockMonths,
   today: string,
   topN = DEAD_STOCK_TOP_N,
 ): Promise<DeadStock> {
-  const [rows, names] = await Promise.all([
-    run(deadStockQuery(companyCodes, months, today, topN)),
-    companyNames(),
-  ]);
+  const [rows, names] = await Promise.all([run(deadStockQuery(scope, months, today, topN)), companyNames()]);
   return {
     months,
     asOfMonth: rows[0] ? periodToMonth(rows[0].period) : null,
@@ -440,8 +483,8 @@ export async function deadStock(
   };
 }
 
-export async function reorderAlerts(companyCodes: string[], item?: string): Promise<ReorderAlert[]> {
-  const [rows, names] = await Promise.all([run(reorderAlertsQuery(companyCodes, item)), companyNames()]);
+export async function reorderAlerts(scope: StockScope, item?: string): Promise<ReorderAlert[]> {
+  const [rows, names] = await Promise.all([run(reorderAlertsQuery(scope, item)), companyNames()]);
   return rows.map((row) => ({
     companyCode: String(row.comp_code),
     company: names.get(String(row.comp_code)) ?? String(row.comp_code),
@@ -456,8 +499,8 @@ export async function reorderAlerts(companyCodes: string[], item?: string): Prom
 }
 
 /** One item's live stock per company × location, largest value first; companies by name. */
-export async function stockByLocation(companyCodes: string[], item: string): Promise<StockLocation[]> {
-  const [rows, names] = await Promise.all([run(stockByLocationQuery(companyCodes, item)), companyNames()]);
+export async function stockByLocation(scope: StockScope, item: string): Promise<StockLocation[]> {
+  const [rows, names] = await Promise.all([run(stockByLocationQuery(scope, item)), companyNames()]);
   return rows.map((row) => {
     const qty = num(row.total_qty);
     const availableQty = num(row.available_qty);
@@ -476,4 +519,212 @@ export async function stockByLocation(companyCodes: string[], item: string): Pro
       reservedValue: value - availableValue,
     };
   });
+}
+
+// ---------------------------------------------------------------------------------------------
+// Month-end hover card and drill-down
+
+/** Slices per dimension on the hover card; the rest fold into 'All other'. */
+export const HOVER_TOP_N = 5;
+/** Rows the month-end drill-down lists (the largest values); its totals cover every item. */
+export const MONTH_END_ITEM_LIMIT = 500;
+
+/** What the hover card of a month-end bar breaks it down by. */
+export const MONTH_END_DIMENSIONS = ["company", "brand", "itemGroup"] as const;
+export type MonthEndDimension = (typeof MONTH_END_DIMENSIONS)[number];
+
+/** Result-row aliases of the dimensions (rows come back with lower-case keys). */
+const MONTH_END_ALIASES: Record<MonthEndDimension, string> = {
+  company: "company_label",
+  brand: "brand_label",
+  itemGroup: "group_label",
+};
+
+/**
+ * Month-end lines with each item's brand (the per-item map, as the brand filter) and item group
+ * (`ZF_ITEM.IM_GROUP_NAME`; the closing view has no item group). Both joins are LEFT and match at
+ * most one row, so no line is lost or counted twice.
+ */
+const CLOSING_WITH_ITEM = `${CLOSING} z
+LEFT JOIN ${ITEM} i ON i.IM_COMP_CODE = z.ZSL_COMP_CODE AND i.IM_ITEM_CODE = z.ZSL_ITEM_CODE
+LEFT JOIN (${BRAND_MAP}) brand_map ON brand_map.item_code = TRIM(z.ZSL_ITEM_CODE)`;
+
+const MONTH_END_LABELS: Record<MonthEndDimension, string> = {
+  company: labelOrUnassigned("z.ZSL_COMP_CODE"),
+  brand: labelOrUnassigned("brand_map.brand_name"),
+  itemGroup: labelOrUnassigned("i.IM_GROUP_NAME"),
+};
+
+/** `2026-10` → `202610`. */
+export function monthToPeriod(month: string): string {
+  return month.replace("-", "");
+}
+
+/** `2026-10` → `2025-10`. */
+function yearEarlier(month: string): string {
+  return `${Number(month.slice(0, 4)) - 1}${month.slice(4)}`;
+}
+
+/**
+ * Closing value of one month-end and of the same month-end a year earlier, by company × brand ×
+ * item group. One small aggregate per card: its totals and every section come from it, so each
+ * section adds up to the bar.
+ */
+export function monthEndHoverQuery(scope: StockScope, month: string): Query {
+  const where = companyWhere(scope, "z.ZSL_COMP_CODE", "z.ZSL_ITEM_CODE");
+  const labels = MONTH_END_DIMENSIONS.map((dimension) => MONTH_END_LABELS[dimension]);
+  return {
+    sql: `
+SELECT z.ZSL_PERIOD AS period, ${MONTH_END_DIMENSIONS.map(
+      (dimension) => `${MONTH_END_LABELS[dimension]} AS ${MONTH_END_ALIASES[dimension]}`,
+    ).join(", ")},
+    SUM(NVL(z.ZSL_CLOSE_VAL, 0)) AS close_value
+FROM ${CLOSING_WITH_ITEM}
+WHERE z.ZSL_PERIOD IN (:period, :last_year_period) AND ${where.sql}
+GROUP BY z.ZSL_PERIOD, ${labels.join(", ")}`,
+    binds: {
+      ...where.binds,
+      period: monthToPeriod(month),
+      last_year_period: monthToPeriod(yearEarlier(month)),
+    },
+  };
+}
+
+export interface MonthEndHover {
+  /** `YYYY-MM`. */
+  month: string;
+  closeValue: number;
+  /** The same month-end a year earlier. */
+  lastYearCloseValue: number;
+  breakdowns: { dimension: MonthEndDimension; rows: StockBreakdownRow[] }[];
+}
+
+/**
+ * What one month-end bar is made of: its closing value, the same month-end last year, and the top
+ * `HOVER_TOP_N` companies, brands and item groups plus 'All other'. Companies are shown by name.
+ */
+export async function monthEndHover(scope: StockScope, month: string): Promise<MonthEndHover> {
+  const [rows, names] = await Promise.all([run(monthEndHoverQuery(scope, month)), companyNames()]);
+  const period = monthToPeriod(month);
+  const current = rows.filter((row) => String(row.period).trim() === period);
+  const sum = (list: typeof rows) => list.reduce((total, row) => total + num(row.close_value), 0);
+  return {
+    month,
+    closeValue: sum(current),
+    lastYearCloseValue: sum(rows.filter((row) => String(row.period).trim() !== period)),
+    breakdowns: MONTH_END_DIMENSIONS.map((dimension) => {
+      const slices = current.map((row) => {
+        const code = String(row[MONTH_END_ALIASES[dimension]]);
+        return {
+          label: dimension === "company" ? (names.get(code) ?? code) : code,
+          value: num(row.close_value),
+        };
+      });
+      return { dimension, rows: foldTop(slices, HOVER_TOP_N) };
+    }),
+  };
+}
+
+export interface MonthEndItem {
+  companyCode: string;
+  company: string;
+  itemCode: string;
+  item: string;
+  brand: string;
+  itemGroup: string;
+  closeQty: number;
+  closeValue: number;
+}
+
+export interface MonthEndItems {
+  /** `YYYY-MM`. */
+  month: string;
+  /** Every item of the month-end, not only the listed ones. */
+  count: number;
+  /** The bar: the closing value of every item. */
+  closeValue: number;
+  /** The largest {@link MONTH_END_ITEM_LIMIT} by closing value. */
+  rows: MonthEndItem[];
+}
+
+/**
+ * One month-end's items (company × item, locations and grades added together), largest closing
+ * value first, with the count and value of all of them on every row. Items whose lines are all
+ * zero are left out: they add nothing to the bar.
+ */
+export function monthEndItemsQuery(scope: StockScope, month: string, limit = MONTH_END_ITEM_LIMIT): Query {
+  const where = companyWhere(scope, "z.ZSL_COMP_CODE", "z.ZSL_ITEM_CODE");
+  return {
+    sql: `
+WITH items AS (
+    SELECT z.ZSL_COMP_CODE AS comp_code, z.ZSL_ITEM_CODE AS item_code, MAX(z.ZSL_ITEM_NAME) AS item_name,
+        MAX(${MONTH_END_LABELS.brand}) AS brand, MAX(${MONTH_END_LABELS.itemGroup}) AS item_group,
+        SUM(NVL(z.ZSL_CLOSE_QTY, 0)) AS close_qty, SUM(NVL(z.ZSL_CLOSE_VAL, 0)) AS close_value
+    FROM ${CLOSING_WITH_ITEM}
+    WHERE z.ZSL_PERIOD = :period AND ${where.sql}
+    GROUP BY z.ZSL_COMP_CODE, z.ZSL_ITEM_CODE
+    HAVING SUM(NVL(z.ZSL_CLOSE_VAL, 0)) <> 0 OR SUM(NVL(z.ZSL_CLOSE_QTY, 0)) <> 0
+)
+SELECT comp_code, item_code, item_name, brand, item_group, close_qty, close_value, total_count, total_value
+FROM (
+    SELECT items.*,
+        ROW_NUMBER() OVER (ORDER BY close_value DESC, comp_code, item_code) AS row_num,
+        COUNT(*) OVER () AS total_count,
+        SUM(close_value) OVER () AS total_value
+    FROM items
+) ranked
+WHERE row_num <= :row_limit
+ORDER BY row_num`,
+    binds: { ...where.binds, period: monthToPeriod(month), row_limit: limit },
+  };
+}
+
+/** The drill-down of a month-end bar: its items, largest first; companies by name. */
+export async function monthEndItems(
+  scope: StockScope,
+  month: string,
+  limit = MONTH_END_ITEM_LIMIT,
+): Promise<MonthEndItems> {
+  const [rows, names] = await Promise.all([run(monthEndItemsQuery(scope, month, limit)), companyNames()]);
+  return {
+    month,
+    count: num(rows[0]?.total_count),
+    closeValue: num(rows[0]?.total_value),
+    rows: rows.map((row) => ({
+      companyCode: String(row.comp_code),
+      company: names.get(String(row.comp_code)) ?? String(row.comp_code),
+      itemCode: String(row.item_code),
+      item: row.item_name ? String(row.item_name) : String(row.item_code),
+      brand: row.brand ? String(row.brand) : UNASSIGNED,
+      itemGroup: row.item_group ? String(row.item_group) : UNASSIGNED,
+      closeQty: num(row.close_qty),
+      closeValue: num(row.close_value),
+    })),
+  };
+}
+
+// ---------------------------------------------------------------------------------------------
+// Brand filter choices
+
+/** Brands of the items in live stock for the selected companies, the brand filter ignored. */
+export function stockBrandOptionsQuery(companyCodes: readonly string[]): Query {
+  const where = companyWhere(companyCodes, "s.CS_COMP_CODE", "s.CS_ITEM_CODE");
+  return {
+    sql: `
+SELECT COALESCE(brand_map.brand_code, '${UNASSIGNED_CODE}') AS code, MAX(brand_map.brand_name) AS name
+FROM (
+    SELECT DISTINCT TRIM(s.CS_ITEM_CODE) AS item_code
+    FROM ${STOCK} s
+    WHERE ${where.sql}
+) stocked
+LEFT JOIN (${BRAND_MAP}) brand_map ON brand_map.item_code = stocked.item_code
+GROUP BY COALESCE(brand_map.brand_code, '${UNASSIGNED_CODE}')`,
+    binds: where.binds,
+  };
+}
+
+/** The brand filter's choices on the Inventory page, unsorted. */
+export async function stockBrandOptions(companyCodes: readonly string[]): Promise<FilterOption[]> {
+  const rows = await run(stockBrandOptionsQuery(companyCodes));
+  return rows.map((row) => ({ code: String(row.code), name: row.name ? String(row.name) : "" }));
 }

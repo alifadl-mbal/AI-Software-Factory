@@ -3,9 +3,9 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { GET } from "@/app/api/sales/breakdown/route";
 import { setRunnerForTests } from "@/lib/server/db";
-import type { HoverBreakdown } from "@/lib/server/queries/sales";
+import { salesMonthly, type HoverBreakdown } from "@/lib/server/queries/sales";
 
-import { useFixtureSource } from "./fixture";
+import { Q1_2025, useFixtureSource } from "./fixture";
 
 beforeAll(() => {
   useFixtureSource();
@@ -54,6 +54,23 @@ describe("GET /api/sales/breakdown", () => {
     expect(status).toBe(200);
     expect(body.data.netRevenue).toBeCloseTo(1300);
     expect(body.data.breakdowns.map((entry) => entry.dimension)).toEqual(["salesperson", "itemGroup"]);
+  });
+
+  it("a month of one customer (the customer page): by company and item group, adding up to its bar", async () => {
+    for (const period of ["2025-01", "2025-02", "2025-03"]) {
+      const { status, body } = await get({ ...Q1, period, customer: "CA" });
+      expect(status).toBe(200);
+      // February has 28 days in 2025; the fixture has no sales after the 28th of any month.
+      const [month] = await salesMonthly({ ...Q1_2025, start: `${period}-01`, end: `${period}-28` }, "CA");
+      expect(body.data.netRevenue).toBeCloseTo(month.netRevenue);
+      expect(body.data.lastYearNetRevenue).toBeCloseTo(month.lastYearNetRevenue);
+      expect(body.data.breakdowns.map((entry) => entry.dimension)).toEqual(["company", "itemGroup"]);
+      for (const { rows } of body.data.breakdowns) {
+        expect(rows.reduce((sum, row) => sum + row.netRevenue, 0)).toBeCloseTo(body.data.netRevenue);
+      }
+    }
+    expect((await get({ ...Q1, period: "2025-02", customer: "NOPE" })).body.data.netRevenue).toBe(0);
+    expect((await get({ ...Q1, period: "2025-02", customer: "C' OR 1=1" })).status).toBe(400);
   });
 
   it("refuses a missing or malformed request with 400", async () => {

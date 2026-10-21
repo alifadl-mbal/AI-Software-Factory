@@ -30,11 +30,34 @@ export interface Dashboard {
   /** False for dashboards that show "as of today" figures: the top bar then hides the date filter. */
   dateFilter?: boolean;
   /**
-   * True when every figure follows the salesperson and brand filters (its views have both). Elsewhere
-   * the top bar shows them disabled, and the scope line says when one is set but doesn't apply.
+   * Which of the salesperson and brand filters the page follows. Left out, neither: the top bar
+   * shows them disabled, and the scope line says when one is set but doesn't apply.
    */
-  salesFilters?: boolean;
+  salesFilters?: SalesFilterSupport;
 }
+
+/** Where the top bar gets a filter's choices from. */
+export type FilterOptionsSource = "sales" | "stock" | "receivables";
+
+/** How a page applies the salesperson and brand filters. */
+export interface SalesFilterSupport {
+  salespeople: boolean;
+  brands: boolean;
+  /**
+   * Which figures follow them, when not every figure does, such as "sales figures only". The scope
+   * line adds it in brackets while one of them is set.
+   */
+  only?: string;
+  /**
+   * Where the choices come from: salespeople and brands with sales in the companies and period
+   * (`sales`, the default), brands of the items in live stock (`stock`), or the customers'
+   * salespeople on open receivables (`receivables`).
+   */
+  options?: FilterOptionsSource;
+}
+
+const BOTH: SalesFilterSupport = { salespeople: true, brands: true };
+const NONE: SalesFilterSupport = { salespeople: false, brands: false };
 
 export const DASHBOARDS: readonly Dashboard[] = [
   {
@@ -44,7 +67,7 @@ export const DASHBOARDS: readonly Dashboard[] = [
       "Net revenue, gross margin, invoices and returns, with breakdowns by company, customer, item, salesperson, brand and item group.",
     icon: TrendingUp,
     source: "ZF_CSL_BI",
-    salesFilters: true,
+    salesFilters: BOTH,
   },
   {
     slug: "inventory",
@@ -54,6 +77,8 @@ export const DASHBOARDS: readonly Dashboard[] = [
     icon: Boxes,
     source: "ZF_CURR_STK_BI · ZF_STK_MTH_SUMM_BI · ZF_ITEM",
     dateFilter: false,
+    // Brand through the per-item map, as on Sales. Stock has no salesperson.
+    salesFilters: { salespeople: false, brands: true, options: "stock" },
   },
   {
     slug: "finance",
@@ -70,7 +95,7 @@ export const DASHBOARDS: readonly Dashboard[] = [
       "The order book as of today: what customers have ordered that isn't delivered or invoiced yet, how old it is and who owns it, and orders booked in the period.",
     icon: ClipboardList,
     source: "ZF_SO_BI",
-    salesFilters: true,
+    salesFilters: BOTH,
   },
   {
     slug: "purchasing",
@@ -89,6 +114,8 @@ export const DASHBOARDS: readonly Dashboard[] = [
     icon: Scale,
     source: "ZF_SOA_DETL_CUST_INV_SM_BI · ZF_SOAP_DETL_BI",
     dateFilter: false,
+    // The customer's own salesperson (`SDR_CUST_SM_CODE`) on AR. AP has no salesperson, no view brand.
+    salesFilters: { salespeople: true, brands: false, only: "receivables only", options: "receivables" },
   },
   {
     slug: "products",
@@ -97,7 +124,7 @@ export const DASHBOARDS: readonly Dashboard[] = [
       "Where revenue comes from and where it is growing: a brand → item treemap coloured by change vs last year, and watchlists of growers, decliners, discounts and returns.",
     icon: LayoutGrid,
     source: "ZF_CSL_BI · ZF_STK_SO_PO_SL_BI",
-    salesFilters: true,
+    salesFilters: BOTH,
   },
 ];
 
@@ -111,16 +138,20 @@ export function dashboardHref(dashboard: Dashboard): string {
 }
 
 /**
- * How a page applies the salesperson and brand filters: to every figure ("all"), to its sales
- * figures only ("sales": the Overview), to its sales and open orders ("sales-orders": the
- * customer and item pages), or not at all ("none").
+ * How the page at `pathname` applies the salesperson and brand filters: as its registry entry says,
+ * to the Overview's sales figures only, and to the customer and item pages' sales and open orders.
  */
-export type SalesFilterSupport = "all" | "sales" | "sales-orders" | "none";
-
 export function salesFilterSupport(pathname: string): SalesFilterSupport {
-  if (pathname === "/") return "sales";
-  if (pathname.startsWith("/customers/") || pathname.startsWith("/items/")) return "sales-orders";
-  return dashboardForPath(pathname)?.salesFilters ? "all" : "none";
+  if (pathname === "/") return { ...BOTH, only: "sales figures only" };
+  if (pathname.startsWith("/customers/") || pathname.startsWith("/items/")) {
+    return { ...BOTH, only: "sales and open orders only" };
+  }
+  return dashboardForPath(pathname)?.salesFilters ?? NONE;
+}
+
+/** True when the page follows at least one of the two filters. */
+export function hasSalesFilterSupport(support: SalesFilterSupport): boolean {
+  return support.salespeople || support.brands;
 }
 
 /** The registry entry for a path like `/sales`, if any. */

@@ -38,7 +38,7 @@ import {
 import { customerHref } from "@/lib/customers";
 import { filtersToSearch, type Filters } from "@/lib/filters";
 import { formatAed, formatInt } from "@/lib/format";
-import type { AgingHover, ArDocument, BucketAccount, BucketAccounts } from "@/lib/server/queries/ar-ap";
+import type { AgingHover, BucketAccount, BucketAccounts, BucketDocuments } from "@/lib/server/queries/ar-ap";
 
 /**
  * The AR and AP aging charts with the Sales-style hover card and drill-down. Hovering (or focusing)
@@ -249,7 +249,7 @@ function DocumentsView({
           <span className="font-normal text-muted-foreground"> · {AGING_BUCKETS[bucket]}</span>
         </h3>
       </div>
-      <DrillView<ArDocument[]>
+      <DrillView<BucketDocuments>
         url={drillApiUrl("/api/receivables-payables/documents", filters, {
           side,
           bucket: String(bucket),
@@ -257,16 +257,22 @@ function DocumentsView({
         })}
         what="documents"
       >
-        {(documents) => {
-          const balance = documents.reduce((sum, document) => sum + document.balance, 0);
+        {(data) => {
+          const partial = data.count > data.rows.length;
           return (
             <>
               <DrillTotals
                 items={[
-                  { label: side === "ar" ? "Outstanding" : "Owed", value: formatAed(balance) },
-                  { label: "Documents", value: formatInt(documents.length) },
+                  { label: side === "ar" ? "Outstanding" : "Owed", value: formatAed(data.balance) },
+                  { label: "Documents", value: formatInt(data.count) },
                 ]}
               />
+              {partial && (
+                <p className="text-xs text-muted-foreground">
+                  The {formatInt(data.rows.length)} largest of {formatInt(data.count)} documents are listed;
+                  the totals cover all of them.
+                </p>
+              )}
               {side === "ar" && account.key !== "Unassigned" && (
                 <a className="text-sm underline underline-offset-4" href={customerHref(account.key, search)}>
                   Open the customer page
@@ -277,7 +283,7 @@ function DocumentsView({
                 columns={DOCUMENT_COLUMNS.map((column) =>
                   side === "ap" && column.key === "balance" ? { ...column, header: "Owed" } : column,
                 )}
-                rows={documents.map((document) => ({
+                rows={data.rows.map((document) => ({
                   company: document.companyCode,
                   document: document.document,
                   date: document.date,
@@ -288,6 +294,7 @@ function DocumentsView({
                 }))}
                 initialSort={[{ id: "balance", desc: true }]}
                 showTotals
+                totals={{ balance: data.balance, pdc: data.pdc }}
                 pageSize={25}
                 maxHeight={9999}
               />
@@ -325,7 +332,7 @@ export function AgingDrillDialog() {
       title={shown ? `${side === "ar" ? "AR" : "AP"} aging · ${AGING_BUCKETS[shown.bucket]}` : "Aging"}
       description={`As of today${
         filters.companies.length > 0 ? `, company ${filters.companies.join(", ")}` : ", all companies"
-      }${side === "ar" && filters.salespeople.length > 0 ? `, ${formatInt(filters.salespeople.length)} salespeople` : ""}`}
+      }${side === "ar" && filters.salespeople.length > 0 ? `, ${filters.salespeople.length === 1 ? "1 salesperson" : `${formatInt(filters.salespeople.length)} salespeople`}` : ""}`}
       returnSelector={() =>
         shown ? `[data-drill="${CSS.escape(agingParam(shown.side, shown.bucket))}"]` : null
       }

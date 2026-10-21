@@ -460,14 +460,22 @@ export function arDocumentsQuery(
 
 const DOCUMENT_COLUMNS = "company_code, txn_code, doc_no, doc_date, currency, amount, balance, pdc, bucket";
 
-/** Open lines, largest balance first, at most `limit`; with `bucket`, only that ladder index. */
+/**
+ * Open lines, largest balance first, at most `limit`. With `bucket`, only that ladder index, and
+ * every row carries the count, balance and PDCs of all of them (`total_*`), so a drill-down that
+ * lists only the largest still totals the whole column.
+ */
 function rankedDocuments(lines: { sql: string; binds: Binds }, limit: number, bucket?: number): Query {
+  const totals =
+    bucket === undefined
+      ? ""
+      : ",\n        COUNT(*) OVER () AS total_count, SUM(balance) OVER () AS total_balance, SUM(pdc) OVER () AS total_pdc";
   return {
     sql: `
-SELECT ${DOCUMENT_COLUMNS}
+SELECT ${DOCUMENT_COLUMNS}${bucket === undefined ? "" : ", total_count, total_balance, total_pdc"}
 FROM (
     SELECT ${DOCUMENT_COLUMNS},
-        ROW_NUMBER() OVER (ORDER BY balance DESC, doc_date, company_code, txn_code, doc_no) AS rn
+        ROW_NUMBER() OVER (ORDER BY balance DESC, doc_date, company_code, txn_code, doc_no) AS rn${totals}
     FROM (${lines.sql}
     ) open_lines${bucket === undefined ? "" : "\n    WHERE bucket = :bucket_no"}
 ) ranked
@@ -486,6 +494,37 @@ export async function arDocuments(
   bucket?: number,
 ): Promise<ArDocument[]> {
   return toDocuments(await run(arDocumentsQuery(asOf, scope, customer, limit, bucket)));
+}
+
+/** Rows in an aging drill-down's documents level; its totals cover every document. */
+export const BUCKET_DOCUMENT_LIMIT = 500;
+
+/** One account's open documents in one aging column: the largest, and the totals of all of them. */
+export interface BucketDocuments {
+  count: number;
+  balance: number;
+  pdc: number;
+  rows: ArDocument[];
+}
+
+function toBucketDocuments(rows: Record<string, unknown>[]): BucketDocuments {
+  return {
+    count: num(rows[0]?.total_count),
+    balance: num(rows[0]?.total_balance),
+    pdc: num(rows[0]?.total_pdc),
+    rows: toDocuments(rows),
+  };
+}
+
+/** One customer's open AR documents in one aging column, for the aging drill-down. */
+export async function arBucketDocuments(
+  asOf: string,
+  scope: ArScope,
+  customer: string,
+  bucket: number,
+  limit = BUCKET_DOCUMENT_LIMIT,
+): Promise<BucketDocuments> {
+  return toBucketDocuments(await run(arDocumentsQuery(asOf, scope, customer, limit, bucket)));
 }
 
 function toDocuments(rows: Record<string, unknown>[]): ArDocument[] {
@@ -770,13 +809,13 @@ export async function apBucketVendors(
   return { side: "ap", bucket, total: summary.buckets[bucket], rows };
 }
 
-/** One vendor's open AP lines (company + sub-account), largest owed first; with `bucket`, that index only. */
+/** One vendor's open AP lines (company + sub-account) in one aging column, largest owed first. */
 export function apDocumentsQuery(
   asOf: string,
   company: string,
   vendor: string,
-  bucket?: number,
-  limit = DOCUMENT_ROW_LIMIT,
+  bucket: number,
+  limit = BUCKET_DOCUMENT_LIMIT,
 ): Query {
   const lines = openLines(
     AP_VIEW,
@@ -798,10 +837,10 @@ export function apDocumentsQuery(
   return rankedDocuments(lines, limit, bucket);
 }
 
-/** One vendor's open AP documents as of `asOf`; `key` is `company|sub-account`, as in `ApBalance`. */
-export async function apDocuments(asOf: string, key: string, bucket?: number): Promise<ArDocument[]> {
+/** One vendor's open AP documents in one aging column; `key` is `company|sub-account`, as in `ApBalance`. */
+export async function apBucketDocuments(asOf: string, key: string, bucket: number): Promise<BucketDocuments> {
   const [company, vendor] = key.split("|");
-  return toDocuments(await run(apDocumentsQuery(asOf, company, vendor ?? "", bucket)));
+  return toBucketDocuments(await run(apDocumentsQuery(asOf, company, vendor ?? "", bucket)));
 }
 
 // ---------------------------------------------------------------------------------------------

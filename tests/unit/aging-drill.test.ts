@@ -13,13 +13,13 @@ import { SampleSource } from "@/lib/server/sample";
 import {
   apAgingHover,
   apBucketVendors,
-  apDocuments,
+  apBucketDocuments,
   apSplit,
   arAgingHover,
   arBalances,
   arBalancesQuery,
   arBucketCustomers,
-  arDocuments,
+  arBucketDocuments,
   arSalespersonOptions,
   arSummary,
   type ArScope,
@@ -48,9 +48,11 @@ async function expectArReconciles(asOf: string, scope: ArScope) {
     expect(accounts.total).toBeCloseTo(column, 4);
     expect(sum(accounts.rows.map((row) => row.balance))).toBeCloseTo(column, 4);
     for (const row of accounts.rows) {
-      const documents = await arDocuments(asOf, scope, row.key, undefined, bucket);
-      expect(sum(documents.map((document) => document.balance))).toBeCloseTo(row.balance, 4);
-      expect(documents.every((document) => document.bucket === bucket)).toBe(true);
+      const documents = await arBucketDocuments(asOf, scope, row.key, bucket);
+      expect(documents.balance).toBeCloseTo(row.balance, 4);
+      expect(documents.count).toBe(row.lines);
+      expect(sum(documents.rows.map((document) => document.balance))).toBeCloseTo(row.balance, 4);
+      expect(documents.rows.every((document) => document.bucket === bucket)).toBe(true);
     }
   }
 }
@@ -68,8 +70,9 @@ async function expectApReconciles(asOf: string, companies: string[]) {
     const vendors = await apBucketVendors(asOf, companies, bucket);
     expect(sum(vendors.rows.map((row) => row.balance))).toBeCloseTo(column, 4);
     for (const row of vendors.rows) {
-      const documents = await apDocuments(asOf, row.key, bucket);
-      expect(sum(documents.map((document) => document.balance))).toBeCloseTo(row.balance, 4);
+      const documents = await apBucketDocuments(asOf, row.key, bucket);
+      expect(documents.balance).toBeCloseTo(row.balance, 4);
+      expect(sum(documents.rows.map((document) => document.balance))).toBeCloseTo(row.balance, 4);
     }
   }
 }
@@ -188,8 +191,11 @@ describe("on the fixture", () => {
     });
 
     it("lists one vendor's documents in a column", async () => {
-      const documents = await apDocuments(AS_OF, "101|V1", 3);
-      expect(documents.map((document) => [document.document, document.balance])).toEqual([["PIN-2", 3000]]);
+      const documents = await apBucketDocuments(AS_OF, "101|V1", 3);
+      expect(documents.rows.map((document) => [document.document, document.balance])).toEqual([
+        ["PIN-2", 3000],
+      ]);
+      expect(documents).toMatchObject({ count: 1, balance: 3000 });
     });
   });
 
@@ -218,6 +224,15 @@ describe("on the sample data", () => {
     expect((await arSummary(today, [])).balance).not.toBe(0);
     await expectArReconciles(today, []);
     await expectArReconciles(today, { companies: [], salespeople: ["SM01"] });
+  });
+
+  it("totals every document of a column when it lists only the largest", async () => {
+    const { rows } = await arBucketCustomers(today, [], 1);
+    const account = rows.find((row) => row.lines > 1)!;
+    const top = await arBucketDocuments(today, [], account.key, 1, 1);
+    expect(top.rows).toHaveLength(1);
+    expect(top.count).toBe(account.lines);
+    expect(top.balance).toBeCloseTo(account.balance, 4);
   });
 
   it("every AP column's card, vendors and documents add up", async () => {

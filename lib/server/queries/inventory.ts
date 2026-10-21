@@ -10,7 +10,6 @@ import {
   foldTop,
   labelOrUnassigned,
   num,
-  salesWhere,
   UNASSIGNED,
 } from "../sql";
 import type { Binds, Query } from "../types";
@@ -34,22 +33,47 @@ function isCompanyList(scope: StockScope): scope is readonly string[] {
   return Array.isArray(scope);
 }
 
+/** The company and brand filters of one query: a join to add after its `FROM`, and a `WHERE` fragment. */
+interface StockWhere {
+  /** The brand map, LEFT JOINed as `brand_map` on the item code; empty without a brand filter. */
+  join: string;
+  /** `1 = 1` when every company and brand is selected. */
+  sql: string;
+  binds: Binds;
+}
+
 /**
- * The company and brand filters as a `WHERE` fragment; `1 = 1` when every company and brand is
- * selected. Brand goes through `salesWhere`, the same clause as Sales, on the item code.
+ * The company and brand filters. Brand is the per-item map of `brand-map.ts`, as on Sales, but
+ * joined and filtered on its brand code rather than tested with `IN (subquery)` as `salesWhere`
+ * does: on live Orion the subquery made the reorder query (live stock × item master) run past the
+ * 120 s call timeout, the join takes about 1 s. Items without a brand are `UNASSIGNED_CODE`.
+ * `joined` says the query already joins the map as `brand_map`.
  */
 function companyWhere(
   scope: StockScope,
   companyColumn: string,
   itemColumn: string,
-): { sql: string; binds: Binds } {
+  joined = false,
+): StockWhere {
   const { companies: codes, brands } = scopeParts(scope);
   const company = companyFilter(codes, companyColumn);
-  const brand = salesWhere({ brands: [...brands] }, { item: itemColumn });
-  const clauses = [company?.sql, brand?.sql].filter((clause): clause is string => !!clause);
+  const clauses = company ? [company.sql] : [];
+  const binds: Binds = { ...company?.binds };
+  if (brands.length > 0) {
+    brands.forEach((code, index) => {
+      binds[`brand_${index}`] = code;
+    });
+    const list = brands.map((_, index) => `:brand_${index}`).join(", ");
+    clauses.push(`COALESCE(brand_map.brand_code, '${UNASSIGNED_CODE}') IN (${list})`);
+  }
   return {
+    join:
+      brands.length > 0 && !joined
+        ? `
+LEFT JOIN (${BRAND_MAP}) brand_map ON brand_map.item_code = TRIM(${itemColumn})`
+        : "",
     sql: clauses.length > 0 ? clauses.join(" AND ") : "1 = 1",
-    binds: { ...company?.binds, ...brand?.binds },
+    binds,
   };
 }
 
@@ -59,10 +83,14 @@ function scopeWhere(
   companyColumn: string,
   item: string | undefined,
   itemColumn: string,
-): { sql: string; binds: Binds } {
+): StockWhere {
   const where = companyWhere(scope, companyColumn, itemColumn);
   if (item === undefined) return where;
-  return { sql: `${where.sql} AND ${itemColumn} = :item_code`, binds: { ...where.binds, item_code: item } };
+  return {
+    ...where,
+    sql: `${where.sql} AND ${itemColumn} = :item_code`,
+    binds: { ...where.binds, item_code: item },
+  };
 }
 
 /**
@@ -87,8 +115,9 @@ function scopeWhere(
  *   receiving adjustments and is shown as provisional.
  * - The date filter doesn't apply: live stock is as of today, the trend is the last 24 periods.
  *
- * Every query follows the brand filter (`StockScope`) through the per-item brand map, as Sales does;
- * without one the SQL is exactly the company-only SQL. Stock has no salesperson.
+ * Every query follows the brand filter (`StockScope`) through the per-item brand map, as Sales does
+ * (see `companyWhere` for how); without one the SQL is exactly the company-only SQL. Stock has no
+ * salesperson.
  *
  * The month-end trend and reorder alerts take an optional item code (`ZSL_ITEM_CODE`, `CS_ITEM_CODE`:
  * the code space of `ZF_ITEM.IM_ITEM_CODE`) for the item page; without one the SQL is the dashboard's.
@@ -237,7 +266,7 @@ SELECT
     SUM(CASE WHEN i.IM_FRZ_FLAG = 'Freeze' THEN ${STOCK_VALUE} ELSE 0 END) AS frozen_value,
     SUM(CASE WHEN i.IM_ITEM_CODE IS NULL THEN ${STOCK_VALUE} ELSE 0 END) AS unmatched_value
 FROM ${STOCK} s
-${ITEM_JOIN}
+${ITEM_JOIN}${where.join}
 WHERE ${where.sql}`,
     binds: where.binds,
   };
@@ -250,7 +279,7 @@ export function breakdownQuery(scope: StockScope, dimension: InventoryDimension,
   const where = companyWhere(scope, "s.CS_COMP_CODE", "s.CS_ITEM_CODE");
   const grouped = `
 SELECT ${label} AS label, SUM(${STOCK_VALUE}) AS stock_value
-FROM ${STOCK} s
+FROM ${STOCK} s${where.join}
 WHERE ${where.sql}
 GROUP BY ${label}`;
   if (topN === undefined) {
@@ -293,7 +322,7 @@ SELECT z.ZSL_PERIOD AS period, SUM(NVL(z.ZSL_CLOSE_VAL, 0)) AS close_value,
     SUM(CASE WHEN z.ZSL_CLOSE_QTY < 0 THEN NVL(z.ZSL_CLOSE_VAL, 0) ELSE 0 END) AS negative_value,
     SUM(CASE WHEN z.ZSL_CLOSE_QTY < 0 THEN 1 ELSE 0 END) AS negative_lines
 FROM ${CLOSING} z
-JOIN periods p ON p.period = z.ZSL_PERIOD
+JOIN periods p ON p.period = z.ZSL_PERIOD${where.join}
 WHERE z.ZSL_PERIOD >= :from_period AND p.rn <= :period_count AND ${where.sql}
 GROUP BY z.ZSL_PERIOD
 ORDER BY z.ZSL_PERIOD`,
@@ -321,7 +350,7 @@ keyed AS (
         p.rn, MAX(z.ZSL_PERIOD) AS period, MAX(z.ZSL_LOCN_NAME) AS locn_name, MAX(z.ZSL_ITEM_NAME) AS item_name,
         SUM(NVL(z.ZSL_CLOSE_QTY, 0)) AS close_qty, SUM(NVL(z.ZSL_CLOSE_VAL, 0)) AS close_value
     FROM ${CLOSING} z
-    JOIN periods p ON p.period = z.ZSL_PERIOD
+    JOIN periods p ON p.period = z.ZSL_PERIOD${where.join}
     WHERE z.ZSL_PERIOD >= :from_period AND p.rn <= :period_count AND ${where.sql}
     GROUP BY z.ZSL_COMP_CODE, z.ZSL_LOCN_CODE, z.ZSL_ITEM_CODE, p.rn
 ),
@@ -370,7 +399,7 @@ SELECT s.CS_COMP_CODE AS comp_code, s.CS_LOCN_CODE AS locn_code, MAX(s.CS_LOCN_N
     SUM(${AVAILABLE_QTY}) AS available_qty,
     MAX(i.IM_RORD_LVL) AS reorder_level, MAX(i.IM_RORD_QTY) AS reorder_qty
 FROM ${STOCK} s
-${ITEM_JOIN}
+${ITEM_JOIN}${where.join}
 WHERE i.IM_FRZ_FLAG = 'Active' AND i.IM_RORD_LVL > 0 AND ${where.sql}
 GROUP BY s.CS_COMP_CODE, s.CS_LOCN_CODE, s.CS_ITEM_CODE
 HAVING SUM(${AVAILABLE_QTY}) <= MAX(i.IM_RORD_LVL)
@@ -403,7 +432,7 @@ export function stockByLocationQuery(scope: StockScope, item: string): Query {
 SELECT s.CS_COMP_CODE AS comp_code, s.CS_LOCN_CODE AS locn_code, MAX(s.CS_LOCN_NAME) AS locn_name,
     SUM(${TOTAL_QTY}) AS total_qty, SUM(${AVAILABLE_QTY}) AS available_qty,
     SUM(${STOCK_VALUE}) AS stock_value, SUM(${AVAILABLE_VALUE}) AS available_value
-FROM ${STOCK} s
+FROM ${STOCK} s${where.join}
 WHERE ${where.sql}
 GROUP BY s.CS_COMP_CODE, s.CS_LOCN_CODE
 ORDER BY SUM(${STOCK_VALUE}) DESC, s.CS_COMP_CODE, s.CS_LOCN_CODE`,
@@ -571,7 +600,7 @@ function yearEarlier(month: string): string {
  * section adds up to the bar.
  */
 export function monthEndHoverQuery(scope: StockScope, month: string): Query {
-  const where = companyWhere(scope, "z.ZSL_COMP_CODE", "z.ZSL_ITEM_CODE");
+  const where = companyWhere(scope, "z.ZSL_COMP_CODE", "z.ZSL_ITEM_CODE", true);
   const labels = MONTH_END_DIMENSIONS.map((dimension) => MONTH_END_LABELS[dimension]);
   return {
     sql: `
@@ -653,7 +682,7 @@ export interface MonthEndItems {
  * zero are left out: they add nothing to the bar.
  */
 export function monthEndItemsQuery(scope: StockScope, month: string, limit = MONTH_END_ITEM_LIMIT): Query {
-  const where = companyWhere(scope, "z.ZSL_COMP_CODE", "z.ZSL_ITEM_CODE");
+  const where = companyWhere(scope, "z.ZSL_COMP_CODE", "z.ZSL_ITEM_CODE", true);
   return {
     sql: `
 WITH items AS (

@@ -47,7 +47,7 @@ describe("filterWhere", () => {
       "C",
       { salesperson: "SM", item: "ITEM" },
     );
-    expect(sql).toContain("TRIM(SM) IN (:salesperson_0, :salesperson_1)");
+    expect(sql).toContain("COALESCE(NULLIF(TRIM(SM), ''), '_none') IN (:salesperson_0, :salesperson_1)");
     expect(sql).toContain(
       `TRIM(ITEM) IN (SELECT TRIM("Item") FROM MBALI.ZF_STK_SO_PO_SL_BI WHERE TRIM("Brand") IN (:brand_0))`,
     );
@@ -59,13 +59,16 @@ describe("filterWhere", () => {
       { salespeople: ["_none"], brands: ["_none", "CT"] },
       { salesperson: "SM", item: "ITEM" },
     );
+    // One IN / NOT IN each, no OR around a subquery (see salesWhere): "Unassigned or CT" is "not an
+    // item of another brand".
     expect(fragment?.sql).toBe(
-      "NULLIF(TRIM(SM), '') IS NULL AND (" +
-        `TRIM(ITEM) IN (SELECT TRIM("Item") FROM MBALI.ZF_STK_SO_PO_SL_BI WHERE TRIM("Brand") IN (:brand_0))` +
-        ` OR (NULLIF(TRIM(ITEM), '') IS NULL OR NOT EXISTS (SELECT 1 FROM MBALI.ZF_STK_SO_PO_SL_BI brand_map` +
-        ` WHERE TRIM(brand_map."Item") = TRIM(ITEM) AND NULLIF(TRIM(brand_map."Brand"), '') IS NOT NULL)))`,
+      "COALESCE(NULLIF(TRIM(SM), ''), '_none') IN (:salesperson_0) AND " +
+        "COALESCE(NULLIF(TRIM(ITEM), ''), ' ') NOT IN (" +
+        `SELECT TRIM("Item") FROM MBALI.ZF_STK_SO_PO_SL_BI WHERE NULLIF(TRIM("Brand"), '') IS NOT NULL` +
+        ` AND NULLIF(TRIM("Item"), '') IS NOT NULL AND TRIM("Brand") NOT IN (:brand_0))`,
     );
-    expect(fragment?.binds).toEqual({ brand_0: "CT" });
+    expect(fragment?.sql).not.toMatch(/ OR /);
+    expect(fragment?.binds).toEqual({ salesperson_0: "_none", brand_0: "CT" });
   });
 
   it("a view without the columns gets no salesperson or brand clause", () => {

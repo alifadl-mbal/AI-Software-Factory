@@ -72,15 +72,18 @@ function bindList(prefix: string, values: readonly string[]): { list: string; bi
   };
 }
 
-/** `clauses` as one predicate: OR-ed in brackets when there are several. */
-function anyOf(clauses: string[]): string {
-  return clauses.length === 1 ? clauses[0] : `(${clauses.join(" OR ")})`;
-}
+/** Items the brand map gives a brand: `"Item"` is never NULL here, so `NOT IN` is safe. */
+const BRANDED_ITEMS = `SELECT TRIM("Item") FROM ${BRAND_VIEW} WHERE NULLIF(TRIM("Brand"), '') IS NOT NULL AND NULLIF(TRIM("Item"), '') IS NOT NULL`;
 
 /**
  * The salesperson and brand part of `filterWhere` on its own, for queries that build their own
  * date or company clauses. `undefined` when neither filter narrows anything. `UNASSIGNED_CODE`
  * matches lines with no salesperson, or items with no brand (or no item code).
+ *
+ * Each filter is one `IN` or `NOT IN`, never an `OR` around a subquery: on live Orion an `OR` (or a
+ * correlated `NOT EXISTS`) made Oracle re-run the brand view per sales line, over 60 s, against
+ * about 2 s as an anti-join. So "Unassigned or brand X" is "not one of the other brands' items", and
+ * a blank salesperson or item code is compared as a stand-in value instead of tested with `IS NULL`.
  */
 export function salesWhere(
   filters: Partial<Pick<Filters, SalesFilterKey>>,
@@ -90,14 +93,11 @@ export function salesWhere(
   const binds: Binds = {};
   const salespeople = filters.salespeople ?? [];
   if (columns.salesperson && salespeople.length > 0) {
-    const codes = bindList(
-      "salesperson",
-      salespeople.filter((code) => code !== UNASSIGNED_CODE),
+    // A blank code reads as UNASSIGNED_CODE, so Unassigned is just one more code in the list.
+    const codes = bindList("salesperson", salespeople);
+    clauses.push(
+      `COALESCE(NULLIF(TRIM(${columns.salesperson}), ''), '${UNASSIGNED_CODE}') IN (${codes.list})`,
     );
-    const any: string[] = [];
-    if (codes.list) any.push(`TRIM(${columns.salesperson}) IN (${codes.list})`);
-    if (salespeople.includes(UNASSIGNED_CODE)) any.push(`NULLIF(TRIM(${columns.salesperson}), '') IS NULL`);
-    clauses.push(anyOf(any));
     Object.assign(binds, codes.binds);
   }
   const brands = filters.brands ?? [];
@@ -106,18 +106,17 @@ export function salesWhere(
       "brand",
       brands.filter((code) => code !== UNASSIGNED_CODE),
     );
-    const item = `TRIM(${columns.item})`;
-    const any: string[] = [];
-    if (codes.list) {
-      any.push(`${item} IN (SELECT TRIM("Item") FROM ${BRAND_VIEW} WHERE TRIM("Brand") IN (${codes.list}))`);
-    }
-    if (brands.includes(UNASSIGNED_CODE)) {
-      // NOT EXISTS, not NOT IN: one NULL item in the map would make NOT IN match nothing.
-      any.push(
-        `(NULLIF(${item}, '') IS NULL OR NOT EXISTS (SELECT 1 FROM ${BRAND_VIEW} brand_map WHERE TRIM(brand_map."Item") = ${item} AND NULLIF(TRIM(brand_map."Brand"), '') IS NOT NULL))`,
+    if (!brands.includes(UNASSIGNED_CODE)) {
+      clauses.push(
+        `TRIM(${columns.item}) IN (SELECT TRIM("Item") FROM ${BRAND_VIEW} WHERE TRIM("Brand") IN (${codes.list}))`,
+      );
+    } else {
+      // A blank item code becomes ' ', which no trimmed map entry equals: it has no brand.
+      const item = `COALESCE(NULLIF(TRIM(${columns.item}), ''), ' ')`;
+      clauses.push(
+        `${item} NOT IN (${BRANDED_ITEMS}${codes.list ? ` AND TRIM("Brand") NOT IN (${codes.list})` : ""})`,
       );
     }
-    clauses.push(anyOf(any));
     Object.assign(binds, codes.binds);
   }
   return clauses.length > 0 ? { sql: clauses.join(" AND "), binds } : undefined;

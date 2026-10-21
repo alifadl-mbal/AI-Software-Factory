@@ -4,17 +4,21 @@ import { useState } from "react";
 
 import { BarBreakdown, type BreakdownPoint } from "@/components/dashboard/bar-breakdown";
 import { BreakdownCard, breakdownUrl } from "@/components/dashboard/breakdown-card";
-import { TrendChart, type TrendBar, type TrendPoint } from "@/components/dashboard/trend-chart";
+import { barPeriod, TrendChart, type TrendBar, type TrendPoint } from "@/components/dashboard/trend-chart";
 import { useShell } from "@/components/shell/shell-context";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { filtersToSearch } from "@/lib/filters";
 import { bucketTitle, periodBuckets } from "@/lib/periods";
 
+import { useSalesDrill } from "./sales-drill";
+
 /**
  * The Sales charts with the hover breakdown. On wider screens the card is the tooltip (hover, or
  * focus the chart and use the arrow keys); on phones a tap opens it as a bottom sheet. Neither
- * touches the URL.
+ * touches the URL. Selecting a month bar (a click, Enter or Space; on phones, the sheet's button)
+ * opens the drill-down to its documents.
  */
 
 interface Selected {
@@ -23,9 +27,19 @@ interface Selected {
   description: string;
   current?: number;
   lastYear?: number;
+  /** The drill-down period, for a month or year bar. */
+  drill?: string;
 }
 
-function BreakdownSheet({ selected, onClose }: { selected: Selected | null; onClose: () => void }) {
+function BreakdownSheet({
+  selected,
+  onClose,
+  onDrill,
+}: {
+  selected: Selected | null;
+  onClose: () => void;
+  onDrill?: (drill: string) => void;
+}) {
   return (
     <Sheet open={selected !== null} onOpenChange={(open) => !open && onClose()}>
       <SheetContent side="bottom" className="max-h-[85vh] overflow-y-auto" data-testid="breakdown-sheet">
@@ -43,6 +57,19 @@ function BreakdownSheet({ selected, onClose }: { selected: Selected | null; onCl
                 lastYear={selected.lastYear}
                 variant="sheet"
               />
+              {selected.drill && onDrill && (
+                <Button
+                  variant="outline"
+                  className="mt-4 w-full"
+                  onClick={() => {
+                    const drill = selected.drill!;
+                    onClose();
+                    onDrill(drill);
+                  }}
+                >
+                  List its documents
+                </Button>
+              )}
             </div>
           </>
         )}
@@ -56,6 +83,7 @@ export function SalesTrendChart({ data, start, end }: { data: TrendPoint[]; star
   const { filters } = useShell();
   const search = filtersToSearch(filters);
   const isMobile = useIsMobile();
+  const { open } = useSalesDrill();
   const [selected, setSelected] = useState<Selected | null>(null);
   const urlFor = (bar: TrendBar) => breakdownUrl(search, { period: bar.month });
   const keys = periodBuckets(start, end).map((bucket) => bucket.key);
@@ -65,6 +93,7 @@ export function SalesTrendChart({ data, start, end }: { data: TrendPoint[]; star
       <TrendChart
         data={data}
         period={{ start, end }}
+        ariaLabel="Monthly net revenue, this year compared with last year. Select a month's bar to list its documents."
         renderTooltip={
           isMobile
             ? undefined
@@ -89,11 +118,14 @@ export function SalesTrendChart({ data, start, end }: { data: TrendPoint[]; star
                   description: "Net revenue by company, salesperson and item group",
                   current: bar.thisYear,
                   lastYear: bar.lastYear,
+                  drill: bar.thisYear ? barPeriod(bar) : undefined,
                 })
             : undefined
         }
+        // On phones a tap opens the sheet, and the sheet's button opens the drill-down.
+        onSelectMonth={isMobile ? undefined : open}
       />
-      <BreakdownSheet selected={selected} onClose={() => setSelected(null)} />
+      <BreakdownSheet selected={selected} onClose={() => setSelected(null)} onDrill={open} />
     </>
   );
 }

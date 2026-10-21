@@ -135,5 +135,12 @@ test.describe("phone", () => {
     ).toEqual([]);
     await page.keyboard.press("Escape");
     await expect(sheet).toHaveCount(0);
+
+    // The sheet's button opens that month's drill-down.
+    await bar.click();
+    await sheet.getByRole("button", { name: "List its documents" }).click();
+    await expect(sheet).toHaveCount(0);
+    await expect(page.getByRole("dialog").getByTestId("drill-documents")).toBeVisible();
+    await expect(page).toHaveURL(/drill=/);
   });
 });

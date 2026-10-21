@@ -1,7 +1,17 @@
 "use client";
 
 import { useId, type ReactNode } from "react";
-import { Bar, CartesianGrid, Cell, ComposedChart, Line, XAxis, YAxis } from "recharts";
+import {
+  Bar,
+  CartesianGrid,
+  Cell,
+  ComposedChart,
+  Line,
+  Rectangle,
+  XAxis,
+  YAxis,
+  type BarShapeProps,
+} from "recharts";
 
 import {
   ChartContainer,
@@ -34,13 +44,54 @@ const CONFIG = {
   lastYear: { label: "Last year", color: "var(--chart-2)" },
 } satisfies ChartConfig;
 
+/** What a bar selects: its `YYYY-MM` month, or a yearly bar's `from..to` days. */
+export function barPeriod(point: TrendPoint | TrendBar): string {
+  const bucket = "bucket" in point ? point.bucket : undefined;
+  return bucket?.granularity === "year" ? `${bucket.from}..${bucket.to}` : point.month;
+}
+
+/** A bar that is also a button: a click, Enter or Space selects its month. */
+function SelectableBar({
+  selectMonth,
+  full,
+  ...props
+}: BarShapeProps & { selectMonth: (month: string) => void; full: (value: number) => string }) {
+  const point = props.payload as TrendPoint | TrendBar;
+  if (!point.thisYear) return <Rectangle {...props} />;
+  const period = barPeriod(point);
+  const title = "bucket" in point ? bucketTitle(point.bucket) : formatMonth(point.month);
+  return (
+    <g
+      role="button"
+      tabIndex={0}
+      aria-label={`${title}: ${full(point.thisYear)}. List its documents`}
+      data-drill={period}
+      className="cursor-pointer outline-none [&:focus-visible>path]:stroke-ring [&:focus-visible>path]:stroke-[3px]"
+      onClick={(event) => {
+        // A mouse click doesn't focus an SVG element; focus it so focus can come back here.
+        event.currentTarget.focus();
+        selectMonth(period);
+      }}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          selectMonth(period);
+        }
+      }}
+    >
+      <Rectangle {...props} />
+    </g>
+  );
+}
+
 /**
  * Monthly values for this period (bars) against the same months last year (line).
  *
  * With `period` (the range the data covers) the chart also marks partial months with a hatched
  * bar, prints the change on last year under each bar, and shows one bar per year when the range is
  * longer than 24 months. `renderTooltip` replaces the tooltip on hover or keyboard focus, and
- * `onSelect` is called when a bar is tapped or clicked (the bottom sheet on phones).
+ * `onSelect` is called when a bar is tapped or clicked (the bottom sheet on phones). With
+ * `onSelectMonth`, each bar is a button that passes its `YYYY-MM` month (`from..to` for a year).
  */
 export function TrendChart({
   data,
@@ -50,6 +101,7 @@ export function TrendChart({
   period,
   renderTooltip,
   onSelect,
+  onSelectMonth,
 }: {
   data: TrendPoint[];
   height?: number;
@@ -59,6 +111,7 @@ export function TrendChart({
   period?: { start: string; end: string };
   renderTooltip?: (bar: TrendBar) => ReactNode;
   onSelect?: (bar: TrendBar) => void;
+  onSelectMonth?: (month: string) => void;
 }) {
   const full = format === "qty" ? formatQty : formatAed;
   const compact = format === "qty" ? formatCompact : formatAedCompact;
@@ -78,7 +131,8 @@ export function TrendChart({
         config={CONFIG}
         className="aspect-auto w-full"
         style={{ height }}
-        role="img"
+        // Buttons can't sit inside an image: a chart with selectable bars is a group.
+        role={onSelectMonth ? "group" : "img"}
         aria-label={ariaLabel}
       >
         <ComposedChart
@@ -150,6 +204,13 @@ export function TrendChart({
             radius={[4, 4, 0, 0]}
             maxBarSize={36}
             className={onSelect ? "cursor-pointer" : undefined}
+            shape={
+              onSelectMonth
+                ? (props: BarShapeProps) => (
+                    <SelectableBar {...props} selectMonth={onSelectMonth} full={full} />
+                  )
+                : undefined
+            }
           >
             {bars?.map((bar) => (
               <Cell

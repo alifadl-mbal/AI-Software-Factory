@@ -19,14 +19,18 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { DASHBOARDS, OVERVIEW, dashboardHref } from "@/lib/dashboards";
+import { DOC_PARAM, DRILL_PARAM } from "@/lib/sales-drill";
 
 /** The left navigation, built from the dashboard registry. A drawer on small screens. */
 export function AppSidebar({ sourceLabel }: { sourceLabel: string }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { setOpenMobile } = useSidebar();
-  // Keep the filters when moving between dashboards.
-  const search = searchParams.size > 0 ? `?${searchParams.toString()}` : "";
+  // Keep the filters when moving between dashboards, but not a page's open drill-down.
+  const kept = new URLSearchParams(searchParams);
+  kept.delete(DRILL_PARAM);
+  kept.delete(DOC_PARAM);
+  const search = kept.size > 0 ? `?${kept.toString()}` : "";
   const items = [
     { href: OVERVIEW.href, title: OVERVIEW.title, icon: OVERVIEW.icon },
     ...DASHBOARDS.map((dashboard) => ({

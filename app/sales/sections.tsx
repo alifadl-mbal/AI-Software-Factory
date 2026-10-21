@@ -12,6 +12,7 @@ import { customerHref } from "@/lib/customers";
 import { previousYear, type Filters } from "@/lib/filters";
 import { itemHref } from "@/lib/items";
 import { formatAed, formatPct } from "@/lib/format";
+import { buildCalendar } from "@/lib/sales-calendar";
 import { cn } from "@/lib/utils";
 import { dataAsOf } from "@/lib/server/db";
 import { load } from "@/lib/server/errors";
@@ -20,6 +21,7 @@ import { itemCodesByName } from "@/lib/server/queries/items";
 import {
   averageInvoiceValue,
   salesBreakdown,
+  salesDaily,
   salesExtras,
   salesExtrasMonthly,
   salesKpis,
@@ -29,6 +31,7 @@ import {
   type Dimension,
 } from "@/lib/server/queries/sales";
 
+import { CalendarTable } from "./calendar-table";
 import { CompanyBreakdownChart, SalesTrendChart } from "./charts";
 
 /** Eight cards: two rows of four on wide screens. */
@@ -124,7 +127,7 @@ export async function SalesTrend({ filters }: { filters: Filters }) {
     <ChartCard
       title="Monthly net revenue"
       className={HOVER_CARD_FRAME}
-      description="This year against the same months last year; hover or tap a bar for its breakdown"
+      description="This year against the same months last year; hover or tap a bar for its breakdown, select it to list its documents"
       action={result.ok ? <span className="tabular text-sm font-medium">{formatAed(total)}</span> : undefined}
     >
       {!result.ok ? (
@@ -249,6 +252,23 @@ export async function SalesTopTable({
           }))}
           showTotals
         />
+      )}
+    </ChartCard>
+  );
+}
+
+/** Months that expand to ISO weeks and days, with zero rows for days without sales. */
+export async function SalesCalendar({ filters }: { filters: Filters }) {
+  const result = await load(() => salesDaily(filters));
+  return (
+    <ChartCard
+      title="Sales by month, week and day"
+      description="Expand a month for its weeks and a week for its days; select a period to list its documents. Selling days have at least one invoice."
+    >
+      {!result.ok ? (
+        <ErrorCard message={result.message} />
+      ) : (
+        <CalendarTable months={buildCalendar(filters.start, filters.end, result.data)} />
       )}
     </ChartCard>
   );

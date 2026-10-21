@@ -11,7 +11,21 @@ import {
 } from "lucide-react";
 
 /**
- * The dashboard registry: the single list the sidebar and the Overview page are built from.
+ * The groups of the Filters panel, in the order they show. Year and Month together pick the period
+ * (with "Custom dates" for any other range); the rest are checklists.
+ */
+export const FILTER_GROUPS = ["year", "month", "company", "salesperson", "brand"] as const;
+export type FilterGroup = (typeof FILTER_GROUPS)[number];
+
+/** Every group: pages whose figures follow the period, the companies and the sales filters. */
+const ALL_FILTERS: readonly FilterGroup[] = FILTER_GROUPS;
+/** The period and the companies, for pages whose views have no salesperson or brand. */
+const PERIOD_AND_COMPANY: readonly FilterGroup[] = ["year", "month", "company"];
+/** "As of today" pages: only the companies apply. */
+const COMPANY_ONLY: readonly FilterGroup[] = ["company"];
+
+/**
+ * The dashboard registry: the single list the nav rail and the Overview page are built from.
  *
  * To add a dashboard, add one entry here and create `app/<slug>/page.tsx`. See "Adding a
  * dashboard" in the README.
@@ -20,20 +34,20 @@ export interface Dashboard {
   /** URL path segment; the page lives at `app/<slug>/page.tsx`. */
   slug: string;
   title: string;
-  /** What the top bar says instead on phones, when the title doesn't fit beside the controls there. */
+  /** What the phone bar says instead, when the title does not fit there. */
   shortTitle?: string;
   /** One sentence for the Overview card and the page header. */
   description: string;
   icon: LucideIcon;
   /** The Orion view(s) the dashboard reads, shown on the Overview card. */
   source: string;
-  /** False for dashboards that show "as of today" figures: the top bar then hides the date filter. */
-  dateFilter?: boolean;
   /**
-   * True when every figure follows the salesperson and brand filters (its views have both). Elsewhere
-   * the top bar shows them disabled, and the scope line says when one is set but doesn't apply.
+   * The Filters panel groups that apply to every figure on the page. Leave out "year" and "month"
+   * for "as of today" pages, and "salesperson" and "brand" where the views have neither: the panel
+   * then hides them, and the scope line says when one is set but doesn't apply. Adding a group here
+   * is all it takes to show it on the page.
    */
-  salesFilters?: boolean;
+  filters: readonly FilterGroup[];
 }
 
 export const DASHBOARDS: readonly Dashboard[] = [
@@ -44,7 +58,7 @@ export const DASHBOARDS: readonly Dashboard[] = [
       "Net revenue, gross margin, invoices and returns, with breakdowns by company, customer, item, salesperson, brand and item group.",
     icon: TrendingUp,
     source: "ZF_CSL_BI",
-    salesFilters: true,
+    filters: ALL_FILTERS,
   },
   {
     slug: "inventory",
@@ -53,7 +67,7 @@ export const DASHBOARDS: readonly Dashboard[] = [
       "Stock value as of today, the month-end trend, dead and slow stock, and items at or below their reorder level.",
     icon: Boxes,
     source: "ZF_CURR_STK_BI · ZF_STK_MTH_SUMM_BI · ZF_ITEM",
-    dateFilter: false,
+    filters: COMPANY_ONLY,
   },
   {
     slug: "finance",
@@ -62,6 +76,7 @@ export const DASHBOARDS: readonly Dashboard[] = [
       "P&L from the posted general ledger: revenue, cost of sales, gross and net profit, the P&L statement, costs by account, division and department, and journal-line drill-down.",
     icon: Landmark,
     source: "ZF_F_T_DETAIL_BI",
+    filters: PERIOD_AND_COMPANY,
   },
   {
     slug: "sales-orders",
@@ -70,7 +85,7 @@ export const DASHBOARDS: readonly Dashboard[] = [
       "The order book as of today: what customers have ordered that isn't delivered or invoiced yet, how old it is and who owns it, and orders booked in the period.",
     icon: ClipboardList,
     source: "ZF_SO_BI",
-    salesFilters: true,
+    filters: ALL_FILTERS,
   },
   {
     slug: "purchasing",
@@ -79,6 +94,7 @@ export const DASHBOARDS: readonly Dashboard[] = [
       "Pending purchase orders with aging and overdue lines as of today, and receipts spend by month and supplier.",
     icon: ShoppingCart,
     source: "ZF_PO_PENDING_BI · ZF_CPR_BI",
+    filters: PERIOD_AND_COMPANY,
   },
   {
     slug: "receivables-payables",
@@ -88,7 +104,7 @@ export const DASHBOARDS: readonly Dashboard[] = [
       "Open customer and vendor balances as of today: aging, top customers and vendors, salesperson follow-up, PDCs and vendor prepayments.",
     icon: Scale,
     source: "ZF_SOA_DETL_CUST_INV_SM_BI · ZF_SOAP_DETL_BI",
-    dateFilter: false,
+    filters: COMPANY_ONLY,
   },
   {
     slug: "products",
@@ -97,13 +113,22 @@ export const DASHBOARDS: readonly Dashboard[] = [
       "Where revenue comes from and where it is growing: a brand → item treemap coloured by change vs last year, and watchlists of growers, decliners, discounts and returns.",
     icon: LayoutGrid,
     source: "ZF_CSL_BI · ZF_STK_SO_PO_SL_BI",
-    salesFilters: true,
+    filters: ALL_FILTERS,
   },
 ];
 
-export const OVERVIEW = { href: "/", title: "Overview", icon: LayoutDashboard } as const;
+export const OVERVIEW = {
+  href: "/",
+  title: "Overview",
+  icon: LayoutDashboard,
+  // Its sales figures follow the salesperson and brand filters; the scope line says so.
+  filters: ALL_FILTERS,
+} as const;
 
-/** The daily snapshot email preview. Deliberately not in the sidebar. */
+/** The cookie that remembers whether the nav rail is expanded; the layout reads it, so nothing jumps. */
+export const NAV_RAIL_COOKIE = "nav_rail";
+
+/** The daily snapshot email preview. Deliberately not in the nav rail, and it has no filters. */
 export const SNAPSHOT = { href: "/snapshot", title: "Daily snapshot" } as const;
 
 export function dashboardHref(dashboard: Dashboard): string {
@@ -120,7 +145,15 @@ export type SalesFilterSupport = "all" | "sales" | "sales-orders" | "none";
 export function salesFilterSupport(pathname: string): SalesFilterSupport {
   if (pathname === "/") return "sales";
   if (pathname.startsWith("/customers/") || pathname.startsWith("/items/")) return "sales-orders";
-  return dashboardForPath(pathname)?.salesFilters ? "all" : "none";
+  return dashboardForPath(pathname)?.filters.includes("salesperson") ? "all" : "none";
+}
+
+/** The Filters panel groups for a page; none on pages that aren't dashboards (the snapshot). */
+export function filterGroupsForPath(pathname: string): readonly FilterGroup[] {
+  if (pathname === OVERVIEW.href) return OVERVIEW.filters;
+  // Customer and item pages show sales and open orders for one customer or item.
+  if (pathname.startsWith("/customers/") || pathname.startsWith("/items/")) return ALL_FILTERS;
+  return dashboardForPath(pathname)?.filters ?? [];
 }
 
 /** The registry entry for a path like `/sales`, if any. */

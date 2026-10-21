@@ -22,9 +22,10 @@ test("on the overview each source fails on its own, and the rest of the page sti
   page,
 }) => {
   await page.goto("/");
-  // Six areas, four Needs-attention rows and two trend charts: one ErrorCard each, never one for all.
+  // The summary, six areas, the company ranking, four Needs-attention rows and two trend charts: one
+  // ErrorCard each, never one for all.
   const errors = page.getByTestId("error-card");
-  await expect(errors).toHaveCount(12, { timeout: 30_000 });
+  await expect(errors).toHaveCount(14, { timeout: 30_000 });
   await expect(errors.first()).toContainText("Couldn't connect to Orion");
   for (const area of ["sales", "finance", "inventory", "purchasing", "receivables", "payables"]) {
     await expect(page.getByTestId(`area-link-${area}`)).toBeVisible();

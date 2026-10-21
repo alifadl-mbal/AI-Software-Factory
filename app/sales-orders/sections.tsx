@@ -54,7 +54,7 @@ export const SALES_ORDER_KPI_GRID = "grid grid-cols-2 gap-3 sm:gap-4 lg:grid-col
 
 /** "As of today, AED orders from the last 2 years; …" */
 function asOfToday(age: OrderAge): string {
-  return `As of today, AED ${orderAgeScope(age)}; the company filter applies, the period doesn't`;
+  return `As of today, AED ${orderAgeScope(age)}; the company, salesperson and brand filters apply, the period doesn't`;
 }
 
 function totalOf(rows: LabelValue[]): number {

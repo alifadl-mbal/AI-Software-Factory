@@ -15,9 +15,7 @@ test("sales orders is in the nav and on the overview", async ({ page }) => {
   await expect(page.getByRole("heading", { level: 1, name: "Sales orders" })).toBeVisible();
 });
 
-test("the open book is as of today and follows only the company; booked follows the period", async ({
-  page,
-}) => {
+test("the open book is as of today and ignores the period; booked follows it", async ({ page }) => {
   const errors = watchConsole(page);
   await page.goto("/sales-orders?range=12m");
   await waitForData(page);

@@ -51,7 +51,10 @@ export function scopeSentence({
   parts.push(companiesPart(filters.companies));
   if (support !== "none") {
     const sales = `${codesPart(filters.salespeople, salespeople, SALESPERSON_NOUN)} · ${codesPart(filters.brands, brands, BRAND_NOUN)}`;
-    parts.push(support === "sales" && hasSalesFilter(filters) ? `${sales} (sales figures only)` : sales);
+    const only = { all: "", sales: " (sales figures only)", "sales-orders": " (sales and open orders only)" }[
+      support
+    ];
+    parts.push(hasSalesFilter(filters) ? `${sales}${only}` : sales);
   } else if (hasSalesFilter(filters)) {
     parts.push("the salesperson and brand filters don't apply here");
   }

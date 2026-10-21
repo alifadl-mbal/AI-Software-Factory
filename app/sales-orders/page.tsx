@@ -41,7 +41,7 @@ export default async function SalesOrdersPage({ searchParams }: PageProps<"/sale
         title={dashboard.title}
         description={dashboard.description}
         filters={filters}
-        note={`The open book is as of today, ${formatDate(today)}, on ${orderAgeScope(age)}, and follows only the company filter; orders booked follow the period.`}
+        note={`The open book is as of today, ${formatDate(today)}, on ${orderAgeScope(age)}, and follows the company, salesperson and brand filters but not the period; orders booked follow the period as well.`}
       />
       <div className="flex flex-col gap-6">
         <Suspense

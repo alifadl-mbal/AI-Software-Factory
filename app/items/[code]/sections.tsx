@@ -43,7 +43,9 @@ export interface ItemProps {
 /** Customers in the top-customers table; the rest are one "All other" row. */
 export const TOP_CUSTOMERS = 15;
 
-const AS_OF_TODAY = "As of today; the company filter applies, the period doesn't";
+const STOCK_AS_OF_TODAY = "As of today; the company filter applies, the period doesn't";
+const ORDERS_AS_OF_TODAY =
+  "As of today; the company, salesperson and brand filters apply, the period doesn't";
 
 function Total({ children }: { children: React.ReactNode }) {
   return <span className="tabular text-sm font-medium">{children}</span>;
@@ -330,7 +332,7 @@ export async function ItemStock({ code, filters }: ItemProps) {
   return (
     <ChartCard
       title={title}
-      description={`${AS_OF_TODAY}. Grades added together; value at WAC.`}
+      description={`${STOCK_AS_OF_TODAY}. Grades added together; value at WAC.`}
       action={result.ok && result.data.length > 0 ? <Total>{formatAed(total)}</Total> : undefined}
     >
       <div data-testid="item-stock">
@@ -413,7 +415,7 @@ export async function ItemPurchaseOrders({ code, filters, today, age }: ItemProp
   const result = await load(() =>
     Promise.all([itemPending(filters.companies, today, age, code), companyNames()]),
   );
-  let description = `${AS_OF_TODAY}; ${orderAgeScope(age)}. Expected = PO date + ${PO_LEAD_DAYS} days, as on Purchasing.`;
+  let description = `${STOCK_AS_OF_TODAY}; ${orderAgeScope(age)}. Expected = PO date + ${PO_LEAD_DAYS} days, as on Purchasing.`;
   if (result.ok && result.data[0].lines > result.data[0].rows.length) {
     description = `As of today, ${orderAgeScope(age)}: the ${formatInt(result.data[0].rows.length)} largest of ${formatInt(result.data[0].lines)} pending lines by quantity. Expected = PO date + ${PO_LEAD_DAYS} days.`;
   }
@@ -475,7 +477,7 @@ const ORDER_COLUMNS: ColumnSpec[] = [
 export async function ItemOpenOrders({ code, filters, today, age }: ItemProps) {
   const title = "Open sales-order lines";
   const result = await load(() => Promise.all([itemOpenBook(filters, today, age, code), companyNames()]));
-  let description = `${AS_OF_TODAY}; ${orderAgeScope(age)}. Lines still to deliver in any currency; values are in the order's currency.`;
+  let description = `${ORDERS_AS_OF_TODAY}; ${orderAgeScope(age)}. Lines still to deliver in any currency; values are in the order's currency.`;
   if (result.ok && result.data[0].lines > result.data[0].rows.length) {
     description = `As of today, ${orderAgeScope(age)}: the ${formatInt(result.data[0].rows.length)} largest of ${formatInt(result.data[0].lines)} open lines by quantity to deliver. Values are in the order's currency.`;
   }

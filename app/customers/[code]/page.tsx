@@ -74,7 +74,7 @@ export default async function CustomerPage({ params, searchParams }: PageProps<"
         title={customer.name}
         description={masterLine(customer)}
         filters={filters}
-        note={`AR and open orders are as of today, ${formatDate(today)}, and follow only the company filter; sales and returns follow the period.`}
+        note={`AR and open orders are as of today, ${formatDate(today)}: AR follows only the company filter, open orders follow the company, salesperson and brand filters; sales and returns follow the period.`}
       />
       <Suspense key={`profile${asOfKey}`} fallback={null}>
         <CustomerProfile {...props} />

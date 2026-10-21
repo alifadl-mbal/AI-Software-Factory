@@ -99,13 +99,14 @@ export function dashboardHref(dashboard: Dashboard): string {
 
 /**
  * How a page applies the salesperson and brand filters: to every figure ("all"), to its sales
- * figures only ("sales": the Overview and the customer and item pages), or not at all ("none").
+ * figures only ("sales": the Overview), to its sales and open orders ("sales-orders": the
+ * customer and item pages), or not at all ("none").
  */
-export type SalesFilterSupport = "all" | "sales" | "none";
+export type SalesFilterSupport = "all" | "sales" | "sales-orders" | "none";
 
 export function salesFilterSupport(pathname: string): SalesFilterSupport {
-  if (pathname === "/" || pathname.startsWith("/customers/") || pathname.startsWith("/items/"))
-    return "sales";
+  if (pathname === "/") return "sales";
+  if (pathname.startsWith("/customers/") || pathname.startsWith("/items/")) return "sales-orders";
   return dashboardForPath(pathname)?.salesFilters ? "all" : "none";
 }
 

@@ -109,8 +109,8 @@ on the server only (`import "server-only"`) and never reach the browser bundle. 
 ## Customer page and search
 
 `/customers/<code>` shows one customer, by their Orion code (`ZF_CUSTOMER.CUST_CODE`). Sales,
-margin and returns follow the period; AR and open orders are as of today and follow only the
-company filter, as on their dashboards. The header shows the master's type, category, city and
+margin and returns follow the period; AR and open orders are as of today, as on their dashboards:
+AR follows only the company filter, open orders also follow the salesperson and brand filters. The header shows the master's type, category, city and
 parent, and the salesperson and credit limit from the customer's AR lines. An unknown code shows a
 "Customer not found" state.
 
@@ -147,7 +147,8 @@ stay plain text.
 
 `/items/<code>` shows one item, by its Orion code (`ZF_ITEM.IM_ITEM_CODE`, encoded in the URL: codes
 can hold `/`, `#`, `&` or spaces). Sales follow the period; stock, pending POs and open orders are
-as of today and follow only the company filter. The header shows the item group, stock and frozen
+as of today; stock and POs follow only the company filter, open orders also follow the salesperson
+and brand filters. The header shows the item group, stock and frozen
 flags and the reorder planning fields (min, max, reorder level and quantity, lead time), per company
 when the master's rows differ. An unknown code shows an "Item not found" state.
 
@@ -605,7 +606,8 @@ CS_RESV_QTY`; available value = available qty × `CS_WAC`; reserved value = the 
 
 ## Business rules (Sales orders)
 
-The open book (`ZF_SO_BI`) is **as of today**: the company filter applies, the date filter doesn't.
+The open book (`ZF_SO_BI`) is **as of today**: the company, salesperson and brand filters apply,
+the date filter doesn't.
 It counts orders placed since the order-age cut-off (`?since=`, last 2 years by default): `H_DT` on
 or after today moved back 24 (or 12) calendar months, worked out in TypeScript and bound as a date.
 "Orders booked" follows both filters, on the order date `H_DT`, and ignores order age. Details and the live checks behind

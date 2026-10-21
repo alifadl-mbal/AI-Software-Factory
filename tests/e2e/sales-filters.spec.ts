@@ -78,6 +78,19 @@ test("sales orders follow the salesperson filter", async ({ page }) => {
   await waitForData(page);
   expect(await kpiFull(page, "Open order value")).not.toBe(all);
   await expect(page.getByTestId("salesperson-trigger")).toBeEnabled();
+  await expect(page.locator("main")).not.toContainText("follows only the company filter");
+  await expect(page.locator("main")).toContainText("follows the company, salesperson and brand filters");
+});
+
+test("customer and item pages say open orders follow the salesperson filter", async ({ page }) => {
+  for (const path of ["/customers/C0034?salesperson=S06", "/items/IT00065?salesperson=S06"]) {
+    await page.goto(path);
+    await waitForData(page);
+    await expect(page.getByTestId("period")).toContainText("(sales and open orders only)");
+    await expect(page.locator("main")).toContainText(
+      "open orders follow the company, salesperson and brand filters",
+    );
+  }
 });
 
 test("pages without salesperson or brand show the filters disabled and say an active one doesn't apply", async ({

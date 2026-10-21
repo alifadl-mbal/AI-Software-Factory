@@ -83,7 +83,7 @@ export default async function ItemPage({ params, searchParams }: PageProps<"/ite
         title={item.name}
         description={masterLine(item)}
         filters={filters}
-        note={`Stock, POs and open orders are as of today, ${formatDate(today)}, and follow only the company filter (POs and orders: ${orderAgeScope(age)}); sales follow the period. Months of cover uses the last 12 months of sales.`}
+        note={`Stock, POs and open orders are as of today, ${formatDate(today)} (POs and orders: ${orderAgeScope(age)}): stock and POs follow only the company filter, open orders follow the company, salesperson and brand filters; sales follow the period. Months of cover uses the last 12 months of sales.`}
       />
       <div className="-mt-4 mb-6 flex flex-col items-start gap-2 md:-mt-6 md:mb-8">
         <Suspense fallback={null}>

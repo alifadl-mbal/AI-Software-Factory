@@ -83,6 +83,24 @@
   --chart-5: #e87ba4;
   --positive: oklch(0.45 0.12 152);
   --negative: oklch(0.5 0.19 27);
+  /* Product mix YoY scale: orange falls, grey about flat, blue rises (colour-blind safe), and a
+     darker grey for new items. Each step has a label colour with at least 4.5:1 contrast. */
+  --yoy-down-3: #a34e04;
+  --yoy-down-3-fg: #ffffff;
+  --yoy-down-2: #e08214;
+  --yoy-down-2-fg: #1c1917;
+  --yoy-down-1: #fdc581;
+  --yoy-down-1-fg: #1c1917;
+  --yoy-flat: #e7e5e4;
+  --yoy-flat-fg: #1c1917;
+  --yoy-up-1: #a9d0ea;
+  --yoy-up-1-fg: #1c1917;
+  --yoy-up-2: #2b74b4;
+  --yoy-up-2-fg: #ffffff;
+  --yoy-up-3: #08427f;
+  --yoy-up-3-fg: #ffffff;
+  --yoy-new: #6b6560;
+  --yoy-new-fg: #ffffff;
   --radius: 0.625rem;
   --sidebar: oklch(0.99 0.002 250);
   --sidebar-foreground: oklch(0.3 0.02 260);
@@ -120,6 +138,22 @@
   --chart-5: #d55181;
   --positive: oklch(0.74 0.15 152);
   --negative: oklch(0.7 0.17 25);
+  --yoy-down-3: #f0903c;
+  --yoy-down-3-fg: #1c1917;
+  --yoy-down-2: #a8580f;
+  --yoy-down-2-fg: #ffffff;
+  --yoy-down-1: #5f3a16;
+  --yoy-down-1-fg: #ffffff;
+  --yoy-flat: #3f3f46;
+  --yoy-flat-fg: #ffffff;
+  --yoy-up-1: #1d4568;
+  --yoy-up-1-fg: #ffffff;
+  --yoy-up-2: #2e6ea6;
+  --yoy-up-2-fg: #ffffff;
+  --yoy-up-3: #6db0ec;
+  --yoy-up-3-fg: #1c1917;
+  --yoy-new: #a1a1aa;
+  --yoy-new-fg: #1c1917;
   --sidebar: oklch(0.195 0.013 260);
   --sidebar-foreground: oklch(0.9 0.008 250);
   --sidebar-primary: oklch(0.68 0.14 255);

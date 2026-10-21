@@ -1,10 +1,18 @@
-import { formatAed, formatAedCompact, formatDate, formatInt, formatPct, formatQty } from "@/lib/format";
+import {
+  formatAed,
+  formatAedCompact,
+  formatDate,
+  formatDeltaPct,
+  formatInt,
+  formatPct,
+  formatQty,
+} from "@/lib/format";
 
 /**
  * How a value is shown. Server components pass these names to client components (functions
  * can't cross that boundary), and the client formats with them.
  */
-export type ValueFormat = "aed" | "aedCompact" | "int" | "qty" | "pct" | "date" | "text";
+export type ValueFormat = "aed" | "aedCompact" | "int" | "qty" | "pct" | "deltaPct" | "date" | "text";
 
 /** Formats that are numbers: right-aligned, summable, sorted largest first. */
 export function isNumericFormat(format: ValueFormat | undefined): boolean {
@@ -27,5 +35,7 @@ export function formatValue(format: ValueFormat, value: unknown): string {
       return formatQty(number);
     case "pct":
       return formatPct(number);
+    case "deltaPct":
+      return formatDeltaPct(number);
   }
 }

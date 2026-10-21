@@ -7,6 +7,7 @@ import { DEFAULT_ORDER_AGE } from "@/lib/order-age";
 import { refreshedSince } from "./db";
 import { friendlyMessage } from "./errors";
 import { companyRanking, financeVsLastYear, salesVsLastYear, stockPosition } from "./overview";
+import { productMix } from "./product-mix";
 import { apSplit, arBalances, arSummary } from "./queries/ar-ap";
 import { companies } from "./queries/common";
 import { customerCodesByName } from "./queries/customers";
@@ -172,6 +173,10 @@ export function warmPlan(today: string): Page[] {
         },
         { name: "Hover breakdowns", load: () => salesHoverCards(filters) },
       ],
+    },
+    {
+      path: "/products",
+      sections: [{ name: "KPIs, treemap and watchlists", load: () => productMix(filters) }],
     },
     {
       path: "/finance",

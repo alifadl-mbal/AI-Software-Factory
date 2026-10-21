@@ -11,6 +11,7 @@ Stack: Next.js 16 (App Router) · React 19 · TypeScript (strict) · Tailwind CS
 | ------------ | ------------------- | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Overview     | `/`                 | all of the above                                                                               | Executive overview: headline tiles per area linking to each dashboard with the filters kept (sales net revenue and GM %, net profit and net margin % vs last year; stock value and change vs last month-end, pending PO value and overdue % on orders from the last 2 years, AR outstanding and share over 90 days, AP outstanding, as of today); needs attention (overdue POs, AR over 90 days, 6-month dead stock, reorder alerts, each linking to its section); monthly sales vs last year and monthly P&L; a compact card per dashboard |
 | Sales        | `/sales`            | `ZF_CSL_BI`                                                                                    | Net revenue, gross margin, margin %, invoices, returns, active customers, average invoice, discount (vs last year, with sparklines); monthly trend vs last year with partial months marked, growth % under each bar and yearly bars beyond 24 months; hover (or tap) a month or company bar for its breakdown by company, salesperson and item group; revenue by company, item group, salesperson; top 20 customers and items                                                                                                               |
+| Product mix  | `/products`         | `ZF_CSL_BI`, `ZF_STK_SO_PO_SL_BI`                                                              | Net revenue, gross margin, items and brands sold (vs last year); brand → item treemap sized by net revenue and coloured by YoY, with zoom, a legend and a table (a ranked list on phones); top 10 growers, decliners, highest discount % and highest returns %, linking to the item pages. See [Product mix](#product-mix)                                                                                                                                                                                                                  |
 | Inventory    | `/inventory`        | `ZF_CURR_STK_BI`, `ZF_STK_MTH_SUMM_BI`, `ZF_ITEM`                                              | Stock value, available and reserved value, stocked items and change vs last month-end, as of today; month-end trend (24 periods); stock value by company, item group, location and grade; dead stock (3/6/12 months, `?dead=`); reorder alerts                                                                                                                                                                                                                                                                                              |
 | Finance      | `/finance`          | `ZF_F_T_DETAIL_BI`                                                                             | Revenue, cost of sales, gross profit and GP %, G&A, net profit and net margin % (vs last year); monthly P&L with partial months marked and revenue growth % under each bar; P&L statement by level_1 that expands to GL accounts; costs by account, division and department; journal-line drill-down; unmapped-account total                                                                                                                                                                                                                |
 | Sales orders | `/sales-orders`     | `ZF_SO_BI`                                                                                     | Open order value, open orders and lines, delivered-not-invoiced and overdue value (as of today; orders placed in the last 2 years by default, `?since=12m\|all`, with what that leaves out); orders booked vs last year; open value by order age, salesperson and top 20 customers; monthly orders booked vs last year; open order lines (top 1,000, CSV); non-AED currency note                                                                                                                                                            |
@@ -105,6 +106,30 @@ The daily snapshot email adds these (see [Daily snapshot email](#daily-snapshot-
 There are no fallbacks for the Oracle settings: a missing one is reported on screen. They are read
 on the server only (`import "server-only"`) and never reach the browser bundle. See
 `.env.example`; never commit a real `.env`.
+
+## Product mix
+
+`/products` shows where revenue comes from and where it is growing or shrinking, on the same rows
+as Sales (`where()` in `lib/server/queries/sales.ts`), so the date, company, salesperson and brand
+filters all apply. The figures come from one query per period grouped by brand and **item code**
+(`itemMixQuery`; names aren't unique, and grouping by name merges and splits codes), this period and
+the same days last year, put together in `lib/server/product-mix.ts`.
+
+- **Treemap:** brands, then the items of the selected brand. Area = net revenue; colour = YoY %
+  against the same days last year on a diverging orange (fall) ← grey → blue (rise) scale with
+  edges at ±5, ±15 and ±30% (`lib/product-mix.ts`, colours `--yoy-*` in `app/globals.css`).
+  Items without sales last year are **new**, in a separate grey. The top 24 brands and each brand's
+  top 30 items have their own tile; the rest are **All other brands** / **All other**, as are
+  brands and items with no positive net revenue (they can't have an area). Unassigned is a brand
+  like any other, so the tiles add up to Sales net revenue exactly. Tiles are focusable (Enter
+  zooms or opens), and the table under the treemap holds the same rows; under 768 px a ranked list
+  replaces both.
+- **Watchlists**, top 10 each, per item code, with a minimum base of AED 10K (`MIN_BASE_AED`) so tiny
+  items don't top them: **growers** and **decliners** by the change in net revenue in AED, among
+  items with at least that much net revenue last year; **highest discount %** =
+  `CSL_NET_DISC_VALUE` ÷ `CSL_GROSS_SL_VALUE` (as on the Sales discount card), among items with
+  that much gross sales; **highest returns %** = the `SARTN` net value ÷ the `INV` net value (what was
+  invoiced before returns), among items with that much invoiced.
 
 ## Customer page and search
 

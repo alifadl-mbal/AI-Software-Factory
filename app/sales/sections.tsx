@@ -11,15 +11,19 @@ import { ReportAsOf } from "@/components/shell/shell-context";
 import { customerHref } from "@/lib/customers";
 import { previousYear, type Filters } from "@/lib/filters";
 import { itemHref } from "@/lib/items";
-import { formatAed } from "@/lib/format";
+import { formatAed, formatPct } from "@/lib/format";
 import { buildCalendar } from "@/lib/sales-calendar";
+import { cn } from "@/lib/utils";
 import { dataAsOf } from "@/lib/server/db";
 import { load } from "@/lib/server/errors";
 import { customerCodesByName } from "@/lib/server/queries/customers";
 import { itemCodesByName } from "@/lib/server/queries/items";
 import {
+  averageInvoiceValue,
   salesBreakdown,
   salesDaily,
+  salesExtras,
+  salesExtrasMonthly,
   salesKpis,
   salesMonthly,
   TOP_N,
@@ -28,18 +32,29 @@ import {
 } from "@/lib/server/queries/sales";
 
 import { CalendarTable } from "./calendar-table";
-import { DrillableTrendChart } from "./sales-drill";
+import { CompanyBreakdownChart, SalesTrendChart } from "./charts";
 
-/** The five headline cards, each with last year's figure and a monthly sparkline. */
+/** Eight cards: two rows of four on wide screens. */
+export const SALES_KPI_GRID = cn(KPI_GRID, "xl:grid-cols-4");
+
+/** The eight headline cards, each with last year's figure and a monthly sparkline. */
 export async function SalesKpis({ filters }: { filters: Filters }) {
+  const lastYear = previousYear(filters);
   const result = await load(() =>
-    Promise.all([salesKpis(filters), salesKpis(previousYear(filters)), salesMonthly(filters)]),
+    Promise.all([
+      salesKpis(filters),
+      salesKpis(lastYear),
+      salesMonthly(filters),
+      salesExtras(filters),
+      salesExtras(lastYear),
+      salesExtrasMonthly(filters),
+    ]),
   );
   if (!result.ok) return <ErrorCard message={result.message} />;
-  const [current, previous, months] = result.data;
+  const [current, previous, months, extras, previousExtras, extraMonths] = result.data;
 
   return (
-    <div className={KPI_GRID} data-testid="sales-kpis">
+    <div className={SALES_KPI_GRID} data-testid="sales-kpis">
       <ReportAsOf iso={dataAsOf().toISOString()} />
       <KpiCard
         label="Net revenue"
@@ -75,9 +90,35 @@ export async function SalesKpis({ filters }: { filters: Filters }) {
         spark={months.map((month) => Math.abs(month.returnsValue))}
         hint="Credit notes; already netted out of revenue"
       />
+      <KpiCard
+        label="Active customers"
+        value={extras.activeCustomers}
+        previous={previousExtras.activeCustomers}
+        format="int"
+        spark={extraMonths.map((month) => month.activeCustomers)}
+        hint="Customers with net revenue in the period"
+      />
+      <KpiCard
+        label="Average invoice"
+        value={averageInvoiceValue(current)}
+        previous={averageInvoiceValue(previous)}
+        spark={months.map((month) => averageInvoiceValue(month) ?? 0)}
+        hint="Net revenue per invoice"
+      />
+      <KpiCard
+        label="Discount"
+        value={extras.discount}
+        previous={previousExtras.discount}
+        spark={extraMonths.map((month) => month.discount)}
+        hint={`${formatPct(extras.discountPct)} of gross sales (last year ${formatPct(previousExtras.discountPct)})`}
+        lowerIsBetter
+      />
     </div>
   );
 }
+
+/** Lets the hover card spill over the card's edge, above the cards that follow it. */
+const HOVER_CARD_FRAME = "relative overflow-visible hover:z-10 focus-within:z-10";
 
 export async function SalesTrend({ filters }: { filters: Filters }) {
   const result = await load(() => salesMonthly(filters));
@@ -85,7 +126,8 @@ export async function SalesTrend({ filters }: { filters: Filters }) {
   return (
     <ChartCard
       title="Monthly net revenue"
-      description="This year against the same months last year; select a bar to list its documents"
+      className={HOVER_CARD_FRAME}
+      description="This year against the same months last year; hover or tap a bar for its breakdown, select it to list its documents"
       action={result.ok ? <span className="tabular text-sm font-medium">{formatAed(total)}</span> : undefined}
     >
       {!result.ok ? (
@@ -93,12 +135,14 @@ export async function SalesTrend({ filters }: { filters: Filters }) {
       ) : result.data.every((month) => month.netRevenue === 0 && month.lastYearNetRevenue === 0) ? (
         <EmptyState />
       ) : (
-        <DrillableTrendChart
+        <SalesTrendChart
           data={result.data.map((month) => ({
             month: month.month,
             thisYear: month.netRevenue,
             lastYear: month.lastYearNetRevenue,
           }))}
+          start={filters.start}
+          end={filters.end}
         />
       )}
     </ChartCard>
@@ -109,7 +153,18 @@ function totalOf(rows: BreakdownRow[]): number {
   return rows.reduce((sum, row) => sum + row.netRevenue, 0);
 }
 
-/** Net revenue by one dimension as ranked bars. */
+function points(rows: BreakdownRow[]) {
+  return rows.map((row) => ({ label: row.label, value: row.netRevenue }));
+}
+
+function ariaLabel(title: string, rows: BreakdownRow[]): string {
+  return `${title}: ${rows
+    .slice(0, 5)
+    .map((row) => `${row.label} ${formatAed(row.netRevenue)}`)
+    .join(", ")}`;
+}
+
+/** Net revenue by one dimension as ranked bars; company bars open their breakdown on hover. */
 export async function SalesBreakdownChart({
   filters,
   dimension,
@@ -128,6 +183,7 @@ export async function SalesBreakdownChart({
     <ChartCard
       title={title}
       description={description}
+      className={dimension === "company" ? HOVER_CARD_FRAME : undefined}
       action={
         result.ok && result.data.length > 0 ? (
           <span className="tabular text-sm font-medium">{formatAed(totalOf(result.data))}</span>
@@ -138,14 +194,10 @@ export async function SalesBreakdownChart({
         <ErrorCard message={result.message} />
       ) : result.data.length === 0 ? (
         <EmptyState />
+      ) : dimension === "company" ? (
+        <CompanyBreakdownChart data={points(result.data)} ariaLabel={ariaLabel(title, result.data)} />
       ) : (
-        <BarBreakdown
-          data={result.data.map((row) => ({ label: row.label, value: row.netRevenue }))}
-          ariaLabel={`${title}: ${result.data
-            .slice(0, 5)
-            .map((row) => `${row.label} ${formatAed(row.netRevenue)}`)
-            .join(", ")}`}
-        />
+        <BarBreakdown data={points(result.data)} ariaLabel={ariaLabel(title, result.data)} />
       )}
     </ChartCard>
   );

@@ -127,6 +127,12 @@ export interface SummaryInput {
   ranking: Pick<CompanyRanking, "rows">;
 }
 
+/** "an" before a figure read with a vowel sound (8%, 11.2%, 18.7%, 80%), "a" before the rest. */
+export function article(figure: string): "a" | "an" {
+  const whole = figure.replace(/^[-+]/, "").split(/[.%]/)[0].replace(/,/g, "");
+  return whole.startsWith("8") || whole === "11" || whole === "18" ? "an" : "a";
+}
+
 /**
  * The Overview's one-sentence summary, worded from the same figures and formats as its tiles and
  * ranking. A part with no figure behind it (no last year, no margin, one company) is left out
@@ -154,7 +160,8 @@ export function summarySentence({ filters, sales, finance, ranking }: SummaryInp
     pnl = `a net loss of ${formatAedCompact(-netProfit)}`;
     joiner = "with";
   } else if (netMarginPct !== null && Number.isFinite(netMarginPct) && !isZero(netProfit)) {
-    pnl = `a ${formatPct(netMarginPct)} net margin`;
+    const margin = formatPct(netMarginPct);
+    pnl = `${article(margin)} ${margin} net margin`;
     joiner = "at";
   }
   if (pnl && !filtered) first += `, ${joiner} ${pnl}`;

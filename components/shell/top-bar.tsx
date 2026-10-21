@@ -120,7 +120,7 @@ function FiltersDrawer({ companies, dateFilter }: { companies: Promise<Company[]
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button variant="outline" className="h-9 gap-2 md:hidden" data-testid="filters-trigger">
+        <Button variant="outline" className="h-9 w-full gap-2" data-testid="filters-trigger">
           <SlidersHorizontal aria-hidden />
           Filters
           {active > 0 && (
@@ -173,7 +173,9 @@ export function TopBar({
         <div className="flex min-w-0 flex-1 items-center gap-2 md:flex-none">
           <SidebarTrigger className="-ml-1" aria-label="Toggle navigation" />
           <Separator orientation="vertical" className="mr-1 data-[orientation=vertical]:h-5" />
-          <span className="truncate text-sm font-semibold">{title}</span>
+          <span className="truncate text-sm font-semibold" data-testid="page-title">
+            {title}
+          </span>
           {sample && (
             <Badge
               variant="secondary"
@@ -190,8 +192,13 @@ export function TopBar({
             <FilterControls companies={companies} dateFilter={dateFilter} />
           </div>
         )}
+        {/* Its own row under 768 px, like the pickers it stands for, so the title and badge keep theirs. */}
+        {!snapshot && (
+          <div className="order-last w-full md:hidden">
+            <FiltersDrawer companies={companies} dateFilter={dateFilter} />
+          </div>
+        )}
         <div className="ml-auto flex items-center gap-1 md:ml-0">
-          {!snapshot && <FiltersDrawer companies={companies} dateFilter={dateFilter} />}
           <SearchCommand />
           <RefreshButton />
           <ThemeToggle />

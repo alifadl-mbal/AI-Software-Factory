@@ -80,11 +80,17 @@ export type Dimension = keyof typeof DIMENSIONS;
 
 export const TOP_N = 20;
 
+/** One bar of a breakdown: the rows whose `dimension` label (as the breakdown shows it) is `label`. */
+export interface SalesSlice {
+  dimension: Dimension;
+  label: string;
+}
+
 /**
- * Narrows a query to one customer and/or one item. A plain string is a customer code, as the
- * customer page passes it.
+ * Narrows a query to one customer and/or one item, or to one breakdown bar (`slice`). A plain
+ * string is a customer code, as the customer page passes it.
  */
-export type SalesScope = string | { customer?: string; item?: string };
+export type SalesScope = string | { customer?: string; item?: string; slice?: SalesSlice };
 
 export interface SalesKpis {
   netRevenue: number;
@@ -122,7 +128,8 @@ function where(filters: Filters, scope?: SalesScope): ReturnType<typeof filterWh
     salesperson: SALESPERSON_COLUMN,
     item: ITEM_COLUMN,
   });
-  const { customer, item } = typeof scope === "string" ? { customer: scope, item: undefined } : (scope ?? {});
+  const { customer, item, slice } =
+    typeof scope === "string" ? { customer: scope, item: undefined, slice: undefined } : (scope ?? {});
   const clauses = [REVENUE_TXN_TYPES, fragment.sql];
   const binds = { ...fragment.binds };
   if (customer !== undefined) {
@@ -132,6 +139,11 @@ function where(filters: Filters, scope?: SalesScope): ReturnType<typeof filterWh
   if (item !== undefined) {
     clauses.push(`${ITEM_COLUMN} = :item_code`);
     binds.item_code = item;
+  }
+  if (slice !== undefined) {
+    // The same expression the breakdown groups by, so a bar's slices add up to the bar.
+    clauses.push(`${labelOrUnassigned(DIMENSIONS[slice.dimension])} = :slice_label`);
+    binds.slice_label = slice.label;
   }
   return { sql: clauses.join(" AND "), binds };
 }
@@ -251,6 +263,125 @@ export async function salesBreakdown(
       marginPct: netRevenue ? grossMargin / netRevenue : null,
     };
   });
+}
+
+// ---------------------------------------------------------------------------------------------
+// Customer and discount KPIs
+
+/**
+ * Active customers, discount and gross sales value.
+ *
+ * - Active customers = distinct `CSL_CUST_CODE` whose net revenue over the period (or month) is
+ *   not zero to the fils. A customer whose invoices are fully returned is not active.
+ * - Discount = `SUM(CSL_NET_DISC_VALUE)`, negative on returns like revenue. On live Orion
+ *   `CSL_GROSS_SL_VALUE − CSL_NET_SL_VALUE = CSL_NET_DISC_VALUE` on every INV and SARTN line
+ *   (checked 21 Oct 2026), so discount % = discount / gross.
+ */
+export interface SalesExtras {
+  activeCustomers: number;
+  discount: number;
+  grossValue: number;
+  /** Fraction of gross sales value; `null` with no gross value. */
+  discountPct: number | null;
+}
+
+export interface SalesExtrasMonth extends SalesExtras {
+  /** `YYYY-MM`. */
+  month: string;
+}
+
+const DISCOUNT_VALUE = "NVL(CSL_NET_DISC_VALUE, 0)";
+const GROSS_VALUE = "NVL(CSL_GROSS_SL_VALUE, 0)";
+
+/** Totals per customer (and month, with `byMonth`), then summed: one query for all three. */
+export function extrasQuery(filters: Filters, byMonth = false, scope?: SalesScope): Query {
+  const { sql, binds } = where(filters, scope);
+  const month = `TO_CHAR(${DATE_COLUMN}, 'YYYY-MM')`;
+  return {
+    sql: `
+SELECT ${byMonth ? "sales_month, " : ""}SUM(discount) AS discount, SUM(gross_value) AS gross_value,
+    SUM(CASE WHEN cust_code IS NOT NULL AND ABS(net_revenue) >= 0.005 THEN 1 ELSE 0 END) AS active_customers
+FROM (
+    SELECT ${byMonth ? `${month} AS sales_month, ` : ""}${CUSTOMER_COLUMN} AS cust_code,
+        SUM(${NET_VALUE}) AS net_revenue, SUM(${DISCOUNT_VALUE}) AS discount, SUM(${GROSS_VALUE}) AS gross_value
+    FROM ${VIEW}
+    WHERE ${sql}
+    GROUP BY ${byMonth ? `${month}, ` : ""}${CUSTOMER_COLUMN}
+) per_customer${byMonth ? "\nGROUP BY sales_month\nORDER BY sales_month" : ""}`,
+    binds,
+  };
+}
+
+function toExtras(row: Record<string, unknown> | undefined): SalesExtras {
+  const discount = num(row?.discount);
+  const grossValue = num(row?.gross_value);
+  return {
+    activeCustomers: num(row?.active_customers),
+    discount,
+    grossValue,
+    discountPct: grossValue ? discount / grossValue : null,
+  };
+}
+
+/** Active customers, discount and gross value for the period. */
+export async function salesExtras(filters: Filters, scope?: SalesScope): Promise<SalesExtras> {
+  const [row] = await run(extrasQuery(filters, false, scope));
+  return toExtras(row);
+}
+
+/** The same per month of the period, for the sparklines. Months without sales are zeros. */
+export async function salesExtrasMonthly(filters: Filters, scope?: SalesScope): Promise<SalesExtrasMonth[]> {
+  const rows = await run(extrasQuery(filters, true, scope));
+  const byMonth = new Map(rows.map((row) => [String(row.sales_month), row]));
+  return monthsInRange(filters.start, filters.end).map((month) => ({
+    month,
+    ...toExtras(byMonth.get(month)),
+  }));
+}
+
+/** Net revenue per invoice; `null` without invoices. */
+export function averageInvoiceValue(kpis: Pick<SalesKpis, "netRevenue" | "invoiceCount">): number | null {
+  return kpis.invoiceCount ? kpis.netRevenue / kpis.invoiceCount : null;
+}
+
+// ---------------------------------------------------------------------------------------------
+// Hover breakdown
+
+/** Slices per dimension on the hover card; the rest fold into 'All other'. */
+export const HOVER_TOP_N = 5;
+
+/** What the card of a month bar, and of a "Revenue by company" bar, breaks it down by. */
+export const MONTH_CARD_DIMENSIONS: readonly Dimension[] = ["company", "salesperson", "itemGroup"];
+export const COMPANY_CARD_DIMENSIONS: readonly Dimension[] = ["salesperson", "itemGroup"];
+
+export interface HoverBreakdown {
+  netRevenue: number;
+  /** The same days a year earlier. */
+  lastYearNetRevenue: number;
+  breakdowns: { dimension: Dimension; rows: BreakdownRow[] }[];
+}
+
+/**
+ * What makes up one bar: its net revenue, last year's, and the top `HOVER_TOP_N` of each dimension
+ * plus 'All other'. `filters` is already narrowed to the bar's days (a month bar) and `slice`
+ * narrows it to one breakdown bar (a company bar). Each dimension's rows add up to `netRevenue`.
+ */
+export async function salesHoverBreakdown(
+  filters: Filters,
+  dimensions: readonly Dimension[],
+  slice?: SalesSlice,
+): Promise<HoverBreakdown> {
+  const scope = slice ? { slice } : undefined;
+  const [[current], [previous], breakdowns] = await Promise.all([
+    run(kpiQuery(filters, scope)),
+    run(kpiQuery(previousYear(filters), scope)),
+    Promise.all(dimensions.map((dimension) => salesBreakdown(filters, dimension, HOVER_TOP_N, scope))),
+  ]);
+  return {
+    netRevenue: toKpis(current).netRevenue,
+    lastYearNetRevenue: toKpis(previous).netRevenue,
+    breakdowns: dimensions.map((dimension, index) => ({ dimension, rows: breakdowns[index] })),
+  };
 }
 
 /** The returns table shows at most this many lines (the largest first). */

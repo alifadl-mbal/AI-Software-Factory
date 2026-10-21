@@ -199,8 +199,10 @@ test("the summary sentence uses the tiles' figures and names the ranking's leade
   await expect(summary).not.toHaveText(/NaN|Infinity|—/);
   await expect(summary).toContainText(`net revenue was ${await kpiShown(page, "Net revenue")}`);
   const netProfit = aed(await kpiFull(page, "Net profit"));
-  if (netProfit > 0)
-    await expect(summary).toContainText(`at a ${await kpiShown(page, "Net margin %")} net margin`);
+  if (netProfit > 0) {
+    const margin = (await kpiShown(page, "Net margin %")).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    await expect(summary).toContainText(new RegExp(`at an? ${margin} net margin`));
+  }
   const leader = page.getByTestId("ranking-row").first();
   const leaderName = (await leader.getByTestId("ranking-company-link").textContent())!.trim();
   await expect(summary).toContainText(`${leaderName} led with`);

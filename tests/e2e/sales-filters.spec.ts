@@ -150,6 +150,29 @@ test.describe("mobile 390px", () => {
     await expect(page.getByTestId("brand-count")).toHaveText(/^1 of \d+$/);
     expect(await overflow()).toBeLessThanOrEqual(0);
   });
+
+  for (const url of ["/sales", "/?salesperson=S06", "/finance?salesperson=S06"]) {
+    test(`the title and the sample badge keep their row clear of the Filters button: ${url}`, async ({
+      page,
+    }) => {
+      await page.goto(url);
+      await waitForData(page);
+      const title = await page.getByTestId("page-title").boundingBox();
+      expect(title!.width).toBeGreaterThan(0);
+      const trigger = (await page.getByTestId("filters-trigger").boundingBox())!;
+      const boxes = [title!];
+      const badge = page.getByTestId("sample-badge");
+      if (await badge.isVisible()) boxes.push((await badge.boundingBox())!);
+      for (const box of boxes) {
+        const apart =
+          box.x + box.width <= trigger.x ||
+          trigger.x + trigger.width <= box.x ||
+          box.y + box.height <= trigger.y ||
+          trigger.y + trigger.height <= box.y;
+        expect(apart).toBe(true);
+      }
+    });
+  }
 });
 
 for (const theme of ["light", "dark"] as const) {

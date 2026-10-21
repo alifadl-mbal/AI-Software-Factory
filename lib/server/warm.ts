@@ -5,7 +5,7 @@ import { DEFAULT_ORDER_AGE } from "@/lib/order-age";
 
 import { refreshedSince } from "./db";
 import { friendlyMessage } from "./errors";
-import { financeVsLastYear, salesVsLastYear, stockPosition } from "./overview";
+import { companyRanking, financeVsLastYear, salesVsLastYear, stockPosition } from "./overview";
 import { apSplit, arBalances, arSummary } from "./queries/ar-ap";
 import { companies } from "./queries/common";
 import { customerCodesByName } from "./queries/customers";
@@ -97,6 +97,7 @@ export function warmPlan(today: string): Page[] {
           name: "Finance tiles",
           load: () => Promise.all([financeVsLastYear(filters), financeMonthly(filters)]),
         },
+        { name: "Summary and company ranking", load: () => companyRanking(filters) },
         { name: "Inventory tiles", load: () => stockPosition(all, today) },
         { name: "Purchasing tiles, overdue POs", load: () => pendingKpis(all, today, age) },
         { name: "Receivables tiles, AR over 90 days", load: () => arSummary(today, all) },

@@ -1,10 +1,12 @@
 import "server-only";
 
 import { addDays, presetRange, previousYear, todayIso, type Filters } from "@/lib/filters";
+import { formatAedCompact, formatDate, formatPct, pctChange } from "@/lib/format";
 
 import { load, type Loaded } from "./errors";
 import { apSplit, arSummary, type ApSplit, type BalanceSummary } from "./queries/ar-ap";
-import { financeKpis, type PnlSummary } from "./queries/finance";
+import { companies as companyMaster } from "./queries/common";
+import { financeByCompany, financeKpis, isZero, summarise, type PnlSummary } from "./queries/finance";
 import {
   deadStock,
   DEFAULT_DEAD_STOCK_MONTHS,
@@ -50,6 +52,111 @@ export function salesVsLastYear(filters: Filters): Promise<VsLastYear<SalesKpis>
 
 export function financeVsLastYear(filters: Filters): Promise<VsLastYear<PnlSummary>> {
   return vsLastYear(filters, financeKpis);
+}
+
+// ---------------------------------------------------------------------------------------------
+// Companies ranked by net profit, and the one-sentence summary
+
+export interface CompanyRank {
+  code: string;
+  name: string;
+  /** This period and the same days last year, as on Finance with only this company selected. */
+  current: PnlSummary;
+  previous: PnlSummary;
+}
+
+export interface CompanyRanking {
+  /** Biggest net profit first. */
+  rows: CompanyRank[];
+  /** Companies in scope (all, or the selected ones) left out for having no P&L postings. */
+  leftOut: number;
+}
+
+/**
+ * Companies ranked by net profit for the period, each with the same days last year. A company is
+ * shown when it has P&L postings in either period; the rest only count towards `leftOut`. The
+ * rows add up to the group P&L, since a company left out has nothing on its P&L accounts.
+ */
+export async function companyRanking(filters: Filters): Promise<CompanyRanking> {
+  const [current, previous, master] = await Promise.all([
+    financeByCompany(filters),
+    financeByCompany(previousYear(filters)),
+    companyMaster(),
+  ]);
+  const names = new Map(master.map((company) => [company.code, company.name]));
+  const byCode = (list: typeof current) => new Map(list.map((row) => [row.company, row]));
+  const currentByCode = byCode(current);
+  const previousByCode = byCode(previous);
+  const empty = summarise([]);
+  const codes = new Set([...current, ...previous].filter((row) => row.hasPnl).map((row) => row.company));
+  const rows = [...codes]
+    .map((code) => ({
+      code,
+      name: names.get(code) ?? code,
+      current: currentByCode.get(code) ?? empty,
+      previous: previousByCode.get(code) ?? empty,
+    }))
+    .sort((a, b) => b.current.netProfit - a.current.netProfit || a.code.localeCompare(b.code));
+  const inScope = filters.companies.length > 0 ? filters.companies : master.map((company) => company.code);
+  return { rows, leftOut: inScope.filter((code) => !codes.has(code)).length };
+}
+
+function periodPhrase(filters: Pick<Filters, "range" | "start" | "end">): string {
+  switch (filters.range) {
+    case "mtd":
+      return "Month to date";
+    case "qtd":
+      return "Quarter to date";
+    case "ytd":
+      return "Year to date";
+    case "12m":
+      return "Over the last 12 months";
+    case "custom":
+      return filters.start === filters.end
+        ? `On ${formatDate(filters.start)}`
+        : `From ${formatDate(filters.start)} to ${formatDate(filters.end)}`;
+  }
+}
+
+export interface SummaryInput {
+  filters: Filters;
+  /** Net revenue as on Sales (the Net revenue tile). */
+  sales: VsLastYear<Pick<SalesKpis, "netRevenue">>;
+  /** The GL P&L as on Finance (the Net profit and Net margin % tiles). */
+  finance: VsLastYear<Pick<PnlSummary, "netProfit" | "netMarginPct">>;
+  ranking: Pick<CompanyRanking, "rows">;
+}
+
+/**
+ * The Overview's one-sentence summary, worded from the same figures and formats as its tiles and
+ * ranking. A part with no figure behind it (no last year, no margin, one company) is left out
+ * rather than shown as 0%, NaN or a dash.
+ */
+export function summarySentence({ filters, sales, finance, ranking }: SummaryInput): string {
+  const revenue = sales.current.netRevenue;
+  const change = pctChange(revenue, sales.previous.netRevenue);
+  let first = isZero(revenue)
+    ? `${periodPhrase(filters)}, there was no net revenue`
+    : `${periodPhrase(filters)}, net revenue was ${formatAedCompact(revenue)}`;
+  if (!isZero(revenue) && change !== null && Number.isFinite(change)) {
+    first +=
+      Math.abs(change) < 0.0005
+        ? ", level with the same days last year"
+        : `, ${change > 0 ? "up" : "down"} ${formatPct(Math.abs(change))} on the same days last year`;
+  }
+  const { netProfit, netMarginPct } = finance.current;
+  if (netProfit < 0 && !isZero(netProfit)) {
+    first += `, with a net loss of ${formatAedCompact(-netProfit)}`;
+  } else if (netMarginPct !== null && Number.isFinite(netMarginPct) && !isZero(netProfit)) {
+    first += `, at a ${formatPct(netMarginPct)} net margin`;
+  }
+  const sentences = [`${first}.`];
+
+  const leader = ranking.rows[0];
+  if (filters.companies.length !== 1 && ranking.rows.length > 1 && leader && leader.current.netProfit > 0) {
+    sentences.push(`${leader.name} led with ${formatAedCompact(leader.current.netProfit)} net profit.`);
+  }
+  return sentences.join(" ");
 }
 
 /** The newest month-end before the current month (the current one is provisional). */

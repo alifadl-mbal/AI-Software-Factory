@@ -9,15 +9,39 @@ import { ErrorCard } from "@/components/dashboard/error-card";
 import { KpiCard } from "@/components/dashboard/kpi-card";
 import { PnlChart } from "@/components/dashboard/pnl-chart";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { ReportAsOf } from "@/components/shell/shell-context";
-import { todayIso, type Filters } from "@/lib/filters";
-import { formatAed, formatAedCompact, formatDeltaPct, formatInt, formatMonth, pctChange } from "@/lib/format";
+import { filtersToSearch, todayIso, type Filters } from "@/lib/filters";
+import {
+  formatAed,
+  formatAedCompact,
+  formatDeltaPct,
+  formatInt,
+  formatMonth,
+  formatPct,
+  pctChange,
+} from "@/lib/format";
 import { DEFAULT_ORDER_AGE, orderAgeScope } from "@/lib/order-age";
 import { cn } from "@/lib/utils";
 import { dataAsOf } from "@/lib/server/db";
 import { load } from "@/lib/server/errors";
 import { apSplit, arSummary } from "@/lib/server/queries/ar-ap";
-import { financeVsLastYear, salesVsLastYear, stockPosition } from "@/lib/server/overview";
+import {
+  companyRanking,
+  financeVsLastYear,
+  salesVsLastYear,
+  stockPosition,
+  summarySentence,
+  type CompanyRank,
+} from "@/lib/server/overview";
 import { financeMonthly } from "@/lib/server/queries/finance";
 import { deadStock, DEFAULT_DEAD_STOCK_MONTHS, reorderAlerts } from "@/lib/server/queries/inventory";
 import { pendingKpis } from "@/lib/server/queries/purchasing";
@@ -218,6 +242,207 @@ export async function OverviewPnl({ filters }: { filters: Filters }) {
           }))}
           showGrossProfit={false}
         />
+      )}
+    </ChartCard>
+  );
+}
+
+// ---------------------------------------------------------------------------------------------
+// Summary sentence and company ranking
+
+/** One sentence on the period, from the same loaders as the Sales and Finance tiles and the ranking. */
+export async function OverviewSummary({ filters }: { filters: Filters }) {
+  const result = await load(() =>
+    Promise.all([salesVsLastYear(filters), financeVsLastYear(filters), companyRanking(filters)]),
+  );
+  if (!result.ok) return <ErrorCard message={result.message} />;
+  const [sales, finance, ranking] = result.data;
+  return (
+    <p className="max-w-4xl text-base text-pretty sm:text-lg" data-testid="overview-summary">
+      {summarySentence({ filters, sales, finance, ranking })}
+    </p>
+  );
+}
+
+export function SummarySkeleton() {
+  return (
+    <div className="flex max-w-4xl flex-col gap-2" aria-busy="true" aria-label="Loading">
+      <Skeleton className="h-5 w-full" />
+      <Skeleton className="h-5 w-2/3" />
+    </div>
+  );
+}
+
+/** Where `value` sits on a bar track running from `min` to `max`, as a percentage. */
+function trackPosition(value: number, min: number, max: number): number {
+  return max === min ? 0 : ((value - min) / (max - min)) * 100;
+}
+
+/** One net-profit bar; every bar in the table shares the same track, so lengths compare. */
+function ProfitBar({
+  value,
+  min,
+  max,
+  className,
+}: {
+  value: number;
+  min: number;
+  max: number;
+  className: string;
+}) {
+  const zero = trackPosition(0, min, max);
+  const end = trackPosition(value, min, max);
+  return (
+    <div className="relative h-2.5 w-full" aria-hidden>
+      {min < 0 && (
+        <div className="absolute inset-y-0 w-px bg-muted-foreground/60" style={{ left: `${zero}%` }} />
+      )}
+      <div
+        className={cn("absolute inset-y-0 rounded-sm", className)}
+        style={{ left: `${Math.min(zero, end)}%`, width: `${Math.abs(end - zero)}%` }}
+      />
+    </div>
+  );
+}
+
+export const RANKING_TITLE = "Companies by net profit";
+const RANKING_DESCRIPTION = "Posted GL, as on Finance · this period vs the same days last year";
+
+/**
+ * Companies ranked by net profit, with this period and the same days last year as bars, revenue,
+ * net margin and the change. Each company links to the Overview filtered to it, as picking it in
+ * the company filter would.
+ */
+export async function CompanyRanking({ filters }: { filters: Filters }) {
+  const result = await load(() => Promise.all([companyRanking(filters), financeVsLastYear(filters)]));
+  if (!result.ok) {
+    return (
+      <ChartCard title={RANKING_TITLE} description={RANKING_DESCRIPTION}>
+        <ErrorCard message={result.message} />
+      </ChartCard>
+    );
+  }
+  const [{ rows, leftOut }, total] = result.data;
+  const values = rows.flatMap((row) => [row.current.netProfit, row.previous.netProfit]);
+  const min = Math.min(0, ...values);
+  const max = Math.max(0, ...values);
+  const single = filters.companies.length === 1;
+  const href = (row: CompanyRank) => `/${filtersToSearch({ ...filters, companies: [row.code] })}`;
+  const note = [
+    single ? "" : "Pick a company to show only its figures.",
+    leftOut > 0
+      ? `${formatInt(leftOut)} ${leftOut === 1 ? "company has" : "companies have"} no P&L postings in either period and ${leftOut === 1 ? "is" : "are"} left out.`
+      : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+  return (
+    <ChartCard
+      title={RANKING_TITLE}
+      description={RANKING_DESCRIPTION}
+      action={
+        rows.length > 0 ? (
+          <span
+            className="tabular text-sm font-medium"
+            title="Net profit for the period"
+            data-testid="ranking-total"
+          >
+            {formatAed(total.current.netProfit)}
+          </span>
+        ) : undefined
+      }
+    >
+      {rows.length === 0 ? (
+        <EmptyState />
+      ) : (
+        <div className="flex flex-col gap-3">
+          <div
+            className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground"
+            aria-hidden
+          >
+            <span className="inline-flex items-center gap-1.5">
+              <span className="size-2.5 rounded-sm bg-chart-1" /> This period
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <span className="size-2.5 rounded-sm bg-chart-1/35" /> Same days last year
+            </span>
+          </div>
+          <Table className="min-w-[36rem]" data-testid="company-ranking">
+            <TableHeader>
+              <TableRow>
+                <TableHead>Company</TableHead>
+                <TableHead className="w-[34%]">Net profit</TableHead>
+                <TableHead className="text-right">Revenue</TableHead>
+                <TableHead className="text-right">Net margin</TableHead>
+                <TableHead className="text-right">YoY</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {rows.map((row) => (
+                <TableRow key={row.code} data-testid="ranking-row" data-company={row.code}>
+                  <TableCell className="max-w-56 whitespace-normal">
+                    {single ? (
+                      <span className="font-medium">{row.name}</span>
+                    ) : (
+                      <Link
+                        href={href(row)}
+                        className="rounded-sm font-medium underline-offset-4 outline-none hover:text-primary hover:underline focus-visible:ring-3 focus-visible:ring-ring/50"
+                        title={`Show only ${row.name}`}
+                        data-testid="ranking-company-link"
+                      >
+                        {row.name}
+                      </Link>
+                    )}
+                    <span className="block text-xs text-muted-foreground">{row.code}</span>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex flex-col gap-1">
+                      <span className="tabular font-medium" data-testid="ranking-net-profit">
+                        {formatAed(row.current.netProfit)}
+                      </span>
+                      <ProfitBar value={row.current.netProfit} min={min} max={max} className="bg-chart-1" />
+                      <ProfitBar
+                        value={row.previous.netProfit}
+                        min={min}
+                        max={max}
+                        className="bg-chart-1/35"
+                      />
+                      <span className="tabular text-xs text-muted-foreground">
+                        Last year {formatAed(row.previous.netProfit)}
+                      </span>
+                    </div>
+                  </TableCell>
+                  <TableCell className="tabular text-right">{formatAed(row.current.revenue)}</TableCell>
+                  <TableCell className="tabular text-right">{formatPct(row.current.netMarginPct)}</TableCell>
+                  <TableCell className="tabular text-right">
+                    {formatDeltaPct(pctChange(row.current.netProfit, row.previous.netProfit))}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+            <TableFooter>
+              <TableRow data-testid="ranking-group-row">
+                <TableCell>Group</TableCell>
+                <TableCell>
+                  <span className="tabular block">{formatAed(total.current.netProfit)}</span>
+                  <span className="tabular block text-xs font-normal text-muted-foreground">
+                    Last year {formatAed(total.previous.netProfit)}
+                  </span>
+                </TableCell>
+                <TableCell className="tabular text-right">{formatAed(total.current.revenue)}</TableCell>
+                <TableCell className="tabular text-right">{formatPct(total.current.netMarginPct)}</TableCell>
+                <TableCell className="tabular text-right">
+                  {formatDeltaPct(pctChange(total.current.netProfit, total.previous.netProfit))}
+                </TableCell>
+              </TableRow>
+            </TableFooter>
+          </Table>
+          {note && (
+            <p className="text-xs text-muted-foreground" data-testid="ranking-note">
+              {note}
+            </p>
+          )}
+        </div>
       )}
     </ChartCard>
   );

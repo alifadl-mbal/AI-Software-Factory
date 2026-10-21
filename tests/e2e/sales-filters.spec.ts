@@ -156,6 +156,9 @@ test.describe("mobile 390px", () => {
     [390, "/?salesperson=S06"],
     [360, "/finance?salesperson=S06"],
     [360, "/?salesperson=S06"],
+    [360, "/sales-orders"],
+    [360, "/purchasing"],
+    [360, "/receivables-payables"],
   ] as const) {
     test(`the title and the sample badge keep their row clear of the Filters button: ${url} at ${width}px`, async ({
       page,

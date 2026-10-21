@@ -159,6 +159,7 @@ export function TopBar({
   // The snapshot preview isn't a dashboard: it always covers all companies and fixed periods.
   const snapshot = pathname === SNAPSHOT.href;
   const dateFilter = dashboard?.dateFilter !== false;
+  const shortTitle = snapshot ? undefined : dashboard?.shortTitle;
   const title = snapshot
     ? SNAPSHOT.title
     : isCustomerPath(pathname)
@@ -170,21 +171,29 @@ export function TopBar({
   return (
     <header className="sticky top-0 z-20 border-b bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/70">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2 px-4 py-2.5 md:px-6">
-        <div className="flex min-w-0 flex-1 items-center gap-2 md:flex-none">
+        <div className="flex min-w-0 flex-1 items-center gap-1.5 sm:gap-2 md:flex-none">
           <SidebarTrigger className="-ml-1" aria-label="Toggle navigation" />
-          <Separator orientation="vertical" className="mr-1 data-[orientation=vertical]:h-5" />
-          <span className="truncate text-sm font-semibold" data-testid="page-title">
-            {title}
+          <Separator orientation="vertical" className="data-[orientation=vertical]:h-5 sm:mr-1" />
+          <span className="truncate text-sm font-semibold" title={title} data-testid="page-title">
+            {shortTitle ? (
+              <>
+                <span className="sm:hidden">{shortTitle}</span>
+                <span className="max-sm:hidden">{title}</span>
+              </>
+            ) : (
+              title
+            )}
           </span>
           {sample && (
             <Badge
               variant="secondary"
-              className="ml-1 gap-1 border border-chart-4/40 bg-chart-4/15 text-foreground"
+              className="gap-1 border border-chart-4/40 bg-chart-4/15 text-foreground max-sm:px-1.5 sm:ml-1"
+              title="Sample data"
               data-testid="sample-badge"
             >
               <Database className="size-3" aria-hidden />
-              {/* "Sample" alone on the narrowest phones, so the page name fits beside it. */}
-              Sample<span className="max-[399px]:sr-only"> data</span>
+              {/* The icon alone on phones, so even "Receivables & payables" fits beside it. */}
+              <span className="max-sm:sr-only">Sample data</span>
             </Badge>
           )}
         </div>

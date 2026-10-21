@@ -19,6 +19,8 @@ export interface Dashboard {
   /** URL path segment; the page lives at `app/<slug>/page.tsx`. */
   slug: string;
   title: string;
+  /** What the top bar says instead on phones, when the title doesn't fit beside the controls there. */
+  shortTitle?: string;
   /** One sentence for the Overview card and the page header. */
   description: string;
   icon: LucideIcon;
@@ -80,6 +82,7 @@ export const DASHBOARDS: readonly Dashboard[] = [
   {
     slug: "receivables-payables",
     title: "Receivables & payables",
+    shortTitle: "AR & AP",
     description:
       "Open customer and vendor balances as of today: aging, top customers and vendors, salesperson follow-up, PDCs and vendor prepayments.",
     icon: Scale,

@@ -21,7 +21,10 @@ function toIso(date: Date): string {
   return isoDate(date.getFullYear(), date.getMonth() + 1, date.getDate());
 }
 
-/** Presets (MTD, QTD, YTD, last 12 months) plus a custom range calendar. */
+/**
+ * "Custom dates" in the Filters panel: presets (MTD, QTD, YTD, last 12 months) plus a range
+ * calendar, for any period the Year and Month groups can't pick.
+ */
 export function DateRangePicker() {
   const { filters, setFilters, today } = useShell();
   const [open, setOpen] = useState(false);
@@ -51,21 +54,26 @@ export function DateRangePicker() {
       }}
     >
       <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          className="h-9 min-w-0 justify-start gap-2 font-normal"
+        <button
+          type="button"
+          className="group/dd flex min-h-[42px] w-full min-w-0 items-center gap-2.5 rounded-xl border border-border bg-card px-3.5 py-1.5 text-left text-sm text-foreground outline-none hover:bg-accent focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
           data-testid="date-range-trigger"
         >
-          <CalendarDays className="text-muted-foreground" aria-hidden />
+          <CalendarDays className="size-4 shrink-0 text-muted-foreground" aria-hidden />
           <span className="sr-only">Date range:</span>
-          <span className="font-medium">{presetLabel}</span>
-          <span className="hidden truncate text-muted-foreground sm:inline">
-            {formatDate(filters.start)} – {formatDate(filters.end)}
+          <span className="flex min-w-0 flex-col leading-tight">
+            <span className="truncate font-medium">{presetLabel}</span>
+            <span className="truncate text-xs text-muted-foreground">
+              {formatDate(filters.start)} – {formatDate(filters.end)}
+            </span>
           </span>
-          <ChevronDown className="ml-auto text-muted-foreground" aria-hidden />
-        </Button>
+          <ChevronDown
+            className="ml-auto size-4 shrink-0 text-muted-foreground transition-transform group-aria-expanded/dd:rotate-180"
+            aria-hidden
+          />
+        </button>
       </PopoverTrigger>
-      <PopoverContent align="start" className="w-auto max-w-[calc(100vw-2rem)] p-0">
+      <PopoverContent align="start" className="w-auto max-w-[calc(100vw-2rem)] rounded-2xl p-0">
         <div className="flex flex-col sm:flex-row">
           <div className="flex flex-row flex-wrap gap-1 border-b p-2 sm:w-44 sm:flex-col sm:border-r sm:border-b-0">
             {DATE_PRESETS.map((preset) => (

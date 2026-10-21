@@ -5,7 +5,7 @@ export function NoSignInBanner() {
   return (
     <div
       role="status"
-      className="flex items-start gap-2 border-b border-chart-4/40 bg-chart-4/15 px-4 py-2 text-sm md:px-6"
+      className="flex items-start gap-2 rounded-xl border border-chart-4/40 bg-chart-4/15 px-4 py-2 text-sm"
       data-testid="no-sign-in-banner"
     >
       <TriangleAlert className="mt-0.5 size-4 shrink-0" aria-hidden />

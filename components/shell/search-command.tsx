@@ -82,7 +82,7 @@ const GROUPS: { kind: SearchResult["kind"]; heading: string; icon: LucideIcon }[
 ];
 
 /**
- * The search button in the top bar and its Ctrl/⌘+K dialog: find a customer or an item by name,
+ * The search button in the header and its Ctrl/⌘+K dialog: find a customer or an item by name,
  * description or code and open its page with the current filters.
  */
 export function SearchCommand() {
@@ -116,18 +116,18 @@ export function SearchCommand() {
     <>
       <Button
         variant="outline"
-        className="h-9 gap-2 font-normal text-muted-foreground"
+        className="h-[42px] gap-2 rounded-xl px-3.5 font-normal text-muted-foreground"
         onClick={() => setOpen(true)}
         aria-keyshortcuts="Control+K Meta+K"
         data-testid="search-trigger"
         title="Search customers and items (Ctrl+K, ⌘K on a Mac)"
       >
         <Search aria-hidden />
-        <span className="hidden 2xl:inline" aria-hidden>
+        <span className="hidden xl:inline" aria-hidden>
           Search…
         </span>
         <span className="sr-only">Search customers and items</span>
-        <kbd className="pointer-events-none hidden h-5 items-center gap-0.5 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium 2xl:inline-flex">
+        <kbd className="pointer-events-none hidden h-5 items-center gap-0.5 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium xl:inline-flex">
           Ctrl K
         </kbd>
       </Button>

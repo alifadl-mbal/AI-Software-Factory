@@ -98,7 +98,7 @@ export function useShell(): ShellState {
   return context;
 }
 
-/** Rendered by a page to tell the top bar when its data was read. */
+/** Rendered by a page to tell the header when its data was read. */
 export function ReportAsOf({ iso }: { iso: string }) {
   const { setAsOf } = useShell();
   useEffect(() => {

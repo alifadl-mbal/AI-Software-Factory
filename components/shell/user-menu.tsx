@@ -27,7 +27,7 @@ export function initials(user: SignedInUser): string {
   return letters.toUpperCase();
 }
 
-/** The signed-in user in the top bar: initials, and name plus a "Sign out" item in the menu. */
+/** The signed-in user in the header: initials, and name plus a "Sign out" item in the menu. */
 export function UserMenu({ user }: { user: SignedInUser }) {
   const [isPending, startTransition] = useTransition();
   const label = user.name || user.email || "Signed in";

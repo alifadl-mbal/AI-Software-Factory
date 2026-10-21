@@ -1,6 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 
-import { kpiFull, waitForData, watchConsole } from "./helpers";
+import { kpiFull, pickCompany, waitForData, watchConsole } from "./helpers";
 
 /** The "This period" figure of one statement row, in full. */
 function statementCell(page: Page, rowId: string) {
@@ -67,11 +67,8 @@ test("a filter change updates the figures", async ({ page }) => {
   const mtdRevenue = await kpiFull(page, "Revenue");
   await expect(statementCell(page, "revenue")).toHaveText(mtdRevenue);
 
-  await page.getByTestId("company-trigger").click();
-  await page.getByPlaceholder("Search companies…").fill("Sample Trading");
-  await page.getByRole("option", { name: /Sample Trading/ }).click();
+  await pickCompany(page, /Sample Trading/);
   await expect(page).toHaveURL(/[?&]company=101/);
-  await page.keyboard.press("Escape");
   await waitForData(page);
   await expect.poll(() => kpiFull(page, "Revenue")).not.toBe(mtdRevenue);
   await expect(statementCell(page, "revenue")).toHaveText(await kpiFull(page, "Revenue"));

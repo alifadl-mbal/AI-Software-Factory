@@ -23,7 +23,11 @@ function TableFooter({ className, ...props }: React.ComponentProps<"tfoot">) {
   return (
     <tfoot
       data-slot="table-footer"
-      className={cn("border-t bg-muted/50 font-medium [&>tr]:last:border-b-0", className)}
+      className={cn(
+        // The TNS total row; muted text in it goes darker to keep 4.5:1 on the tint.
+        "border-t bg-brand-100 font-semibold text-secondary-foreground [&_.text-muted-foreground]:text-foreground/70 [&>tr]:last:border-b-0",
+        className,
+      )}
       {...props}
     />
   );
@@ -34,7 +38,7 @@ function TableRow({ className, ...props }: React.ComponentProps<"tr">) {
     <tr
       data-slot="table-row"
       className={cn(
-        "border-b transition-colors hover:bg-muted/50 has-aria-expanded:bg-muted/50 data-[state=selected]:bg-muted",
+        "border-b transition-colors hover:bg-panel has-aria-expanded:bg-panel data-[state=selected]:bg-panel",
         className,
       )}
       {...props}

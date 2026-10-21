@@ -33,7 +33,7 @@ export function DeadStockToggle({
     <div
       role="group"
       aria-label="No movement for"
-      className="inline-flex rounded-lg border bg-muted/40 p-0.5"
+      className="inline-flex overflow-hidden rounded-[10px] border bg-card"
       data-testid="dead-stock-toggle"
     >
       {options.map((months) => (
@@ -45,8 +45,9 @@ export function DeadStockToggle({
           aria-pressed={months === value}
           onClick={() => months !== value && choose(months)}
           className={cn(
-            "h-7 px-2.5",
-            months === value && "bg-background text-foreground shadow-sm hover:bg-background",
+            "h-8 rounded-none px-3 text-[13px] font-semibold",
+            months === value &&
+              "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground",
           )}
         >
           {months}m<span className="sr-only"> or more without movement</span>

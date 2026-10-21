@@ -114,16 +114,17 @@ test.describe("Purchasing", () => {
   test("the brand filter applies to every figure; salesperson stays disabled", async ({ page }) => {
     await page.goto("/purchasing");
     await waitForData(page);
-    await expect(page.getByTestId("brand-trigger")).toBeEnabled();
-    await expect(page.getByTestId("salesperson-trigger")).toBeDisabled();
-    await expect(page.getByTestId("sales-filter-hint")).toHaveCount(0);
+    const filters = page.getByTestId("filters-panel");
+    await expect(filters.getByTestId("brand-group")).toBeVisible();
+    await expect(filters.getByTestId("salesperson-group")).toHaveCount(0);
+    await expect(filters.getByTestId("sales-filter-hint")).toHaveText("No salesperson here");
     const pending = aedNumber(await kpiFull(page, "Pending PO value"));
     const spend = aedNumber(await kpiFull(page, "Receipts spend"));
 
     await page.goto("/purchasing?brand=FB");
     await waitForData(page);
     await expect(page.getByTestId("period")).toContainText("brand: Fabrikam");
-    await expect(page.getByTestId("brand-trigger")).toContainText("Fabrikam");
+    await expect(filters.getByTestId("brand-count")).toHaveText(/^1 of \d+$/);
     const brandPending = aedNumber(await kpiFull(page, "Pending PO value"));
     const brandSpend = aedNumber(await kpiFull(page, "Receipts spend"));
     expect(brandPending).toBeGreaterThan(0);
@@ -145,6 +146,7 @@ test.describe("Purchasing", () => {
     await page.goto("/purchasing?brand=FB&salesperson=S06");
     await waitForData(page);
     await expect(page.getByTestId("period")).toContainText("the salesperson filter doesn't apply here");
+    await expect(filters.getByTestId("sales-filter-hint")).toHaveText("Salesperson doesn't apply here");
     expect(aedNumber(await kpiFull(page, "Pending PO value"))).toBe(brandPending);
   });
 });

@@ -81,7 +81,7 @@ test("the /snapshot page previews today's email", async ({ page }) => {
   const frame = page.frameLocator('[data-testid="snapshot-frame"]');
   await expect(frame.getByText("MBAL daily snapshot", { exact: true })).toBeVisible();
   await expect(frame.getByText(/Data read at \d\d:\d\d on/)).toBeVisible();
-  // Not a dashboard: no filters, and no sidebar entry.
+  // Not a dashboard: no filters, and no nav rail entry.
   await expect(page.getByTestId("date-range-trigger")).toHaveCount(0);
   await expect(page.getByRole("link", { name: "Daily snapshot" })).toHaveCount(0);
 

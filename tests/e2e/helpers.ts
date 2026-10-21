@@ -78,7 +78,7 @@ export async function kpiFull(page: Page, label: string): Promise<string> {
 }
 
 /**
- * Open the top-bar search with Ctrl/⌘+K. The shortcut's listener is attached once the shell has
+ * Open the header search with Ctrl/⌘+K. The shortcut's listener is attached once the shell has
  * hydrated, which on a slow runner can be after the data has streamed in, so the key is pressed
  * again until the dialog shows (it toggles, so never while it is open).
  */
@@ -89,4 +89,15 @@ export async function openSearchByKeyboard(page: Page) {
     await expect(dialog).toBeVisible({ timeout: 1_000 });
   }).toPass({ timeout: 15_000 });
   return dialog;
+}
+
+/**
+ * Narrow to one company in the Filters panel: search for it, switch the Company group to Single
+ * and pick it, which applies at once.
+ */
+export async function pickCompany(page: Page, name: RegExp) {
+  const group = page.getByTestId("filters-panel").getByTestId("company-group");
+  await group.getByRole("searchbox", { name: "Search companies" }).fill(name.source);
+  await group.getByRole("button", { name: "Single" }).click();
+  await group.getByRole("radio", { name }).check();
 }

@@ -30,17 +30,17 @@ export function ErrorCard({
     <div
       role="alert"
       className={cn(
-        "flex flex-col gap-3 rounded-xl border border-destructive/30 bg-destructive/5 p-5 sm:flex-row sm:items-start",
+        "flex flex-col gap-3 rounded-[20px] border border-bad/30 bg-bad/5 p-5 shadow-glass sm:flex-row sm:items-start",
         className,
       )}
       data-testid="error-card"
     >
-      <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-destructive/10 text-destructive">
+      <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-bad/10 text-negative">
         <AlertTriangle className="size-4.5" aria-hidden />
       </span>
       <div className="min-w-0 flex-1 space-y-1">
         <p className="text-sm font-semibold">{title}</p>
-        <p className="text-sm text-muted-foreground">{message}</p>
+        <p className="text-sm text-foreground/75">{message}</p>
       </div>
       <Button
         variant="outline"

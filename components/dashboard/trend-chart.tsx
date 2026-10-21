@@ -31,8 +31,8 @@ export interface TrendBar extends TrendPoint {
 }
 
 const CONFIG = {
-  thisYear: { label: "This year", color: "var(--chart-1)" },
-  lastYear: { label: "Last year", color: "var(--chart-2)" },
+  thisYear: { label: "This year", color: "var(--chart-cy)" },
+  lastYear: { label: "Last year", color: "var(--chart-py)" },
 } satisfies ChartConfig;
 
 /** What a bar selects: its `YYYY-MM` month, or a yearly bar's `from..to` days. */

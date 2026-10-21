@@ -55,7 +55,7 @@ function PreviewSkeleton() {
   );
 }
 
-/** Today's snapshot email exactly as it would be sent. Not in the sidebar: the manager and QA open it. */
+/** Today's snapshot email exactly as it would be sent. Not in the nav rail: the manager and QA open it. */
 export default function SnapshotPage() {
   return (
     <>

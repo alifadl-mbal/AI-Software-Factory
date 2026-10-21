@@ -1,6 +1,6 @@
 import { filtersToSearch, type Filters } from "./filters";
 
-/** The item pages live under this path; they are detail pages, not in the sidebar. */
+/** The item pages live under this path; they are detail pages, not in the nav rail. */
 export const ITEMS_PATH = "/items";
 
 /** Months of sales the average behind months of cover is taken over. */

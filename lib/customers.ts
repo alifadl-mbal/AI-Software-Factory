@@ -1,6 +1,6 @@
 import { filtersToSearch, type Filters } from "./filters";
 
-/** The customer pages live under this path; they are detail pages, not in the sidebar. */
+/** The customer pages live under this path; they are detail pages, not in the nav rail. */
 export const CUSTOMERS_PATH = "/customers";
 
 /**

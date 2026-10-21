@@ -19,12 +19,12 @@ export function EmptyState({
   return (
     <div
       className={cn(
-        "flex min-h-40 flex-col items-center justify-center gap-2 rounded-lg border border-dashed p-6 text-center",
+        "flex min-h-40 flex-col items-center justify-center gap-2 rounded-2xl border border-dashed bg-panel p-6 text-center",
         className,
       )}
       data-testid="empty-state"
     >
-      <span className="flex size-10 items-center justify-center rounded-full bg-muted text-muted-foreground">
+      <span className="flex size-10 items-center justify-center rounded-full bg-secondary text-secondary-foreground">
         <Icon className="size-5" aria-hidden />
       </span>
       <p className="text-sm font-medium">{title}</p>

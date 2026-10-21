@@ -5,8 +5,8 @@ import { stockBrandOptions } from "@/lib/server/queries/inventory";
 import { salesFilterOptions, sortOptions } from "@/lib/server/queries/sales-filters";
 
 /**
- * The choices of the salesperson and brand filters for the top bar. Takes the page's own filter
- * query string, and `source` from the page's registry entry (`SalesFilterSupport.options`):
+ * The choices of the salesperson and brand filters for the Filters panel. Takes the page's own
+ * filter query string, and `source` from the page's registry entry (`Dashboard.filterOptions`):
  *
  *   GET /api/filter-options?range=ytd&company=101,107                 with sales in the period
  *   GET /api/filter-options?company=101&source=stock                  brands of items in live stock

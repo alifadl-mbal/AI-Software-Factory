@@ -165,7 +165,7 @@ function ChartTooltipContent({
   return (
     <div
       className={cn(
-        "grid min-w-32 items-start gap-1.5 rounded-lg border border-border/50 bg-background px-2.5 py-1.5 text-xs shadow-xl",
+        "grid min-w-32 items-start gap-1.5 rounded-[14px] border border-border bg-popover px-3 py-2 text-xs text-popover-foreground shadow-float",
         className,
       )}
     >
@@ -261,8 +261,9 @@ function ChartLegendContent({
   return (
     <div
       className={cn(
-        "flex items-center justify-center gap-4",
-        verticalAlign === "top" ? "pb-3" : "pt-3",
+        // The TNS legend pill.
+        "mx-auto flex w-fit max-w-full flex-wrap items-center justify-center gap-x-4 gap-y-1 rounded-full bg-panel px-3.5 py-2 text-xs text-muted-foreground",
+        verticalAlign === "top" ? "mb-3" : "mt-3",
         className,
       )}
     >
@@ -283,7 +284,7 @@ function ChartLegendContent({
                 <itemConfig.icon />
               ) : (
                 <div
-                  className="h-2 w-2 shrink-0 rounded-[2px]"
+                  className="size-2.25 shrink-0 rounded-full"
                   style={{
                     backgroundColor: item.color,
                   }}

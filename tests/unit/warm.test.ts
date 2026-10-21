@@ -145,7 +145,7 @@ describe("POST /api/cron/warm", () => {
     expect((await post(`Bearer ${SECRET}`)).status).toBe(200);
     expect(reads.length).toBeGreaterThan(0);
     reads = [];
-    await companies(); // the top bar's company filter
+    await companies(); // the Filters panel's company list
     for (const [path, Page] of PAGES) {
       const rendered = await renderSections(Page({ searchParams: Promise.resolve({}) }));
       expect(rendered, path).toBeGreaterThan(2);

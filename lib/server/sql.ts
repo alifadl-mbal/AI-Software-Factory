@@ -49,7 +49,7 @@ export function filterWhere(
 
 /**
  * The columns a view filters salesperson and brand on. Leave one out and that filter isn't applied:
- * only views with sales lines have them, and the top bar disables the filters elsewhere.
+ * only views with sales lines have them, and the Filters panel leaves them out elsewhere.
  */
 export interface SalesColumns {
   /** Salesperson code, in the code space of `ZF_CSL_BI.CSL_SM_CODE`. */

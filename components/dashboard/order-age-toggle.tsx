@@ -32,7 +32,11 @@ export function OrderAgeToggle({ value }: { value: OrderAge }) {
       <span id={labelId} className="text-sm text-muted-foreground">
         Orders placed:
       </span>
-      <div role="group" aria-labelledby={labelId} className="inline-flex rounded-lg border bg-muted/40 p-0.5">
+      <div
+        role="group"
+        aria-labelledby={labelId}
+        className="inline-flex overflow-hidden rounded-[10px] border bg-card"
+      >
         {ORDER_AGE_OPTIONS.map((option, index) => (
           <Button
             key={option.id}
@@ -42,8 +46,9 @@ export function OrderAgeToggle({ value }: { value: OrderAge }) {
             aria-pressed={option.id === value}
             onClick={() => option.id !== value && choose(option.id)}
             className={cn(
-              "h-7 px-2.5",
-              option.id === value && "bg-background text-foreground shadow-sm hover:bg-background",
+              "h-8 rounded-none px-3 text-[13px] font-semibold",
+              option.id === value &&
+                "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground",
             )}
           >
             {index === 0 ? option.label : option.short}

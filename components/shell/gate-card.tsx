@@ -3,7 +3,7 @@ import { BarChart3, type LucideIcon } from "lucide-react";
 
 /**
  * The one card on the pages shown before the dashboards: sign-in, no access, not configured.
- * Rendered without the sidebar and top bar (see the root layout).
+ * Rendered without the nav rail and header (see the root layout).
  */
 export function GateCard({
   icon: Icon = BarChart3,

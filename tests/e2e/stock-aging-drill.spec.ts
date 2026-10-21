@@ -90,16 +90,16 @@ test("Inventory: a month-end bar's card adds up, and its drill-down lists its it
   expect(errors).toEqual([]);
 });
 
-test("Inventory: the brand filter applies, and the salesperson filter is disabled", async ({ page }) => {
+test("Inventory: the brand filter applies, and the salesperson filter is left out", async ({ page }) => {
   await page.goto("/inventory");
   await waitForData(page);
   const all = aedNumber(await kpiFull(page, "Stock value"));
 
   await page.goto("/inventory?brand=CT");
   await waitForData(page);
-  await expect(page.getByTestId("brand-trigger")).toBeEnabled();
-  await expect(page.getByTestId("salesperson-trigger")).toBeDisabled();
-  await expect(page.getByTestId("sales-filter-hint")).toHaveCount(0);
+  await expect(page.getByTestId("filters-panel").getByTestId("brand-group")).toBeVisible();
+  await expect(page.getByTestId("salesperson-group")).toHaveCount(0);
+  await expect(page.getByTestId("sales-filter-hint")).toHaveText("No salesperson here");
   await expect(page.getByTestId("period")).toContainText("brand: Contoso");
   const contoso = aedNumber(await kpiFull(page, "Stock value"));
   expect(contoso).toBeGreaterThan(0);
@@ -192,14 +192,14 @@ test("AR: the salesperson filter applies to receivables only, with AR's own sale
   const ap = await kpiFull(page, "AP outstanding");
 
   // The choices are the customers' salespeople on open AR.
-  await expect(page.getByTestId("brand-trigger")).toBeDisabled();
-  await expect(page.getByTestId("sales-filter-hint")).toHaveCount(0);
-  await page.getByTestId("salesperson-trigger").click();
-  await expect(page.getByTestId("salesperson-count")).toHaveText(/^\d+ of \d+$/);
-  await page.getByRole("button", { name: "None", exact: true }).click();
-  await page.getByRole("combobox", { name: "Search salespeople" }).fill("Aisha Rahman");
-  await page.getByRole("option", { name: "Aisha Rahman" }).click();
-  await page.getByTestId("salesperson-apply").click();
+  await expect(page.getByTestId("brand-group")).toHaveCount(0);
+  await expect(page.getByTestId("sales-filter-hint")).toHaveText("No brand here");
+  const group = page.getByTestId("filters-panel").getByTestId("salesperson-group");
+  await expect(group.getByTestId("salesperson-count")).toHaveText(/^\d+ of \d+$/);
+  await group.getByRole("button", { name: "None", exact: true }).click();
+  await group.getByRole("searchbox", { name: "Search salespeople" }).fill("Aisha Rahman");
+  await group.getByRole("checkbox", { name: "Aisha Rahman" }).check();
+  await group.getByTestId("salesperson-apply").click();
   await expect(page).toHaveURL(/[?&]salesperson=SM01(&|$)/);
   await waitForData(page);
   await expect(page.getByTestId("period")).toContainText("salesperson: Aisha Rahman (receivables only)");

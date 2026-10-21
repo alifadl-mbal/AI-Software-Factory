@@ -22,9 +22,9 @@ export function PageHeader({
   note?: string;
 }) {
   return (
-    <div className="mb-6 flex flex-col gap-1 md:mb-8">
-      <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">{title}</h1>
-      <p className="max-w-3xl text-sm text-muted-foreground md:text-base">{description}</p>
+    <div className="mb-6 flex flex-col gap-1.5 px-1">
+      <h1 className="text-[26px] leading-tight font-semibold tracking-[-0.02em] md:text-[30px]">{title}</h1>
+      <p className="max-w-3xl text-sm text-muted-foreground">{description}</p>
       <ScopeLine filters={filters} asOf={asOf} />
       {note && (
         <p className="text-xs text-muted-foreground" data-testid="period-note">

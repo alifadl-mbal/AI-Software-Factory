@@ -295,7 +295,7 @@ export function HoverBreakdown<T>({
       className={cn(
         "flex flex-col gap-3 text-xs",
         variant === "tooltip" &&
-          "w-80 max-w-[calc(100vw-2rem)] rounded-lg border border-border/50 bg-background p-3 shadow-xl",
+          "w-80 max-w-[calc(100vw-2rem)] rounded-[14px] border border-border bg-popover p-3.5 text-popover-foreground shadow-float",
       )}
       data-testid="breakdown-card"
     >

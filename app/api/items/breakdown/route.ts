@@ -26,6 +26,6 @@ export async function GET(request: Request) {
       { status: 400 },
     );
   }
-  const result = await load(() => salesHoverBreakdown(clipped, ["company"], undefined, code));
+  const result = await load(() => salesHoverBreakdown(clipped, ["company"], undefined, { item: code }));
   return Response.json(result, { status: result.ok ? 200 : 502 });
 }

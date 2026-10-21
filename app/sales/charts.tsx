@@ -39,10 +39,14 @@ const DIMENSION_TITLES: Record<Dimension, string> = {
   itemGroup: "By item group",
 };
 
-const TEXT: HoverText = { totalLabel: "Net revenue", emptyText: "No sales in this period." };
+export const SALES_HOVER_TEXT: HoverText = {
+  totalLabel: "Net revenue",
+  emptyText: "No sales in this period.",
+};
+const TEXT = SALES_HOVER_TEXT;
 
 /** `/api/sales/breakdown` as the card shows it: net revenue by each dimension, with shares. */
-function salesView(data: SalesHover): HoverView {
+export function salesView(data: SalesHover): HoverView {
   return {
     total: data.netRevenue,
     lastYear: data.lastYearNetRevenue,

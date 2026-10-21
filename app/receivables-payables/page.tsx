@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { DASHBOARDS } from "@/lib/dashboards";
 import { filtersToSearch, parseFilters, todayIso } from "@/lib/filters";
 
+import { AgingDrillDialog } from "./aging";
 import {
   ApAging,
   ApCurrencyNote,
@@ -27,10 +28,17 @@ export const metadata: Metadata = { title: dashboard.title };
 export default async function ReceivablesPayablesPage({ searchParams }: PageProps<"/receivables-payables">) {
   const today = todayIso();
   const filters = parseFilters(await searchParams, today);
-  // Balances are as of today: only the company filter applies.
-  const scope = { asOf: today, companies: filters.companies, search: filtersToSearch(filters) };
+  // Balances are as of today: the company filter applies, and the salesperson filter to AR.
+  const scope = {
+    asOf: today,
+    companies: filters.companies,
+    salespeople: filters.salespeople,
+    search: filtersToSearch(filters),
+  };
   // A new key per company selection, so each section shows its skeleton while new figures stream in.
+  // AR sections also follow the salesperson filter.
   const key = `${today}|${filters.companies.join(",") || "all"}`;
+  const arKey = `${key}|${filters.salespeople.join(",") || "all"}`;
 
   return (
     <>
@@ -41,7 +49,7 @@ export default async function ReceivablesPayablesPage({ searchParams }: PageProp
         asOf={today}
       />
       <div className="flex flex-col gap-6">
-        <Suspense key={`kpis${key}`} fallback={<KpiRowSkeleton count={7} grid={AR_AP_KPI_GRID} />}>
+        <Suspense key={`kpis${arKey}`} fallback={<KpiRowSkeleton count={7} grid={AR_AP_KPI_GRID} />}>
           <ArApKpis {...scope} />
         </Suspense>
 
@@ -53,17 +61,17 @@ export default async function ReceivablesPayablesPage({ searchParams }: PageProp
 
           <TabsContent value="ar" className="flex flex-col gap-6" data-testid="ar-tab">
             <div className="grid gap-6 lg:grid-cols-2">
-              <Suspense key={`ar-aging${key}`} fallback={<ChartCardSkeleton />}>
+              <Suspense key={`ar-aging${arKey}`} fallback={<ChartCardSkeleton />}>
                 <ArAging {...scope} />
               </Suspense>
-              <Suspense key={`ar-salesperson${key}`} fallback={<ChartCardSkeleton />}>
+              <Suspense key={`ar-salesperson${arKey}`} fallback={<ChartCardSkeleton />}>
                 <ArBySalesperson {...scope} />
               </Suspense>
             </div>
-            <Suspense key={`ar-customers${key}`} fallback={<ChartCardSkeleton height={420} />}>
+            <Suspense key={`ar-customers${arKey}`} fallback={<ChartCardSkeleton height={420} />}>
               <ArTopCustomers {...scope} />
             </Suspense>
-            <Suspense key={`ar-collection${key}`} fallback={<ChartCardSkeleton height={420} />}>
+            <Suspense key={`ar-collection${arKey}`} fallback={<ChartCardSkeleton height={420} />}>
               <ArCollection {...scope} />
             </Suspense>
           </TabsContent>
@@ -84,6 +92,7 @@ export default async function ReceivablesPayablesPage({ searchParams }: PageProp
           </TabsContent>
         </Tabs>
       </div>
+      <AgingDrillDialog />
     </>
   );
 }

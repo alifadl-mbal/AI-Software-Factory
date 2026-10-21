@@ -1,8 +1,7 @@
 import "server-only";
 
-import { AgingChart } from "@/components/dashboard/aging-chart";
 import { BarBreakdown } from "@/components/dashboard/bar-breakdown";
-import { ChartCard } from "@/components/dashboard/chart-card";
+import { ChartCard, HOVER_CARD_FRAME } from "@/components/dashboard/chart-card";
 import { DataTable, type ColumnSpec } from "@/components/dashboard/data-table";
 import { EmptyState } from "@/components/dashboard/empty-state";
 import { ErrorCard } from "@/components/dashboard/error-card";
@@ -16,13 +15,17 @@ import { dataAsOf } from "@/lib/server/db";
 import { load } from "@/lib/server/errors";
 import {
   apSplit,
+  arAgingCube,
   arBalances,
   summarize,
   TOP_N,
   type ApBalance,
+  type ArScope,
   type Balance,
 } from "@/lib/server/queries/ar-ap";
 import { ALL_OTHER, UNASSIGNED } from "@/lib/server/sql";
+
+import { AgingHoverChart } from "./aging";
 
 /**
  * Seven cards in two rows on wide screens (receivables, then payables and the net position), two
@@ -34,14 +37,25 @@ export const AR_AP_KPI_GRID =
 interface Scope {
   asOf: string;
   companies: string[];
+  /** The salesperson filter: AR only, on the customer's own salesperson. */
+  salespeople: string[];
   /** The page query string (filters), kept on links to customer pages. */
   search?: string;
 }
 
-/** The headline balances. None of them has a last-year comparison: they are as of today. */
-export async function ArApKpis({ asOf, companies }: Scope) {
+/** What the AR sections cover: the companies and the salesperson filter. */
+function arScope({ companies, salespeople }: Scope): ArScope {
+  return { companies, salespeople };
+}
+
+/**
+ * The headline balances. None of them has a last-year comparison or a sparkline: Orion keeps no
+ * history of balances, only the open documents as of today.
+ */
+export async function ArApKpis(scope: Scope) {
+  const { asOf, companies } = scope;
   const result = await load(() =>
-    Promise.all([arBalances(asOf, companies, "customer"), apSplit(asOf, companies)]),
+    Promise.all([arBalances(asOf, arScope(scope), "customer"), apSplit(asOf, companies)]),
   );
   if (!result.ok) return <ErrorCard message={result.message} />;
   const [customers, ap] = result.data;
@@ -64,7 +78,11 @@ export async function ArApKpis({ asOf, companies }: Scope) {
       <KpiCard
         label="Net position"
         value={ar.balance - ap.summary.balance}
-        hint="AR outstanding − AP outstanding"
+        hint={
+          scope.salespeople.length > 0
+            ? "AR outstanding of the selected salespeople − all AP outstanding"
+            : "AR outstanding − AP outstanding"
+        }
       />
       <KpiCard
         label="AP outstanding"
@@ -99,13 +117,18 @@ function oldest(row: Balance): string {
 
 const AGING_NOTE = "Orange columns are 3 months old or more";
 
-export async function ArAging({ asOf, companies }: Scope) {
-  const result = await load(() => arBalances(asOf, companies, "customer"));
+export async function ArAging(scope: Scope) {
+  const { asOf } = scope;
+  // The hover card and drill-down read one aggregate, an AR query as slow as this one: start it now
+  // so it is cached by the time anyone hovers.
+  arAgingCube(asOf, arScope(scope)).catch(() => {});
+  const result = await load(() => arBalances(asOf, arScope(scope), "customer"));
   const summary = result.ok ? summarize(result.data) : null;
   return (
     <ChartCard
       title="AR aging"
-      description={`Outstanding by document age. ${AGING_NOTE}.`}
+      className={HOVER_CARD_FRAME}
+      description={`Outstanding by document age. ${AGING_NOTE}. Hover or tap a column for its breakdown, select it to list its customers.`}
       action={
         summary ? (
           <span className="tabular text-sm font-medium">{formatAed(summary.balance)}</span>
@@ -117,7 +140,8 @@ export async function ArAging({ asOf, companies }: Scope) {
       ) : result.data.length === 0 ? (
         <EmptyState message="No open receivables for these companies." />
       ) : (
-        <AgingChart
+        <AgingHoverChart
+          side="ar"
           values={summary!.buckets}
           label="Outstanding"
           ariaLabel={agingAria("AR aging", summary!.buckets)}
@@ -130,8 +154,8 @@ export async function ArAging({ asOf, companies }: Scope) {
 /** Top 12 salespeople as bars; the rest are folded into 'All other'. */
 const SALESPERSON_BARS = 12;
 
-export async function ArBySalesperson({ asOf, companies }: Scope) {
-  const result = await load(() => arBalances(asOf, companies, "salesperson"));
+export async function ArBySalesperson(scope: Scope) {
+  const result = await load(() => arBalances(scope.asOf, arScope(scope), "salesperson"));
   const bars = result.ok
     ? [
         ...result.data.slice(0, SALESPERSON_BARS).map((row) => ({ label: row.label, value: row.balance })),
@@ -168,8 +192,9 @@ export async function ArBySalesperson({ asOf, companies }: Scope) {
   );
 }
 
-export async function ArTopCustomers({ asOf, companies, search = "" }: Scope) {
-  const result = await load(() => arBalances(asOf, companies, "customer"));
+export async function ArTopCustomers(scope: Scope) {
+  const { asOf, search = "" } = scope;
+  const result = await load(() => arBalances(asOf, arScope(scope), "customer"));
   const columns: ColumnSpec[] = [
     { key: "label", header: "Customer", linkKey: "href" },
     { key: "balance", header: "Outstanding", format: "aed", sum: true },
@@ -219,8 +244,8 @@ const BUCKET_COLUMNS: ColumnSpec[] = AGING_BUCKETS.map((bucket, index) => ({
 }));
 
 /** Collection follow-up: open AR by the finance-side salesperson who chases it, with CSV export. */
-export async function ArCollection({ asOf, companies }: Scope) {
-  const result = await load(() => arBalances(asOf, companies, "collector"));
+export async function ArCollection(scope: Scope) {
+  const result = await load(() => arBalances(scope.asOf, arScope(scope), "collector"));
   const columns: ColumnSpec[] = [
     { key: "label", header: "Collector" },
     { key: "customers", header: "Customers", format: "int" },
@@ -268,7 +293,8 @@ export async function ApAging({ asOf, companies }: Scope) {
   return (
     <ChartCard
       title="AP aging"
-      description={`What we owe by document age, vendors we have prepaid left out. ${AGING_NOTE}.`}
+      className={HOVER_CARD_FRAME}
+      description={`What we owe by document age, vendors we have prepaid left out. ${AGING_NOTE}. Hover or tap a column for its breakdown, select it to list its vendors.`}
       action={
         result.ok ? (
           <span className="tabular text-sm font-medium">{formatAed(result.data.summary.balance)}</span>
@@ -280,7 +306,8 @@ export async function ApAging({ asOf, companies }: Scope) {
       ) : result.data.owed.length === 0 ? (
         <EmptyState message="Nothing owed to vendors for these companies." />
       ) : (
-        <AgingChart
+        <AgingHoverChart
+          side="ap"
           values={result.data.summary.buckets}
           label="Owed"
           ariaLabel={agingAria("AP aging", result.data.summary.buckets)}

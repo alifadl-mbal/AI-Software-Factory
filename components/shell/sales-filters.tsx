@@ -13,27 +13,30 @@ export const SALESPERSON_NOUN: Noun = { one: "salesperson", many: "salespeople" 
 export const BRAND_NOUN: Noun = { one: "brand", many: "brands" };
 
 /**
- * The salesperson and brand filters. Their choices cascade from the companies and period (only
- * those with sales there). On pages whose data has neither they are disabled, with a hint, and the
- * hint says so when one is set: an active filter is never ignored silently. On pages with brand
- * but no salesperson (Purchasing) only the salesperson filter is disabled.
+ * The salesperson and brand filters. Their choices cascade from the companies (and, for sales
+ * data, the period). On pages whose data lacks one (salesperson on Inventory and Purchasing, brand
+ * on Receivables & payables), that one is disabled, with a hint, and the hint says so when it is
+ * set: an active filter is never ignored silently.
  */
 export function SalesFilterSelects() {
   const pathname = usePathname();
   const { filters, setFilters, salesOptions } = useShell();
   const support = salesFilterSupport(pathname);
-  const disabled = support === "none";
-  const salespersonDisabled = disabled || support === "brand";
   const data = salesOptions.status === "ok" ? salesOptions.data : null;
   const error = salesOptions.status === "error";
-  const hint = hasSalesFilter(filters)
+  const both = !support.salespeople && !support.brands;
+  const salespersonSet = filters.salespeople.length > 0;
+  const brandSet = filters.brands.length > 0;
+  // Only shown while a select is disabled.
+  const hint = (noun: Noun, set: boolean) =>
+    set
+      ? `A ${noun.one} is set but doesn't apply here: this page's data has no ${noun.one}`
+      : `This page's data has no ${noun.one}`;
+  const bothHint = hasSalesFilter(filters)
     ? "Salesperson and brand are set but don't apply here: this page's data has neither"
     : "This page's data has no salesperson or brand";
-  const salespersonHint = disabled
-    ? hint
-    : filters.salespeople.length > 0
-      ? "Salesperson is set but doesn't apply here: this page's data has no salesperson"
-      : "This page's data has no salesperson";
+  const salespersonHint = both ? bothHint : hint(SALESPERSON_NOUN, salespersonSet);
+  const brandHint = both ? bothHint : hint(BRAND_NOUN, brandSet);
 
   return (
     <>
@@ -45,7 +48,7 @@ export function SalesFilterSelects() {
         error={error}
         selected={filters.salespeople}
         onApply={(salespeople) => setFilters({ salespeople })}
-        disabled={salespersonDisabled}
+        disabled={!support.salespeople}
         disabledHint={salespersonHint}
       />
       <CodeMultiSelect
@@ -56,17 +59,22 @@ export function SalesFilterSelects() {
         error={error}
         selected={filters.brands}
         onApply={(brands) => setFilters({ brands })}
-        disabled={disabled}
-        disabledHint={hint}
+        disabled={!support.brands}
+        disabledHint={brandHint}
       />
-      {disabled && (
+      {/* With one control left, its disabled twin needs a word only when it is set. */}
+      {(both || (!support.salespeople && salespersonSet) || (!support.brands && brandSet)) && (
         <span
           className="text-xs text-muted-foreground lg:max-w-44 lg:leading-tight"
           data-testid="sales-filter-hint"
         >
-          {hasSalesFilter(filters)
-            ? "Salesperson and brand don't apply here"
-            : "No salesperson or brand here"}
+          {both
+            ? hasSalesFilter(filters)
+              ? "Salesperson and brand don't apply here"
+              : "No salesperson or brand here"
+            : !support.salespeople && salespersonSet
+              ? "Salesperson doesn't apply here"
+              : "Brand doesn't apply here"}
         </span>
       )}
     </>

@@ -378,6 +378,59 @@ September 2026 and 1–21 October 2026, all companies and company 106. No amount
 | Drill-down: P&L lines and accounts      | 0.14–0.18     | 0.15–0.16   |
 | Drill-down: journal lines               | 0.02–0.03     | 0.02–0.03   |
 
+## Inventory, AR/AP and customer page hover and drill-down (issue #53), 2026-10-21
+
+The app's own loaders against live Orion (oracle mode, cache cleared before each section), for all
+companies, company 106, the brand with the most items (`H0075`) on Inventory and salesperson
+`TNS22` on AR. No amounts are recorded.
+
+**Codes.** `SDR_CUST_SM_CODE` on the AR view is the code space of `CSL_SM_CODE`: of the 101 codes
+on open AR, every one that also sold since 2025 has the same name in both views. About half have no
+sales this year, which is why the AR page lists its own salespeople (`?source=receivables`).
+`ZF_STK_MTH_SUMM_BI.ZSL_BRAND` against the brand map, September 2026 month-end, lines with stock:
+0 of 9,598 disagree, so no data-quality note is needed. Lines with a `ZSL_BRAND` the map lacks
+(Unassigned in the app) hold under 1% of that month-end's value. The closing view has no item group:
+it is `ZF_ITEM.IM_GROUP_NAME`.
+
+**Figures**, to the fils, for every filter set above:
+
+- the month-end card's closing value equals the trend's bar for the newest closed and the
+  provisional month-end; its companies, brands and item groups each add up to it; its last year
+  equals the trend's bar twelve months earlier; the drill-down's total equals it;
+- the brand's live stock value equals a hand query (`EXISTS` on the brand view instead of the
+  app's join);
+- every AR column (all seven): the card's total and both sections equal the aging chart's column,
+  the customers add up to it, and the largest customer's documents add up to that customer's row,
+  with the same count of lines;
+- every AP column: the same, against the owed vendors (prepaid vendors left out, as in AP);
+- the customer page (largest AR customer): the aging card equals the customer's column, and the
+  trend card for September and October 2026 equals the bar and last year, by company and item
+  group.
+
+**Speed** (cold, seconds):
+
+| Section                                        | All                     | Company 106 | Brand / salesperson |
+| ---------------------------------------------- | ----------------------- | ----------- | ------------------- |
+| Month-end trend                                | 2.2                     | 1.9         | 3.2                 |
+| Inventory KPIs                                 | 0.3                     | 0.2         | 1.1                 |
+| Stock by item group                            | 0.2                     | 0.2         | 1.0                 |
+| Dead stock (6 months)                          | 2.2                     | 2.3         | 2.3                 |
+| Reorder alerts                                 | 0.1                     | 0.0         | 1.2                 |
+| Month-end card, one month                      | 2.0                     | 1.9         | 1.9–2.0             |
+| Month-end drill-down, one month                | 1.3–1.5                 | 1.1         | 1.3–1.4             |
+| Brand choices (`?source=stock`)                | 1.0                     |             |                     |
+| AR (any one query)                             | 12.3                    | 8.7         | 10.6                |
+| AR page queries and the aggregate, in parallel | 12.5                    | 9.2         | 10.9                |
+| AR card and customers, any column              | 0.00 (cached aggregate) | 0.00        | 0.00                |
+| AR documents of one customer in a column       | 0.02–0.21               | 0.02–0.12   | 0.01–0.06           |
+| AP split / documents of one vendor             | 1.1 / 0.01              | 0.6 / 0.01  |                     |
+| Customer page: aging card / trend card         | 0.06 / 0.01–0.12        |             |                     |
+
+What was slow: the brand filter first went through `salesWhere`'s `IN (subquery on the brand view)`.
+On reorder alerts (live stock joined to the item master) Oracle's plan for it ran past the 120 s call
+timeout, and it did so again on a rerun. Inventory now LEFT JOINs the grouped brand map and filters
+on its brand code (about 1 s). With no brand set, every Inventory query's SQL is unchanged.
+
 ## Purchasing, Sales orders and item page hover and drill-down (issue #52), 2026-10-21
 
 The app's own loaders run against live Orion (oracle mode, cache cleared before each call), year to

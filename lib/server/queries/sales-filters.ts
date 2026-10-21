@@ -70,6 +70,11 @@ GROUP BY COALESCE(brand_map.brand_code, '${UNASSIGNED_CODE}')`,
 }
 
 /** By name, with Unassigned last. */
+export function sortOptions(options: FilterOption[]): FilterOption[] {
+  return toOptions(options.map((option) => ({ code: option.code, name: option.name })));
+}
+
+/** By name, with Unassigned last. */
 function toOptions(rows: Record<string, unknown>[]): FilterOption[] {
   return rows
     .map((row) => {

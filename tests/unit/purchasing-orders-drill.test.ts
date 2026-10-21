@@ -61,9 +61,10 @@ async function json(response: Response) {
   return { status: response.status, body: await response.json() };
 }
 
-function request(path: string, params: Record<string, string>): Request {
+function request(path: string, params: Record<string, string | undefined>): Request {
   const url = new URL(`http://localhost:3000${path}`);
-  for (const [name, value] of Object.entries(params)) url.searchParams.set(name, value);
+  for (const [name, value] of Object.entries(params))
+    if (value !== undefined) url.searchParams.set(name, value);
   return new Request(url);
 }
 

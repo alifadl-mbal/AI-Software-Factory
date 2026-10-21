@@ -6,6 +6,7 @@ import { ChartCardSkeleton, KpiRowSkeleton } from "@/components/dashboard/skelet
 import { DASHBOARDS } from "@/lib/dashboards";
 import { filtersToSearch, parseFilters, todayIso } from "@/lib/filters";
 
+import { PnlDrillDialog } from "./pnl-drill";
 import { FINANCE_KPI_GRID, FinanceKpis, FinanceStatement, FinanceTrend, FinanceUnmapped } from "./sections";
 
 const dashboard = DASHBOARDS.find((entry) => entry.slug === "finance")!;
@@ -37,6 +38,7 @@ export default async function FinancePage({ searchParams }: PageProps<"/finance"
           <FinanceStatement filters={filters} />
         </Suspense>
       </div>
+      <PnlDrillDialog />
     </>
   );
 }

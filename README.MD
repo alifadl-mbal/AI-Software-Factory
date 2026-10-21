@@ -552,6 +552,25 @@ Say, Inventory on `ZF_CURR_STK_BI`:
 5. **Tests:** add the route to `PAGES` in `tests/e2e/helpers.ts` so it gets the console-error,
    mobile and axe checks.
 
+### Hover and drill
+
+Monthly charts get the Sales hover card and drill-down from two shared pieces:
+
+- **Hover** (`components/dashboard/hover-breakdown.tsx`): a route that answers `{ ok, data }` for
+  one bar (`?period=YYYY-MM` or `YYYY`, narrowed with `bucketFilters`; one aggregated query per
+  period through `run`, so it is cached), and a `toView(data)` that returns a total, last year, any
+  further figures (`lowerIsBetter` for costs) and a few labelled sections of rows. Pass
+  `<HoverBreakdown>` as the chart's `renderTooltip` on wider screens and open `<HoverSheet>` from
+  `onSelect` on phones. See `app/sales/charts.tsx` and `app/finance/pnl-drill.tsx`.
+- **Drill** (`components/dashboard/drill-dialog.tsx`): the state lives in URL parameters of its own
+  (`drill`/`doc` on Sales, `pnl`/`pnlLine`/`pnlAccount` on the P&L), so reloads and shared links
+  keep it. `useOpenDrill` opens it from the chart's `onSelectMonth`/`onSelectBar` (bars become
+  buttons: Enter opens, Esc closes and focus returns to the bar), `DrillView` loads a level on
+  demand, `DrillTotals` and `DataTable` show it (totals row, CSV export, customer and item links
+  through `linkKey`), and `DrillBack` goes up a level. Render the dialog once on the page.
+- Test that the card and every level add up to the figure on the page for the same period and
+  company (`tests/unit/pnl-drill.test.ts`).
+
 ## Business rules (Finance)
 
 - Source `MBALI.ZF_F_T_DETAIL_BI`, one row per GL line. Period on `D_DT` (posting date), company on

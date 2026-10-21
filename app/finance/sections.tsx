@@ -2,23 +2,16 @@ import "server-only";
 
 import { AlertTriangle } from "lucide-react";
 
-import { ChartCard } from "@/components/dashboard/chart-card";
+import { ChartCard, HOVER_CARD_FRAME } from "@/components/dashboard/chart-card";
 import { EmptyState } from "@/components/dashboard/empty-state";
 import { ErrorCard } from "@/components/dashboard/error-card";
 import { KpiCard } from "@/components/dashboard/kpi-card";
-import { PnlChart } from "@/components/dashboard/pnl-chart";
 import { KPI_GRID } from "@/components/dashboard/skeletons";
 import { ReportAsOf } from "@/components/shell/shell-context";
 import { previousYear, type Filters } from "@/lib/filters";
 import { formatAed, formatInt } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import {
-  COST_OF_SALES,
-  EXPENSE_LEVELS,
-  GENERAL_AND_ADMIN,
-  REVENUE,
-  UNMAPPED,
-} from "@/lib/server/chart-of-accounts";
+import { UNMAPPED } from "@/lib/server/chart-of-accounts";
 import { dataAsOf } from "@/lib/server/db";
 import { load } from "@/lib/server/errors";
 import {
@@ -27,10 +20,11 @@ import {
   financeMonthlyVsLastYear,
   isZero,
   pnlStatement,
-  type StatementGroup,
+  statementRows,
 } from "@/lib/server/queries/finance";
 
-import { PnlStatement, type StatementRow } from "./pnl-statement";
+import { PnlTrendChart } from "./pnl-drill";
+import { PnlStatement } from "./pnl-statement";
 
 /** Seven cards: wrap to four per row on wide screens. */
 export const FINANCE_KPI_GRID = cn(KPI_GRID, "xl:grid-cols-4");
@@ -134,7 +128,8 @@ export async function FinanceTrend({ filters }: { filters: Filters }) {
   return (
     <ChartCard
       title="Monthly P&L"
-      description="Revenue, gross profit and net profit by month"
+      className={HOVER_CARD_FRAME}
+      description="Revenue, gross profit and net profit by month; hover or tap a bar for its breakdown, select it to open its P&L"
       action={
         result.ok ? (
           <span className="tabular text-sm font-medium" title="Net profit for the period">
@@ -148,7 +143,7 @@ export async function FinanceTrend({ filters }: { filters: Filters }) {
       ) : result.data.every((month) => month.revenue === 0 && month.netProfit === 0) ? (
         <EmptyState />
       ) : (
-        <PnlChart
+        <PnlTrendChart
           data={result.data.map((month) => ({
             month: month.month,
             revenue: month.revenue,
@@ -156,58 +151,12 @@ export async function FinanceTrend({ filters }: { filters: Filters }) {
             netProfit: month.netProfit,
             lastYearRevenue: month.lastYearRevenue,
           }))}
-          period={{ start: filters.start, end: filters.end }}
+          start={filters.start}
+          end={filters.end}
         />
       )}
     </ChartCard>
   );
-}
-
-/** Statement rows in display terms: costs flipped to positive, profit lines signed. */
-export function statementRows(groups: StatementGroup[]): StatementRow[] {
-  const find = (level1: string) =>
-    groups.find((group) => group.level1 === level1) ?? { level1, current: 0, previous: 0, accounts: [] };
-  const groupRow = (group: StatementGroup, label = group.level1): StatementRow => {
-    const sign = EXPENSE_LEVELS.includes(group.level1) ? -1 : 1;
-    const unmapped = group.level1 === UNMAPPED;
-    return {
-      id: group.level1.toLowerCase().replace(/[^a-z]+/g, "-"),
-      label,
-      kind: unmapped ? "unmapped" : "group",
-      current: sign * group.current,
-      previous: sign * group.previous,
-      signedChange: unmapped ? null : group.current - group.previous,
-      accounts: group.accounts.map((account) => ({
-        mainAcnt: account.mainAcnt,
-        name: account.name,
-        current: sign * account.current,
-        previous: sign * account.previous,
-        signedChange: unmapped ? null : account.current - account.previous,
-      })),
-      note: unmapped
-        ? "Accounts missing from the chart of accounts; kept out of profit. Net amount, credit − debit."
-        : undefined,
-    };
-  };
-  const subtotal = (id: string, label: string, parts: StatementGroup[]): StatementRow => {
-    const current = parts.reduce((total, group) => total + group.current, 0);
-    const previous = parts.reduce((total, group) => total + group.previous, 0);
-    return { id, label, kind: "subtotal", current, previous, signedChange: current - previous, accounts: [] };
-  };
-
-  const revenue = find(REVENUE);
-  const costOfSales = find(COST_OF_SALES);
-  const generalAndAdmin = find(GENERAL_AND_ADMIN);
-  const rows = [
-    groupRow(revenue),
-    groupRow(costOfSales),
-    subtotal("gross-profit", "Gross profit", [revenue, costOfSales]),
-    groupRow(generalAndAdmin),
-    subtotal("net-profit", "Net profit", [revenue, costOfSales, generalAndAdmin]),
-  ];
-  const unmapped = groups.find((group) => group.level1 === UNMAPPED);
-  if (unmapped) rows.push(groupRow(unmapped));
-  return rows;
 }
 
 export async function FinanceStatement({ filters }: { filters: Filters }) {

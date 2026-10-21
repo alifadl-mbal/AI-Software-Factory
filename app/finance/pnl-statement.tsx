@@ -6,33 +6,9 @@ import { ArrowDownRight, ArrowUpRight, ChevronRight } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatAed, formatDeltaPct, pctChange } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import type { StatementAmounts as Amounts, StatementRow } from "@/lib/server/queries/finance";
 
 import { JournalDrawer, type DrillAccount } from "./journal-drawer";
-
-/** One figure pair, already in display terms (costs positive). */
-interface Amounts {
-  current: number;
-  previous: number;
-  /**
-   * The change in signed (credit-positive) terms: above zero is favourable for every line, since
-   * more revenue and less cost both raise profit. `null` where good and bad don't apply.
-   */
-  signedChange: number | null;
-}
-
-export interface StatementAccountRow extends Amounts {
-  mainAcnt: string;
-  name: string;
-}
-
-export interface StatementRow extends Amounts {
-  id: string;
-  label: string;
-  /** `group` expands to its accounts; `subtotal` is gross or net profit; `unmapped` is flagged. */
-  kind: "group" | "subtotal" | "unmapped";
-  accounts: StatementAccountRow[];
-  note?: string;
-}
 
 function Variance({ amounts }: { amounts: Amounts }) {
   const variance = amounts.current - amounts.previous;

@@ -1,14 +1,22 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { useState } from "react";
 
 import { DataTable, type ColumnSpec, type TableRowData } from "@/components/dashboard/data-table";
+import {
+  DrillBack,
+  DrillDialog,
+  DrillLoading,
+  DrillTotals,
+  drillApiUrl,
+  setDrillParams,
+  useDrillParams,
+  useLoaded,
+  useOpenDrill,
+  useReturnFocus,
+} from "@/components/dashboard/drill-dialog";
 import { ErrorCard } from "@/components/dashboard/error-card";
 import { useShell } from "@/components/shell/shell-context";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { customerHref } from "@/lib/customers";
 import { filtersToSearch, type Filters } from "@/lib/filters";
 import { formatAed, formatDate, formatInt, formatPct } from "@/lib/format";
@@ -24,82 +32,13 @@ import {
 } from "@/lib/sales-drill";
 import type { SalesDocument, SalesDocumentLine, SalesDocuments } from "@/lib/server/queries/sales";
 
-type Loaded<T> = { ok: true; data: T } | { ok: false; message: string };
+const PARAMS = [DRILL_PARAM, DOC_PARAM] as const;
 
-/** Where focus goes back to when the dialog closes: the bar or row that opened it. */
-let opener: HTMLElement | SVGElement | null = null;
-
-/** Write drill parameters into the URL without a server round trip (Next syncs `useSearchParams`). */
-function setParams(changes: Record<string, string | null>) {
-  const params = new URLSearchParams(window.location.search);
-  for (const [name, value] of Object.entries(changes)) {
-    if (value === null) params.delete(name);
-    else params.set(name, value);
-  }
-  const search = params.toString().replaceAll("%2C", ",");
-  window.history.replaceState(null, "", `${window.location.pathname}${search ? `?${search}` : ""}`);
-}
-
-/** The open drill-down, from the URL, and the ways to change it. */
+/** The open drill-down, from the URL, and the way to open one. */
 export function useSalesDrill() {
-  const searchParams = useSearchParams();
-  const open = useCallback((drill: string) => {
-    const active = document.activeElement;
-    opener =
-      (active instanceof HTMLElement || active instanceof SVGElement) && active !== document.body
-        ? active
-        : null;
-    setParams({ [DRILL_PARAM]: drill, [DOC_PARAM]: null });
-  }, []);
-  return {
-    drill: searchParams.get(DRILL_PARAM),
-    doc: parseDocParam(searchParams.get(DOC_PARAM)),
-    open,
-  };
-}
-
-function useLoaded<T>(url: string): { result: Loaded<T> | null; retry: () => void } {
-  const [state, setState] = useState<{ url: string; result: Loaded<T> } | null>(null);
-  const [attempt, setAttempt] = useState(0);
-
-  useEffect(() => {
-    const controller = new AbortController();
-    fetch(url, { signal: controller.signal })
-      .then((response) => response.json() as Promise<Loaded<T>>)
-      .then((result) => setState({ url, result }))
-      .catch((error: unknown) => {
-        if (!controller.signal.aborted) {
-          setState({
-            url,
-            result: { ok: false, message: error instanceof Error ? error.message : "Loading failed." },
-          });
-        }
-      });
-    return () => controller.abort();
-  }, [url, attempt]);
-
-  return {
-    result: state?.url === url ? state.result : null,
-    retry: () => {
-      setState(null);
-      setAttempt((value) => value + 1);
-    },
-  };
-}
-
-function apiUrl(path: string, filters: Filters, changes: Record<string, string>): string {
-  const params = new URLSearchParams(filtersToSearch(filters));
-  for (const [name, value] of Object.entries(changes)) params.set(name, value);
-  return `${path}?${params.toString()}`;
-}
-
-function Loading({ what }: { what: string }) {
-  return (
-    <div className="flex items-center gap-2 py-4 text-sm text-muted-foreground" aria-busy="true">
-      <Loader2 className="size-4 animate-spin" aria-hidden />
-      Loading {what}…
-    </div>
-  );
+  const params = useDrillParams(PARAMS);
+  const open = useOpenDrill(DRILL_PARAM, [DOC_PARAM]);
+  return { drill: params[DRILL_PARAM], doc: parseDocParam(params[DOC_PARAM]), open };
 }
 
 const DOCUMENT_COLUMNS: ColumnSpec[] = [
@@ -127,27 +66,6 @@ function documentLabel(doc: DocumentKey): string {
   return `${doc.txnCode}-${doc.no}`;
 }
 
-function Totals({ items }: { items: { label: string; value: string }[] }) {
-  return (
-    <dl
-      className="grid grid-cols-2 gap-2 rounded-lg border p-3 text-sm sm:grid-cols-5"
-      data-testid="drill-totals"
-    >
-      {items.map((item) => (
-        <div key={item.label}>
-          <dt className="text-xs text-muted-foreground">{item.label}</dt>
-          <dd
-            className="tabular font-medium"
-            data-testid={`drill-total-${item.label.toLowerCase().replace(/\W+/g, "-")}`}
-          >
-            {item.value}
-          </dd>
-        </div>
-      ))}
-    </dl>
-  );
-}
-
 /** The period's documents, largest first, with its exact totals. */
 function DocumentsView({
   drill,
@@ -159,16 +77,16 @@ function DocumentsView({
   onOpen: (doc: SalesDocument) => void;
 }) {
   const { result, retry } = useLoaded<SalesDocuments>(
-    apiUrl("/api/sales/documents", filters, { [DRILL_PARAM]: drill }),
+    drillApiUrl("/api/sales/documents", filters, { [DRILL_PARAM]: drill }),
   );
-  if (result === null) return <Loading what="documents" />;
+  if (result === null) return <DrillLoading what="documents" />;
   if (!result.ok) return <ErrorCard message={result.message} onRetry={retry} />;
 
   const { documents, total, totals, limit } = result.data;
   const byId = new Map(documents.map((doc) => [docParam(doc), doc]));
   return (
     <div className="flex flex-col gap-3" data-testid="drill-documents">
-      <Totals
+      <DrillTotals
         items={[
           { label: "Net revenue", value: formatAed(totals.netRevenue) },
           { label: "Cost", value: formatAed(totals.cost) },
@@ -233,10 +151,8 @@ function LinesView({
   onBack: () => void;
 }) {
   const { result, retry } = useLoaded<SalesDocumentLine[]>(
-    apiUrl("/api/sales/document-lines", filters, { [DRILL_PARAM]: drill, [DOC_PARAM]: docParam(doc) }),
+    drillApiUrl("/api/sales/document-lines", filters, { [DRILL_PARAM]: drill, [DOC_PARAM]: docParam(doc) }),
   );
-  const back = useRef<HTMLButtonElement>(null);
-  useEffect(() => back.current?.focus(), []);
 
   const lines = result?.ok ? result.data : [];
   const netValue = lines.reduce((sum, line) => sum + line.netValue, 0);
@@ -244,10 +160,7 @@ function LinesView({
   return (
     <div className="flex flex-col gap-3" data-testid="drill-lines">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-        <Button ref={back} variant="outline" size="sm" onClick={onBack}>
-          <ArrowLeft aria-hidden />
-          Back to documents
-        </Button>
+        <DrillBack label="Back to documents" onClick={onBack} />
         <h3 className="font-medium" data-testid="drill-document-title">
           Document {documentLabel(doc)}
           <span className="font-normal text-muted-foreground">
@@ -258,12 +171,12 @@ function LinesView({
         </h3>
       </div>
       {result === null ? (
-        <Loading what="lines" />
+        <DrillLoading what="lines" />
       ) : !result.ok ? (
         <ErrorCard message={result.message} onRetry={retry} />
       ) : (
         <>
-          <Totals
+          <DrillTotals
             items={[
               { label: "Net value", value: formatAed(netValue) },
               { label: "Cost", value: formatAed(cost) },
@@ -309,80 +222,48 @@ export function SalesDrillDialog() {
   const shown = drill ?? lastDrill;
   const range = drillRange(shown, filters);
   const [summaries, setSummaries] = useState<Map<string, SalesDocument>>(new Map());
-  const documentsRef = useRef<HTMLDivElement>(null);
-  const [returnTo, setReturnTo] = useState<string | null>(null);
-
-  // After Back, focus the document that was open.
-  useEffect(() => {
-    if (doc !== null || returnTo === null) return;
-    documentsRef.current?.querySelector<HTMLElement>(`[data-row-id="${CSS.escape(returnTo)}"]`)?.focus();
-  }, [doc, returnTo]);
+  const { container, setReturnTo } = useReturnFocus(doc === null ? null : docParam(doc));
 
   return (
-    <Dialog
+    <DrillDialog
       open={drill !== null && range !== null}
-      onOpenChange={(open) => {
-        if (!open) setParams({ [DRILL_PARAM]: null, [DOC_PARAM]: null });
-      }}
+      params={PARAMS}
+      testId="sales-drill"
+      title={shown && range ? `Sales · ${drillTitle(shown, range)}` : "Sales"}
+      description={`Invoices, returns and delivery notes${
+        filters.companies.length > 0 ? `, company ${filters.companies.join(", ")}` : ", all companies"
+      }`}
+      // After a reload, focus goes back to the bar for this period.
+      returnSelector={() => (shown ? `[data-drill="${CSS.escape(shown)}"]` : null)}
     >
-      <DialogContent
-        className="flex max-h-[90vh] flex-col gap-0 overflow-hidden p-0 max-sm:top-0 max-sm:left-0 max-sm:h-dvh max-sm:max-h-dvh max-sm:max-w-full max-sm:translate-x-0 max-sm:translate-y-0 max-sm:rounded-none sm:max-w-5xl"
-        data-testid="sales-drill"
-        onCloseAutoFocus={(event) => {
-          // Back to the bar or row that opened it; after a reload, to the one for this period.
-          const target =
-            opener?.isConnected === true
-              ? opener
-              : shown
-                ? document.querySelector<HTMLElement | SVGElement>(`[data-drill="${CSS.escape(shown)}"]`)
-                : null;
-          opener = null;
-          if (target) {
-            event.preventDefault();
-            target.focus();
-          }
-        }}
-      >
-        {shown && range && (
-          <>
-            <DialogHeader className="border-b p-4 pr-12">
-              <DialogTitle>Sales · {drillTitle(shown, range)}</DialogTitle>
-              <DialogDescription>
-                Invoices, returns and delivery notes
-                {filters.companies.length > 0
-                  ? `, company ${filters.companies.join(", ")}`
-                  : ", all companies"}
-              </DialogDescription>
-            </DialogHeader>
-            <div className="min-h-0 flex-1 overflow-y-auto p-4">
-              <div ref={documentsRef} hidden={doc !== null}>
-                <DocumentsView
-                  key={`${shown}${filtersToSearch(filters)}`}
-                  drill={shown}
-                  filters={filters}
-                  onOpen={(opened) => {
-                    setSummaries((current) => new Map(current).set(docParam(opened), opened));
-                    setParams({ [DOC_PARAM]: docParam(opened) });
-                  }}
-                />
-              </div>
-              {doc && (
-                <LinesView
-                  key={docParam(doc)}
-                  drill={shown}
-                  filters={filters}
-                  doc={doc}
-                  summary={summaries.get(docParam(doc))}
-                  onBack={() => {
-                    setReturnTo(docParam(doc));
-                    setParams({ [DOC_PARAM]: null });
-                  }}
-                />
-              )}
-            </div>
-          </>
-        )}
-      </DialogContent>
-    </Dialog>
+      {shown && range && (
+        <>
+          <div ref={container} hidden={doc !== null}>
+            <DocumentsView
+              key={`${shown}${filtersToSearch(filters)}`}
+              drill={shown}
+              filters={filters}
+              onOpen={(opened) => {
+                setSummaries((current) => new Map(current).set(docParam(opened), opened));
+                setDrillParams({ [DOC_PARAM]: docParam(opened) });
+              }}
+            />
+          </div>
+          {doc && (
+            <LinesView
+              key={docParam(doc)}
+              drill={shown}
+              filters={filters}
+              doc={doc}
+              summary={summaries.get(docParam(doc))}
+              onBack={() => {
+                setReturnTo(docParam(doc));
+                setDrillParams({ [DOC_PARAM]: null });
+              }}
+            />
+          )}
+        </>
+      )}
+    </DrillDialog>
   );
 }

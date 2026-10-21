@@ -7,7 +7,7 @@ import { DataTable, type ColumnSpec } from "@/components/dashboard/data-table";
 import { ErrorCard } from "@/components/dashboard/error-card";
 import { useShell } from "@/components/shell/shell-context";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { filtersToSearch } from "@/lib/filters";
+import { filtersToSearch, type Filters } from "@/lib/filters";
 import { formatAed, formatDate, formatInt } from "@/lib/format";
 import type { JournalLines } from "@/lib/server/queries/finance";
 
@@ -33,9 +33,11 @@ function linesUrl(search: string, mainAcnt: string): string {
   return `/api/finance/journal-lines?${params.toString()}`;
 }
 
-/** Loads and shows one account's posted journal lines. Mounted afresh for each account. */
-function JournalLinesView({ account }: { account: DrillAccount }) {
-  const { filters } = useShell();
+/**
+ * Loads and shows one account's posted journal lines for `filters`. Mounted afresh for each
+ * account. The P&L drill-down passes the filters narrowed to one month.
+ */
+export function JournalLinesView({ account, filters }: { account: DrillAccount; filters: Filters }) {
   const search = filtersToSearch(filters);
   const [result, setResult] = useState<Loaded | null>(null);
   const [attempt, setAttempt] = useState(0);
@@ -55,7 +57,7 @@ function JournalLinesView({ account }: { account: DrillAccount }) {
 
   if (result === null) {
     return (
-      <div className="flex items-center gap-2 p-4 text-sm text-muted-foreground" aria-busy="true">
+      <div className="flex items-center gap-2 py-4 text-sm text-muted-foreground" aria-busy="true">
         <Loader2 className="size-4 animate-spin" aria-hidden />
         Loading journal lines…
       </div>
@@ -63,21 +65,19 @@ function JournalLinesView({ account }: { account: DrillAccount }) {
   }
   if (!result.ok) {
     return (
-      <div className="px-4">
-        <ErrorCard
-          message={result.message}
-          onRetry={() => {
-            setResult(null);
-            setAttempt((value) => value + 1);
-          }}
-        />
-      </div>
+      <ErrorCard
+        message={result.message}
+        onRetry={() => {
+          setResult(null);
+          setAttempt((value) => value + 1);
+        }}
+      />
     );
   }
 
   const { lines, total, totalDebit, totalCredit, limit } = result.data;
   return (
-    <div className="flex min-h-0 flex-col gap-3 px-4 pb-4" data-testid="journal-lines">
+    <div className="flex min-h-0 flex-col gap-3" data-testid="journal-lines">
       <dl className="grid grid-cols-3 gap-2 rounded-lg border p-3 text-sm">
         <div>
           <dt className="text-xs text-muted-foreground">Debits</dt>
@@ -143,7 +143,9 @@ export function JournalDrawer({ account, onClose }: { account: DrillAccount | nu
                   : ", all companies"}
               </SheetDescription>
             </SheetHeader>
-            <JournalLinesView key={account.mainAcnt} account={account} />
+            <div className="px-4 pb-4">
+              <JournalLinesView key={account.mainAcnt} account={account} filters={filters} />
+            </div>
           </>
         )}
       </SheetContent>

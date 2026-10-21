@@ -15,16 +15,19 @@ import {
   ArOver90Attention,
   OVERVIEW_ORDER_SCOPE,
   AttentionSkeleton,
+  CompanyRanking,
   DeadStockAttention,
   FinanceTiles,
   InventoryTiles,
   OverduePoAttention,
   OverviewPnl,
+  OverviewSummary,
   PayablesTiles,
   PurchasingTiles,
   ReceivablesTiles,
   ReorderAttention,
   SalesTiles,
+  SummarySkeleton,
   TILE_GRID,
 } from "./_overview/sections";
 import { SalesTrend } from "./sales/sections";
@@ -62,6 +65,15 @@ export default async function OverviewPage({ searchParams }: PageProps<"/">) {
         note={`Stock, pending POs and AR/AP are as of today, ${formatDate(today)}, and follow only the company filter. Pending POs count ${OVERVIEW_ORDER_SCOPE}, as on Purchasing.`}
       />
       <div className="flex flex-col gap-8">
+        <section aria-labelledby="summary-heading" className="flex flex-col gap-2">
+          <h2 id="summary-heading" className="sr-only">
+            Summary
+          </h2>
+          <Suspense key={`summary${key}`} fallback={<SummarySkeleton />}>
+            <OverviewSummary filters={filters} />
+          </Suspense>
+        </section>
+
         <section aria-labelledby="headline-heading" className="flex flex-col gap-4">
           <h2 id="headline-heading" className="text-sm font-medium text-muted-foreground">
             Headline figures
@@ -137,6 +149,18 @@ export default async function OverviewPage({ searchParams }: PageProps<"/">) {
               </Suspense>
             </AreaGroup>
           </div>
+        </section>
+
+        <section aria-labelledby="companies-heading" className="flex flex-col gap-3">
+          <div className="flex flex-wrap items-end justify-between gap-x-3 gap-y-1">
+            <h2 id="companies-heading" className="text-sm font-medium text-muted-foreground">
+              Companies
+            </h2>
+            <p className="text-xs text-muted-foreground">{periodCaption}</p>
+          </div>
+          <Suspense key={`ranking${key}`} fallback={<ChartCardSkeleton height={240} />}>
+            <CompanyRanking filters={filters} />
+          </Suspense>
         </section>
 
         <section aria-labelledby="attention-heading" className="flex flex-col gap-3">

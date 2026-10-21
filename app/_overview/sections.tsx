@@ -3,11 +3,10 @@ import "server-only";
 import Link from "next/link";
 import { AlertTriangle, ArrowRight, type LucideIcon } from "lucide-react";
 
-import { ChartCard } from "@/components/dashboard/chart-card";
+import { ChartCard, HOVER_CARD_FRAME } from "@/components/dashboard/chart-card";
 import { EmptyState } from "@/components/dashboard/empty-state";
 import { ErrorCard } from "@/components/dashboard/error-card";
 import { KpiCard } from "@/components/dashboard/kpi-card";
-import { PnlChart } from "@/components/dashboard/pnl-chart";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
@@ -42,11 +41,12 @@ import {
   summarySentence,
   type CompanyRank,
 } from "@/lib/server/overview";
-import { financeMonthly } from "@/lib/server/queries/finance";
+import { financeMonthly, financeMonthlyVsLastYear } from "@/lib/server/queries/finance";
 import { deadStock, DEFAULT_DEAD_STOCK_MONTHS, reorderAlerts } from "@/lib/server/queries/inventory";
 import { pendingKpis } from "@/lib/server/queries/purchasing";
 import { salesMonthly } from "@/lib/server/queries/sales";
 
+import { PnlTrendChart } from "../finance/pnl-drill";
 import { ApCurrencyNote } from "../receivables-payables/sections";
 
 /**
@@ -214,12 +214,13 @@ export async function PayablesTiles({ companies, today }: AsOfScope) {
 
 /** Monthly revenue and net profit; the Finance dashboard adds gross profit. */
 export async function OverviewPnl({ filters }: { filters: Filters }) {
-  const result = await load(() => financeMonthly(filters));
+  const result = await load(() => financeMonthlyVsLastYear(filters));
   const total = result.ok ? result.data.reduce((sum, month) => sum + month.netProfit, 0) : 0;
   return (
     <ChartCard
       title="Monthly P&L"
-      description="Revenue and net profit by month"
+      className={HOVER_CARD_FRAME}
+      description="Revenue and net profit by month; hover or tap a bar for its breakdown, select it to open its P&L"
       action={
         result.ok ? (
           <span className="tabular text-sm font-medium" title="Net profit for the period">
@@ -233,13 +234,16 @@ export async function OverviewPnl({ filters }: { filters: Filters }) {
       ) : result.data.every((month) => month.revenue === 0 && month.netProfit === 0) ? (
         <EmptyState />
       ) : (
-        <PnlChart
+        <PnlTrendChart
           data={result.data.map((month) => ({
             month: month.month,
             revenue: month.revenue,
             grossProfit: month.grossProfit,
             netProfit: month.netProfit,
+            lastYearRevenue: month.lastYearRevenue,
           }))}
+          start={filters.start}
+          end={filters.end}
           showGrossProfit={false}
         />
       )}

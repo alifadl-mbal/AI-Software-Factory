@@ -73,7 +73,7 @@ export const DASHBOARDS: readonly Dashboard[] = [
     slug: "finance",
     title: "Finance",
     description:
-      "P&L from the posted general ledger: revenue, cost of sales, gross and net profit, the P&L statement, costs by account, division and department, and journal-line drill-down.",
+      "P&L from the posted general ledger: revenue, cost of sales, gross and net profit, the P&L statement and journal-line drill-down.",
     icon: Landmark,
     source: "ZF_F_T_DETAIL_BI",
     filters: PERIOD_AND_COMPANY,

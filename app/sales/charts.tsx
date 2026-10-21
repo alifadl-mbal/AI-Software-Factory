@@ -3,14 +3,21 @@
 import { useState } from "react";
 
 import { BarBreakdown, type BreakdownPoint } from "@/components/dashboard/bar-breakdown";
-import { BreakdownCard, breakdownUrl } from "@/components/dashboard/breakdown-card";
+import {
+  HoverBreakdown,
+  HoverSheet,
+  hoverUrl,
+  neighbours,
+  type HoverSelection,
+  type HoverText,
+  type HoverView,
+} from "@/components/dashboard/hover-breakdown";
 import { barPeriod, TrendChart, type TrendBar, type TrendPoint } from "@/components/dashboard/trend-chart";
 import { useShell } from "@/components/shell/shell-context";
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { filtersToSearch } from "@/lib/filters";
 import { bucketTitle, periodBuckets } from "@/lib/periods";
+import type { Dimension, HoverBreakdown as SalesHover } from "@/lib/server/queries/sales";
 
 import { useSalesDrill } from "./sales-drill";
 
@@ -21,61 +28,31 @@ import { useSalesDrill } from "./sales-drill";
  * opens the drill-down to its documents.
  */
 
-interface Selected {
-  url: string;
-  title: string;
-  description: string;
-  current?: number;
-  lastYear?: number;
-  /** The drill-down period, for a month or year bar. */
-  drill?: string;
-}
+const BREAKDOWN_PATH = "/api/sales/breakdown";
 
-function BreakdownSheet({
-  selected,
-  onClose,
-  onDrill,
-}: {
-  selected: Selected | null;
-  onClose: () => void;
-  onDrill?: (drill: string) => void;
-}) {
-  return (
-    <Sheet open={selected !== null} onOpenChange={(open) => !open && onClose()}>
-      <SheetContent side="bottom" className="max-h-[85vh] overflow-y-auto" data-testid="breakdown-sheet">
-        {selected && (
-          <>
-            <SheetHeader className="pr-12 pb-0">
-              <SheetTitle>{selected.title}</SheetTitle>
-              <SheetDescription>{selected.description}</SheetDescription>
-            </SheetHeader>
-            <div className="px-4 pb-6">
-              <BreakdownCard
-                url={selected.url}
-                title={selected.title}
-                current={selected.current}
-                lastYear={selected.lastYear}
-                variant="sheet"
-              />
-              {selected.drill && onDrill && (
-                <Button
-                  variant="outline"
-                  className="mt-4 w-full"
-                  onClick={() => {
-                    const drill = selected.drill!;
-                    onClose();
-                    onDrill(drill);
-                  }}
-                >
-                  List its documents
-                </Button>
-              )}
-            </div>
-          </>
-        )}
-      </SheetContent>
-    </Sheet>
-  );
+const DIMENSION_TITLES: Record<Dimension, string> = {
+  company: "By company",
+  customer: "By customer",
+  item: "By item",
+  salesperson: "By salesperson",
+  brand: "By brand",
+  itemGroup: "By item group",
+};
+
+const TEXT: HoverText = { totalLabel: "Net revenue", emptyText: "No sales in this period." };
+
+/** `/api/sales/breakdown` as the card shows it: net revenue by each dimension, with shares. */
+function salesView(data: SalesHover): HoverView {
+  return {
+    total: data.netRevenue,
+    lastYear: data.lastYearNetRevenue,
+    sections: data.breakdowns.map((breakdown) => ({
+      id: breakdown.dimension,
+      title: DIMENSION_TITLES[breakdown.dimension],
+      rows: breakdown.rows.map((row) => ({ label: row.label, value: row.netRevenue })),
+      share: true,
+    })),
+  };
 }
 
 /** Monthly net revenue with partial months, the change under each bar and the hover breakdown. */
@@ -84,8 +61,8 @@ export function SalesTrendChart({ data, start, end }: { data: TrendPoint[]; star
   const search = filtersToSearch(filters);
   const isMobile = useIsMobile();
   const { open } = useSalesDrill();
-  const [selected, setSelected] = useState<Selected | null>(null);
-  const urlFor = (bar: TrendBar) => breakdownUrl(search, { period: bar.month });
+  const [selected, setSelected] = useState<HoverSelection | null>(null);
+  const urlFor = (period: string) => hoverUrl(BREAKDOWN_PATH, search, { period });
   const keys = periodBuckets(start, end).map((bucket) => bucket.key);
 
   return (
@@ -98,22 +75,22 @@ export function SalesTrendChart({ data, start, end }: { data: TrendPoint[]; star
           isMobile
             ? undefined
             : (bar) => (
-                <BreakdownCard
-                  url={urlFor(bar)}
+                <HoverBreakdown
+                  url={urlFor(bar.month)}
                   title={bucketTitle(bar.bucket)}
+                  toView={salesView}
+                  text={TEXT}
                   current={bar.thisYear}
                   lastYear={bar.lastYear}
-                  prefetch={neighbours(keys, bar.month).map((month) =>
-                    breakdownUrl(search, { period: month }),
-                  )}
+                  prefetch={neighbours(keys, bar.month).map(urlFor)}
                 />
               )
         }
         onSelect={
           isMobile
-            ? (bar) =>
+            ? (bar: TrendBar) =>
                 setSelected({
-                  url: urlFor(bar),
+                  url: urlFor(bar.month),
                   title: bucketTitle(bar.bucket),
                   description: "Net revenue by company, salesperson and item group",
                   current: bar.thisYear,
@@ -125,14 +102,16 @@ export function SalesTrendChart({ data, start, end }: { data: TrendPoint[]; star
         // On phones a tap opens the sheet, and the sheet's button opens the drill-down.
         onSelectMonth={isMobile ? undefined : open}
       />
-      <BreakdownSheet selected={selected} onClose={() => setSelected(null)} onDrill={open} />
+      <HoverSheet
+        selected={selected}
+        onClose={() => setSelected(null)}
+        toView={salesView}
+        text={TEXT}
+        onDrill={open}
+        drillLabel="List its documents"
+      />
     </>
   );
-}
-
-function neighbours(keys: string[], key: string): string[] {
-  const index = keys.indexOf(key);
-  return index < 0 ? [] : [keys[index - 1], keys[index + 1]].filter((value): value is string => !!value);
 }
 
 /** "Revenue by company" with each company's top salespeople and item groups on hover or tap. */
@@ -140,8 +119,8 @@ export function CompanyBreakdownChart({ data, ariaLabel }: { data: BreakdownPoin
   const { filters } = useShell();
   const search = filtersToSearch(filters);
   const isMobile = useIsMobile();
-  const [selected, setSelected] = useState<Selected | null>(null);
-  const urlFor = (point: BreakdownPoint) => breakdownUrl(search, { by: "company", label: point.label });
+  const [selected, setSelected] = useState<HoverSelection | null>(null);
+  const urlFor = (label: string) => hoverUrl(BREAKDOWN_PATH, search, { by: "company", label });
 
   return (
     <>
@@ -152,14 +131,16 @@ export function CompanyBreakdownChart({ data, ariaLabel }: { data: BreakdownPoin
           isMobile
             ? undefined
             : (point) => (
-                <BreakdownCard
-                  url={urlFor(point)}
+                <HoverBreakdown
+                  url={urlFor(point.label)}
                   title={point.label}
+                  toView={salesView}
+                  text={TEXT}
                   current={point.value}
                   prefetch={neighbours(
                     data.map((entry) => entry.label),
                     point.label,
-                  ).map((label) => breakdownUrl(search, { by: "company", label }))}
+                  ).map(urlFor)}
                 />
               )
         }
@@ -167,7 +148,7 @@ export function CompanyBreakdownChart({ data, ariaLabel }: { data: BreakdownPoin
           isMobile
             ? (point) =>
                 setSelected({
-                  url: urlFor(point),
+                  url: urlFor(point.label),
                   title: point.label,
                   description: "Net revenue by salesperson and item group",
                   current: point.value,
@@ -175,7 +156,7 @@ export function CompanyBreakdownChart({ data, ariaLabel }: { data: BreakdownPoin
             : undefined
         }
       />
-      <BreakdownSheet selected={selected} onClose={() => setSelected(null)} />
+      <HoverSheet selected={selected} onClose={() => setSelected(null)} toView={salesView} text={TEXT} />
     </>
   );
 }

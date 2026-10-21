@@ -30,14 +30,12 @@ import { setRunnerForTests } from "@/lib/server/db";
 import {
   accountBalances,
   accountTotalsQuery,
-  expenseBreakdown,
   financeKpis,
   financeMonthly,
   journalLines,
   journalLinesQuery,
   pnlStatement,
 } from "@/lib/server/queries/finance";
-import { ALL_OTHER, UNASSIGNED } from "@/lib/server/sql";
 
 import { FIXTURE_DIR, Q1_2025, useFixtureSource } from "./fixture";
 
@@ -180,55 +178,6 @@ describe("P&L statement", () => {
   it("shows no Unmapped group when nothing is unmapped", async () => {
     const groups = await pnlStatement({ ...Q1_2025, companies: ["101"] });
     expect(groups.map((group) => group.level1)).toEqual([...PNL_LEVELS]);
-  });
-});
-
-describe("expense breakdown", () => {
-  const byLabel = (rows: { label: string; net: number }[]) =>
-    Object.fromEntries(rows.map((row) => [row.label, row.net]));
-
-  it("by account, costs only, signed", async () => {
-    expect(byLabel(await expenseBreakdown(Q1_2025, "account"))).toEqual({
-      "40711 · Cost of Sales": -10800,
-      "40809 · Salaries & Staff Benefits": -3200,
-      "40814 · Rents & Rates": -1200,
-    });
-  });
-
-  it("by division and department, blanks as Unassigned", async () => {
-    expect(byLabel(await expenseBreakdown(Q1_2025, "division"))).toEqual({
-      [UNASSIGNED]: -10800,
-      Trading: -2900,
-      Retail: -1500,
-    });
-    expect(byLabel(await expenseBreakdown(Q1_2025, "department"))).toEqual({
-      [UNASSIGNED]: -12000,
-      Sales: -1700,
-      Finance: -1500,
-    });
-  });
-
-  it.each(["account", "division", "department"] as const)(
-    "%s adds up to cost of sales + G&A",
-    async (dimension) => {
-      const kpis = await financeKpis(Q1_2025);
-      for (const rows of [
-        await expenseBreakdown(Q1_2025, dimension),
-        await expenseBreakdown(Q1_2025, dimension, 1),
-      ]) {
-        expect(rows.reduce((total, row) => total + row.net, 0)).toBeCloseTo(
-          kpis.costOfSales + kpis.generalAndAdmin,
-        );
-      }
-    },
-  );
-
-  it("top N folds the rest into All other", async () => {
-    const rows = await expenseBreakdown(Q1_2025, "account", 1);
-    expect(rows).toEqual([
-      { label: "40711 · Cost of Sales", net: -10800 },
-      { label: ALL_OTHER, net: -4400 },
-    ]);
   });
 });
 

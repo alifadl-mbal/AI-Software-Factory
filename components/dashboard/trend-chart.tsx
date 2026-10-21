@@ -1,17 +1,7 @@
 "use client";
 
 import { useId, type ReactNode } from "react";
-import {
-  Bar,
-  CartesianGrid,
-  Cell,
-  ComposedChart,
-  Line,
-  Rectangle,
-  XAxis,
-  YAxis,
-  type BarShapeProps,
-} from "recharts";
+import { Bar, CartesianGrid, Cell, ComposedChart, Line, XAxis, YAxis, type BarShapeProps } from "recharts";
 
 import {
   ChartContainer,
@@ -25,6 +15,7 @@ import { formatAed, formatAedCompact, formatCompact, formatMonth, formatQty } fr
 import { bucketTick, bucketTitle, rollUp, yoyChange, type PeriodBucket } from "@/lib/periods";
 
 import { HatchPattern, PartialNote, PeriodTick, type TickPoint } from "./period-axis";
+import { SelectableBar } from "./selectable-bar";
 
 export interface TrendPoint {
   /** `YYYY-MM`. */
@@ -48,40 +39,6 @@ const CONFIG = {
 export function barPeriod(point: TrendPoint | TrendBar): string {
   const bucket = "bucket" in point ? point.bucket : undefined;
   return bucket?.granularity === "year" ? `${bucket.from}..${bucket.to}` : point.month;
-}
-
-/** A bar that is also a button: a click, Enter or Space selects its month. */
-function SelectableBar({
-  selectMonth,
-  full,
-  ...props
-}: BarShapeProps & { selectMonth: (month: string) => void; full: (value: number) => string }) {
-  const point = props.payload as TrendPoint | TrendBar;
-  if (!point.thisYear) return <Rectangle {...props} />;
-  const period = barPeriod(point);
-  const title = "bucket" in point ? bucketTitle(point.bucket) : formatMonth(point.month);
-  return (
-    <g
-      role="button"
-      tabIndex={0}
-      aria-label={`${title}: ${full(point.thisYear)}. List its documents`}
-      data-drill={period}
-      className="cursor-pointer outline-none [&:focus-visible>path]:stroke-ring [&:focus-visible>path]:stroke-[3px]"
-      onClick={(event) => {
-        // A mouse click doesn't focus an SVG element; focus it so focus can come back here.
-        event.currentTarget.focus();
-        selectMonth(period);
-      }}
-      onKeyDown={(event) => {
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-          selectMonth(period);
-        }
-      }}
-    >
-      <Rectangle {...props} />
-    </g>
-  );
 }
 
 /**
@@ -205,9 +162,18 @@ export function TrendChart({
             }
             shape={
               onSelectMonth
-                ? (props: BarShapeProps) => (
-                    <SelectableBar {...props} selectMonth={onSelectMonth} full={full} />
-                  )
+                ? (props: BarShapeProps) => {
+                    const point = props.payload as TrendPoint | TrendBar;
+                    const title = "bucket" in point ? bucketTitle(point.bucket) : formatMonth(point.month);
+                    return (
+                      <SelectableBar
+                        {...props}
+                        select={onSelectMonth}
+                        period={point.thisYear ? barPeriod(point) : null}
+                        label={`${title}: ${full(point.thisYear)}. List its documents`}
+                      />
+                    );
+                  }
                 : undefined
             }
           >

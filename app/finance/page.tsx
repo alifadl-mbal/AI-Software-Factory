@@ -6,14 +6,8 @@ import { ChartCardSkeleton, KpiRowSkeleton } from "@/components/dashboard/skelet
 import { DASHBOARDS } from "@/lib/dashboards";
 import { filtersToSearch, parseFilters, todayIso } from "@/lib/filters";
 
-import {
-  FINANCE_KPI_GRID,
-  FinanceExpenseChart,
-  FinanceKpis,
-  FinanceStatement,
-  FinanceTrend,
-  FinanceUnmapped,
-} from "./sections";
+import { PnlDrillDialog } from "./pnl-drill";
+import { FINANCE_KPI_GRID, FinanceKpis, FinanceStatement, FinanceTrend, FinanceUnmapped } from "./sections";
 
 const dashboard = DASHBOARDS.find((entry) => entry.slug === "finance")!;
 
@@ -43,38 +37,8 @@ export default async function FinancePage({ searchParams }: PageProps<"/finance"
         <Suspense key={`statement${key}`} fallback={<ChartCardSkeleton height={320} />}>
           <FinanceStatement filters={filters} />
         </Suspense>
-
-        <Suspense key={`expense-account${key}`} fallback={<ChartCardSkeleton />}>
-          <FinanceExpenseChart
-            filters={filters}
-            dimension="account"
-            title="Costs by GL account"
-            description="Cost of sales and G&A by main account; top 12, the rest grouped as “All other”"
-            topN={12}
-          />
-        </Suspense>
-
-        <div className="grid gap-6 lg:grid-cols-2">
-          <Suspense key={`expense-division${key}`} fallback={<ChartCardSkeleton />}>
-            <FinanceExpenseChart
-              filters={filters}
-              dimension="division"
-              title="Costs by division"
-              description="Cost of sales and G&A per division"
-              topN={12}
-            />
-          </Suspense>
-          <Suspense key={`expense-department${key}`} fallback={<ChartCardSkeleton />}>
-            <FinanceExpenseChart
-              filters={filters}
-              dimension="department"
-              title="Costs by department"
-              description="Cost of sales and G&A per department"
-              topN={12}
-            />
-          </Suspense>
-        </div>
       </div>
+      <PnlDrillDialog />
     </>
   );
 }

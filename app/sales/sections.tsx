@@ -1,7 +1,7 @@
 import "server-only";
 
 import { BarBreakdown } from "@/components/dashboard/bar-breakdown";
-import { ChartCard } from "@/components/dashboard/chart-card";
+import { ChartCard, HOVER_CARD_FRAME } from "@/components/dashboard/chart-card";
 import { DataTable, type ColumnSpec } from "@/components/dashboard/data-table";
 import { EmptyState } from "@/components/dashboard/empty-state";
 import { ErrorCard } from "@/components/dashboard/error-card";
@@ -116,9 +116,6 @@ export async function SalesKpis({ filters }: { filters: Filters }) {
     </div>
   );
 }
-
-/** Lets the hover card spill over the card's edge, above the cards that follow it. */
-const HOVER_CARD_FRAME = "relative overflow-visible hover:z-10 focus-within:z-10";
 
 export async function SalesTrend({ filters }: { filters: Filters }) {
   const result = await load(() => salesMonthly(filters));

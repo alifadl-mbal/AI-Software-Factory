@@ -28,6 +28,9 @@ test("the P&L statement agrees with the KPI cards", async ({ page }) => {
   // Costs are shown as positive amounts.
   expect(await kpiFull(page, "Cost of sales")).toMatch(/^AED [1-9]/);
   expect(await kpiFull(page, "G&A expenses")).toMatch(/^AED [1-9]/);
+  // The cost breakdown charts are gone: the page ends with the P&L statement.
+  await expect(page.getByText("P&L statement", { exact: true })).toBeVisible();
+  await expect(page.getByText(/Costs by/)).toHaveCount(0);
 });
 
 test("unmapped accounts show a visible total, and only when non-zero", async ({ page }) => {

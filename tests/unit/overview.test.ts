@@ -189,6 +189,26 @@ describe("summarySentence", () => {
     expect(text).not.toMatch(/NaN|Infinity|0%|—/);
   });
 
+  it("keeps the ledger's margin and leader apart from revenue filtered by salesperson or brand", () => {
+    const text = summarySentence(input({ filters: { ...YTD, salespeople: ["S06"] } }));
+    expect(text).toBe(
+      "Year to date, net revenue was AED 12.3M, down 9.4% on the same days last year. Across all salespeople and brands, the business made a 4.1% net margin; Company X led with AED 3.2M net profit.",
+    );
+    const loss = summarySentence(
+      input({
+        filters: { ...YTD, brands: ["NW"] },
+        finance: {
+          current: { netProfit: -450_000, netMarginPct: -0.0366 },
+          previous: { netProfit: 0, netMarginPct: null },
+        },
+        ranking: { rows: [rows[0]] },
+      }),
+    );
+    expect(loss).toBe(
+      "Year to date, net revenue was AED 12.3M, down 9.4% on the same days last year. Across all salespeople and brands, the business made a net loss of AED 450K.",
+    );
+  });
+
   it("names the period for each preset", () => {
     expect(summarySentence(input({ filters: parseFilters({ range: "mtd" }, "2026-10-21") }))).toMatch(
       /^Month to date,/,

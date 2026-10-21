@@ -115,6 +115,11 @@ test("the Overview applies them to its sales figures only, and says so", async (
   await page.goto("/?salesperson=S06");
   await waitForData(page);
   await expect(page.getByTestId("period")).toContainText("(sales figures only)");
+  // The margin and the leader come from the ledger: never attached to the filtered revenue.
+  const summary = page.getByTestId("overview-summary");
+  await expect(summary).toHaveText(/^Year to date, net revenue was AED /);
+  await expect(summary).toContainText(". Across all salespeople and brands, the business made ");
+  await expect(summary).not.toContainText("at a ");
 });
 
 test("one company shows its name and a monogram; several show MBAL BI", async ({ page }) => {

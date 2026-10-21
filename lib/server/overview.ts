@@ -1,6 +1,6 @@
 import "server-only";
 
-import { addDays, presetRange, previousYear, todayIso, type Filters } from "@/lib/filters";
+import { addDays, hasSalesFilter, presetRange, previousYear, todayIso, type Filters } from "@/lib/filters";
 import { formatAedCompact, formatDate, formatPct, pctChange } from "@/lib/format";
 
 import { load, type Loaded } from "./errors";
@@ -144,17 +144,33 @@ export function summarySentence({ filters, sales, finance, ranking }: SummaryInp
         ? ", level with the same days last year"
         : `, ${change > 0 ? "up" : "down"} ${formatPct(Math.abs(change))} on the same days last year`;
   }
+  // The P&L and the ranking come from the ledger, which has no salesperson or brand: under either
+  // filter they go in a sentence of their own that says so, not after the filtered revenue.
+  const filtered = hasSalesFilter(filters);
   const { netProfit, netMarginPct } = finance.current;
+  let pnl = "";
+  let joiner = "";
   if (netProfit < 0 && !isZero(netProfit)) {
-    first += `, with a net loss of ${formatAedCompact(-netProfit)}`;
+    pnl = `a net loss of ${formatAedCompact(-netProfit)}`;
+    joiner = "with";
   } else if (netMarginPct !== null && Number.isFinite(netMarginPct) && !isZero(netProfit)) {
-    first += `, at a ${formatPct(netMarginPct)} net margin`;
+    pnl = `a ${formatPct(netMarginPct)} net margin`;
+    joiner = "at";
   }
+  if (pnl && !filtered) first += `, ${joiner} ${pnl}`;
   const sentences = [`${first}.`];
 
   const leader = ranking.rows[0];
-  if (filters.companies.length !== 1 && ranking.rows.length > 1 && leader && leader.current.netProfit > 0) {
-    sentences.push(`${leader.name} led with ${formatAedCompact(leader.current.netProfit)} net profit.`);
+  const led =
+    filters.companies.length !== 1 && ranking.rows.length > 1 && leader && leader.current.netProfit > 0
+      ? `${leader.name} led with ${formatAedCompact(leader.current.netProfit)} net profit`
+      : "";
+  if (!filtered) {
+    if (led) sentences.push(`${led}.`);
+  } else if (pnl || led) {
+    const business = pnl ? `the business made ${pnl}` : "";
+    const parts = [business, led].filter(Boolean).join("; ");
+    sentences.push(`Across all salespeople and brands, ${parts}.`);
   }
   return sentences.join(" ");
 }

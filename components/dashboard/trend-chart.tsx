@@ -135,18 +135,7 @@ export function TrendChart({
         role={onSelectMonth ? "group" : "img"}
         aria-label={ariaLabel}
       >
-        <ComposedChart
-          data={bars ?? data}
-          margin={{ top: 8, right: 8, left: 4, bottom: 0 }}
-          onClick={
-            onSelect && bars
-              ? (state) => {
-                  const bar = byKey.get(String(state.activeLabel ?? ""));
-                  if (bar) onSelect(bar);
-                }
-              : undefined
-          }
-        >
+        <ComposedChart data={bars ?? data} margin={{ top: 8, right: 8, left: 4, bottom: 0 }}>
           {bars && (
             <defs>
               <HatchPattern id={hatchId} color="var(--color-thisYear)" />
@@ -204,6 +193,16 @@ export function TrendChart({
             radius={[4, 4, 0, 0]}
             maxBarSize={36}
             className={onSelect ? "cursor-pointer" : undefined}
+            // The tapped bar comes from the click itself: the chart's activeLabel still holds the
+            // previously active bar on a touch tap.
+            onClick={
+              onSelect && bars
+                ? (item) => {
+                    const bar = byKey.get(String((item.payload as TrendBar | undefined)?.month ?? ""));
+                    if (bar) onSelect(bar);
+                  }
+                : undefined
+            }
             shape={
               onSelectMonth
                 ? (props: BarShapeProps) => (

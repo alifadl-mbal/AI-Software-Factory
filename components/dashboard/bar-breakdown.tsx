@@ -97,14 +97,6 @@ export function BarBreakdown({
         layout="vertical"
         margin={{ top: 0, right: 88, left: 0, bottom: 0 }}
         barCategoryGap={6}
-        onClick={
-          onSelect
-            ? (state) => {
-                const point = data.find((entry) => entry.label === state.activeLabel);
-                if (point) onSelect(point);
-              }
-            : undefined
-        }
       >
         <CartesianGrid horizontal={false} strokeDasharray="3 3" />
         <XAxis type="number" hide domain={DOMAIN} />
@@ -141,6 +133,16 @@ export function BarBreakdown({
           radius={4}
           maxBarSize={22}
           className={onSelect ? "cursor-pointer" : undefined}
+          // The tapped bar comes from the click itself: the chart's activeLabel still holds the
+          // previously active bar on a touch tap.
+          onClick={
+            onSelect
+              ? (item, index) => {
+                  const point = data[index];
+                  if (point) onSelect(point);
+                }
+              : undefined
+          }
         >
           <LabelList dataKey="value" content={<ValueLabel />} />
         </Bar>

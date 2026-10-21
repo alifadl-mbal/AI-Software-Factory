@@ -143,4 +143,31 @@ test.describe("phone", () => {
     await expect(page.getByRole("dialog").getByTestId("drill-documents")).toBeVisible();
     await expect(page).toHaveURL(/drill=/);
   });
+
+  test("each tap opens the bar tapped, not the one tapped before it", async ({ page }) => {
+    // Last year in full: one bar per month, Jan to Dec.
+    const year = new Date().getFullYear() - 1;
+    await page.goto(`/sales?range=custom&from=${year}-01-01&to=${year}-12-31`);
+    await waitForData(page);
+    const bars = trendChart(page).locator(".recharts-bar-rectangle");
+    await expect(bars).toHaveCount(12);
+    const sheet = page.getByTestId("breakdown-sheet");
+    const title = sheet.getByRole("heading").first();
+
+    // The tap listener is attached once the chart has hydrated; tap again until the sheet shows.
+    await expect(async () => {
+      if (!(await sheet.isVisible())) await bars.nth(2).tap();
+      await expect(sheet).toBeVisible({ timeout: 1_000 });
+    }).toPass({ timeout: 15_000 });
+    await expect(title).toHaveText(`Mar ${year}`);
+    await page.keyboard.press("Escape");
+    await expect(sheet).toHaveCount(0);
+
+    await bars.nth(6).tap();
+    await expect(title).toHaveText(`Jul ${year}`);
+    await sheet.getByRole("button", { name: "List its documents" }).click();
+    await expect(sheet).toHaveCount(0);
+    await expect(page.getByRole("dialog").getByTestId("drill-documents")).toBeVisible();
+    await expect(page).toHaveURL(new RegExp(`drill=${year}-07(&|$)`));
+  });
 });

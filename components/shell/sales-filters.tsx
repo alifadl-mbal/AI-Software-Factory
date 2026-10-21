@@ -15,17 +15,25 @@ export const BRAND_NOUN: Noun = { one: "brand", many: "brands" };
 /**
  * The salesperson and brand filters. Their choices cascade from the companies and period (only
  * those with sales there). On pages whose data has neither they are disabled, with a hint, and the
- * hint says so when one is set: an active filter is never ignored silently.
+ * hint says so when one is set: an active filter is never ignored silently. On pages with brand
+ * but no salesperson (Purchasing) only the salesperson filter is disabled.
  */
 export function SalesFilterSelects() {
   const pathname = usePathname();
   const { filters, setFilters, salesOptions } = useShell();
-  const disabled = salesFilterSupport(pathname) === "none";
+  const support = salesFilterSupport(pathname);
+  const disabled = support === "none";
+  const salespersonDisabled = disabled || support === "brand";
   const data = salesOptions.status === "ok" ? salesOptions.data : null;
   const error = salesOptions.status === "error";
   const hint = hasSalesFilter(filters)
     ? "Salesperson and brand are set but don't apply here: this page's data has neither"
     : "This page's data has no salesperson or brand";
+  const salespersonHint = disabled
+    ? hint
+    : filters.salespeople.length > 0
+      ? "Salesperson is set but doesn't apply here: this page's data has no salesperson"
+      : "This page's data has no salesperson";
 
   return (
     <>
@@ -37,8 +45,8 @@ export function SalesFilterSelects() {
         error={error}
         selected={filters.salespeople}
         onApply={(salespeople) => setFilters({ salespeople })}
-        disabled={disabled}
-        disabledHint={hint}
+        disabled={salespersonDisabled}
+        disabledHint={salespersonHint}
       />
       <CodeMultiSelect
         noun={BRAND_NOUN}

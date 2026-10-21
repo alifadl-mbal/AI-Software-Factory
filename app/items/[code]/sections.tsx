@@ -198,7 +198,7 @@ export async function ItemStockKpis({ code, filters, today, age }: ItemProps) {
     Promise.all([
       stockByLocation(filters.companies, code),
       itemPending(filters.companies, today, age, code),
-      itemOpenBook(filters.companies, today, age, code),
+      itemOpenBook(filters, today, age, code),
     ]),
   );
   if (!result.ok) return <RowError message={result.message} />;
@@ -474,9 +474,7 @@ const ORDER_COLUMNS: ColumnSpec[] = [
 
 export async function ItemOpenOrders({ code, filters, today, age }: ItemProps) {
   const title = "Open sales-order lines";
-  const result = await load(() =>
-    Promise.all([itemOpenBook(filters.companies, today, age, code), companyNames()]),
-  );
+  const result = await load(() => Promise.all([itemOpenBook(filters, today, age, code), companyNames()]));
   let description = `${AS_OF_TODAY}; ${orderAgeScope(age)}. Lines still to deliver in any currency; values are in the order's currency.`;
   if (result.ok && result.data[0].lines > result.data[0].rows.length) {
     description = `As of today, ${orderAgeScope(age)}: the ${formatInt(result.data[0].rows.length)} largest of ${formatInt(result.data[0].lines)} open lines by quantity to deliver. Values are in the order's currency.`;

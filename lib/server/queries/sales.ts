@@ -2,6 +2,7 @@ import "server-only";
 
 import { monthsInRange, previousYear, shiftMonth, type Filters } from "@/lib/filters";
 
+import { BRAND_MAP } from "../brand-map";
 import { run } from "../db";
 import { ALL_OTHER, filterWhere, labelOrUnassigned, num } from "../sql";
 import type { Query } from "../types";
@@ -27,6 +28,11 @@ import type { Query } from "../types";
  *   lines have `CSL_QTY = 0` on live Orion), so nothing is counted twice. It only means something
  *   for one item; the dashboards don't show it.
  *
+ * Every query follows the salesperson filter on `CSL_SM_CODE` and the brand filter through the
+ * per-item brand map (`lib/server/brand-map.ts`: the view has no brand column), both in `where()`,
+ * so a query built on it honours them without more work. The brand breakdown joins the same map;
+ * items without a brand show as 'Unassigned'.
+ *
  * Every query takes an optional scope for the detail pages: a customer code (`CSL_CUST_CODE`, the
  * code space of `ZF_CUSTOMER.CUST_CODE`) for the customer page, an item code (`CSL_ITEM_CODE`, the
  * code space of `ZF_ITEM.IM_ITEM_CODE`) for the item page. Without one the SQL filters on nothing
@@ -38,6 +44,13 @@ const DATE_COLUMN = "CSL_DATE";
 const COMPANY_COLUMN = "CSL_COMP_CODE";
 const CUSTOMER_COLUMN = "CSL_CUST_CODE";
 const ITEM_COLUMN = "CSL_ITEM_CODE";
+const SALESPERSON_COLUMN = "CSL_SM_CODE";
+/** The view with each line's brand (`CSL_BRAND_NAME`), for the brand breakdown only. */
+const VIEW_WITH_BRAND = `(
+    SELECT csl.*, brand_map.brand_name AS CSL_BRAND_NAME
+    FROM ${VIEW} csl
+    LEFT JOIN (${BRAND_MAP}) brand_map ON brand_map.item_code = TRIM(csl.${ITEM_COLUMN})
+) csl_brand`;
 const REVENUE_TXN_TYPES = "CSL_TXN_TYPE IN ('INV', 'SARTN')";
 const NET_VALUE = "NVL(CSL_NET_SL_VALUE, 0)";
 const COST_VALUE = "NVL(CSL_WAC_VALUE, 0)";
@@ -57,6 +70,8 @@ export const DIMENSIONS = {
   item: "CSL_NAME",
   salesperson: "CSL_SM_NAME",
   itemGroup: "CSL_GROUP_NAME",
+  /** Not a column of the view: joined from the brand map (see `VIEW_WITH_BRAND`). */
+  brand: "CSL_BRAND_NAME",
 } as const;
 
 export type Dimension = keyof typeof DIMENSIONS;
@@ -101,7 +116,10 @@ export interface BreakdownRow {
 }
 
 function where(filters: Filters, scope?: SalesScope): ReturnType<typeof filterWhere> {
-  const fragment = filterWhere(filters, DATE_COLUMN, COMPANY_COLUMN);
+  const fragment = filterWhere(filters, DATE_COLUMN, COMPANY_COLUMN, {
+    salesperson: SALESPERSON_COLUMN,
+    item: ITEM_COLUMN,
+  });
   const { customer, item } = typeof scope === "string" ? { customer: scope, item: undefined } : (scope ?? {});
   const clauses = [REVENUE_TXN_TYPES, fragment.sql];
   const binds = { ...fragment.binds };
@@ -161,7 +179,7 @@ export function breakdownQuery(
   const grouped = `
 SELECT ${label} AS label, SUM(${NET_VALUE}) AS net_revenue, SUM(${COST_VALUE}) AS cost,
     SUM(NVL(CSL_QTY, 0)) AS quantity
-FROM ${VIEW}
+FROM ${dimension === "brand" ? VIEW_WITH_BRAND : VIEW}
 WHERE ${sql}
 GROUP BY ${label}`;
   if (topN === undefined) {

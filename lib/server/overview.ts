@@ -129,7 +129,7 @@ export interface OverviewFigures {
 }
 
 function periodFilters(range: "mtd" | "ytd", today: string): Filters {
-  return { range, ...presetRange(range, today), companies: [] };
+  return { range, ...presetRange(range, today), companies: [], salespeople: [], brands: [] };
 }
 
 /** Every Overview figure for all companies, as of `today` (Asia/Dubai). */
@@ -138,7 +138,14 @@ export async function overviewFigures(today: string = todayIso()): Promise<Overv
   const yesterday = addDays(today, -1);
   const mtdFilters = periodFilters("mtd", today);
   const ytdFilters = periodFilters("ytd", today);
-  const yesterdayFilters: Filters = { range: "custom", start: yesterday, end: yesterday, companies };
+  const yesterdayFilters: Filters = {
+    range: "custom",
+    start: yesterday,
+    end: yesterday,
+    companies,
+    salespeople: [],
+    brands: [],
+  };
 
   const [sales, finance, inventory, purchasing, receivables, payables, salesOrders, dead, reorder] =
     await Promise.all([

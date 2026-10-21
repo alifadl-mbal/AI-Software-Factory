@@ -96,7 +96,7 @@ export async function CustomerSalesKpis({ code, filters, today }: CustomerProps)
       salesKpis(filters, code),
       salesKpis(previousYear(filters), code),
       salesMonthly(filters, code),
-      openBookKpis(filters.companies, today, "all", code),
+      openBookKpis(filters, today, "all", code),
     ]),
   );
   if (!result.ok) return <RowError message={result.message} />;
@@ -331,9 +331,9 @@ export async function CustomerOpenOrders({ code, filters, today }: CustomerProps
   const title = "Open sales-order lines";
   const result = await load(() =>
     Promise.all([
-      openLines(filters.companies, today, "all", OPEN_ROW_LIMIT, code),
-      openBookKpis(filters.companies, today, "all", code),
-      openByCurrency(filters.companies, today, "all", code),
+      openLines(filters, today, "all", OPEN_ROW_LIMIT, code),
+      openBookKpis(filters, today, "all", code),
+      openByCurrency(filters, today, "all", code),
       companyNames(),
     ]),
   );

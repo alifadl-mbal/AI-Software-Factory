@@ -53,7 +53,7 @@ const TODAY = "2025-06-30";
 const ALL: string[] = [];
 
 function period(start: string, end: string, companies: string[] = []): Filters {
-  return { range: "custom", start, end, companies };
+  return { range: "custom", start, end, companies, salespeople: [], brands: [] };
 }
 
 beforeAll(() => {
@@ -216,6 +216,26 @@ describe("breakdowns add up to the open value", () => {
       { label: UNASSIGNED, value: 2000 },
       { label: ALL_OTHER, value: 2350 },
     ]);
+  });
+
+  it("the salesperson and brand filters narrow the book (H_SM_CODE, brand map on D_ITEM_CODE)", async () => {
+    // Fixture codes: Sales One = A1, Sales Two = B1; item I1 is Brand One (B1), I2 Brand Two (B2).
+    const one = { companies: [], salespeople: ["A1"], brands: [] };
+    expect((await openBookKpis(one, TODAY, "all")).openValue).toBeCloseTo(1450);
+    expect(await openBySalesperson(one, TODAY, "all")).toEqual([{ label: "Sales One", value: 1450 }]);
+    const unassigned = { companies: [], salespeople: ["_none"], brands: [] };
+    expect((await openBookKpis(unassigned, TODAY, "all")).openValue).toBeCloseTo(2000);
+    const brand = { companies: [], salespeople: [], brands: ["B1"] };
+    const lines = await openLines(brand, TODAY, "all");
+    expect(lines.length).toBeGreaterThan(0);
+    expect(new Set(lines.map((line) => line.itemCode))).toEqual(new Set(["I1"]));
+    expect((await openBookKpis(brand, TODAY, "all")).openValue).toBeCloseTo(
+      lines.reduce((sum, line) => sum + line.pendingValue, 0),
+    );
+    // A list of company codes alone still means every salesperson and brand.
+    expect(await openBookKpis([], TODAY, "all")).toEqual(
+      await openBookKpis({ companies: [], salespeople: [], brands: [] }, TODAY, "all"),
+    );
   });
 
   it("by customer, the tail folded into All other", async () => {

@@ -32,7 +32,7 @@ export async function signIn(
 /** Every page, with how many KPI cards it shows and one money KPI that must have a value. */
 export const PAGES = [
   { path: "/", heading: "Overview", kpis: 11, headline: "Net revenue" },
-  { path: "/sales", heading: "Sales", kpis: 5, headline: "Net revenue" },
+  { path: "/sales", heading: "Sales", kpis: 8, headline: "Net revenue" },
   { path: "/inventory", heading: "Inventory", kpis: 5, headline: "Stock value" },
   { path: "/sales-orders", heading: "Sales orders", kpis: 6, headline: "Open order value" },
   { path: "/purchasing", heading: "Purchasing", kpis: 5, headline: "Pending PO value" },

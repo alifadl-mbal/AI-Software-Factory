@@ -7,7 +7,14 @@ import { DASHBOARDS } from "@/lib/dashboards";
 import { filtersToSearch, parseFilters, todayIso } from "@/lib/filters";
 
 import { SalesDrillDialog } from "./sales-drill";
-import { SalesBreakdownChart, SalesCalendar, SalesKpis, SalesTopTable, SalesTrend } from "./sections";
+import {
+  SALES_KPI_GRID,
+  SalesBreakdownChart,
+  SalesCalendar,
+  SalesKpis,
+  SalesTopTable,
+  SalesTrend,
+} from "./sections";
 
 const dashboard = DASHBOARDS.find((entry) => entry.slug === "sales")!;
 
@@ -22,7 +29,7 @@ export default async function SalesPage({ searchParams }: PageProps<"/sales">) {
     <>
       <PageHeader title={dashboard.title} description={dashboard.description} filters={filters} />
       <div className="flex flex-col gap-6">
-        <Suspense key={`kpis${key}`} fallback={<KpiRowSkeleton count={5} />}>
+        <Suspense key={`kpis${key}`} fallback={<KpiRowSkeleton count={8} className={SALES_KPI_GRID} />}>
           <SalesKpis filters={filters} />
         </Suspense>
 

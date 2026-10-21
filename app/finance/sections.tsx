@@ -26,6 +26,7 @@ import {
   expenseBreakdown,
   financeKpis,
   financeMonthly,
+  financeMonthlyVsLastYear,
   isZero,
   pnlStatement,
   type ExpenseDimension,
@@ -131,7 +132,7 @@ export async function FinanceUnmapped({ filters }: { filters: Filters }) {
 }
 
 export async function FinanceTrend({ filters }: { filters: Filters }) {
-  const result = await load(() => financeMonthly(filters));
+  const result = await load(() => financeMonthlyVsLastYear(filters));
   const total = result.ok ? result.data.reduce((sum, month) => sum + month.netProfit, 0) : 0;
   return (
     <ChartCard
@@ -156,7 +157,9 @@ export async function FinanceTrend({ filters }: { filters: Filters }) {
             revenue: month.revenue,
             grossProfit: month.grossProfit,
             netProfit: month.netProfit,
+            lastYearRevenue: month.lastYearRevenue,
           }))}
+          period={{ start: filters.start, end: filters.end }}
         />
       )}
     </ChartCard>

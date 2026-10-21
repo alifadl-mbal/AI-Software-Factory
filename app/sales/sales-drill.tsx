@@ -6,7 +6,6 @@ import { ArrowLeft, Loader2 } from "lucide-react";
 
 import { DataTable, type ColumnSpec, type TableRowData } from "@/components/dashboard/data-table";
 import { ErrorCard } from "@/components/dashboard/error-card";
-import { TrendChart, type TrendPoint } from "@/components/dashboard/trend-chart";
 import { useShell } from "@/components/shell/shell-context";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -57,18 +56,6 @@ export function useSalesDrill() {
     doc: parseDocParam(searchParams.get(DOC_PARAM)),
     open,
   };
-}
-
-/** The monthly chart; a bar opens that month's documents. */
-export function DrillableTrendChart({ data }: { data: TrendPoint[] }) {
-  const { open } = useSalesDrill();
-  return (
-    <TrendChart
-      data={data}
-      onSelectMonth={open}
-      ariaLabel="Monthly net revenue, this year compared with last year. Select a month's bar to list its documents."
-    />
-  );
 }
 
 function useLoaded<T>(url: string): { result: Loaded<T> | null; retry: () => void } {

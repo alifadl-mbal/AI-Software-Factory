@@ -8,7 +8,7 @@ import path from "node:path";
  * README). None ship with the app. The folder is listed again only when its modification time
  * changes (adding or removing a file does that), so a new logo shows without a restart. Listing it on
  * every request made `next dev` on Windows see a change and reload the page in a loop. A missing
- * folder means no logos, and the sidebar shows a monogram instead.
+ * folder means no logos, and the nav rail shows a monogram instead.
  */
 
 export const LOGO_DIR = path.join(process.cwd(), "public", "logos");

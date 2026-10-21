@@ -45,7 +45,7 @@ function masterLine(customer: Customer): string {
 
 /**
  * One customer: sales, margin and returns for the period; AR and open orders as of today. A detail
- * page, reached from the top-bar search and the customer names in the dashboards' tables.
+ * page, reached from the header search and the customer names in the dashboards' tables.
  */
 export default async function CustomerPage({ params, searchParams }: PageProps<"/customers/[code]">) {
   const [{ code }, search] = await Promise.all([params, searchParams]);

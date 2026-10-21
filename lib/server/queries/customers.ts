@@ -5,7 +5,7 @@ import { ALL_OTHER, num, UNASSIGNED } from "../sql";
 import type { Query } from "../types";
 
 /**
- * The customer master, `MBALI.ZF_CUSTOMER`, for the customer page and the top-bar search. What was
+ * The customer master, `MBALI.ZF_CUSTOMER`, for the customer page and the header search. What was
  * checked on live Orion (2026-10-20):
  *
  * - **One row per customer:** 25,483 rows, 25,483 distinct `CUST_CODE` (VARCHAR2(12), never NULL)

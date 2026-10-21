@@ -3,7 +3,7 @@ import { load } from "@/lib/server/errors";
 import { salesFilterOptions } from "@/lib/server/queries/sales-filters";
 
 /**
- * The choices of the salesperson and brand filters for the top bar: only those with sales in the
+ * The choices of the salesperson and brand filters for the Filters panel: only those with sales in the
  * selected companies and period. Takes the page's own filter query string.
  *
  *   GET /api/filter-options?range=ytd&company=101,107

@@ -51,7 +51,7 @@ function masterLine(item: Item): string {
 
 /**
  * One item: sales, margin and months of cover for the period; stock, POs and open orders as of
- * today. A detail page, reached from the top-bar search and the item names in the dashboards' tables.
+ * today. A detail page, reached from the header search and the item names in the dashboards' tables.
  */
 export default async function ItemPage({ params, searchParams }: PageProps<"/items/[code]">) {
   const [{ code }, search] = await Promise.all([params, searchParams]);

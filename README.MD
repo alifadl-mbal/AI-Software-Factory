@@ -15,10 +15,10 @@ Stack: Next.js 16 (App Router) · React 19 · TypeScript (strict) · Tailwind CS
 | Inventory    | `/inventory`        | `ZF_CURR_STK_BI`, `ZF_STK_MTH_SUMM_BI`, `ZF_ITEM`                                              | Stock value, available and reserved value, stocked items and change vs last month-end, as of today; month-end trend (24 periods); stock value by company, item group, location and grade; dead stock (3/6/12 months, `?dead=`); reorder alerts                                                                                                                                                                                                                                                                                              |
 | Finance      | `/finance`          | `ZF_F_T_DETAIL_BI`                                                                             | Revenue, cost of sales, gross profit and GP %, G&A, net profit and net margin % (vs last year); monthly P&L with partial months marked and revenue growth % under each bar; P&L statement by level_1 that expands to GL accounts; costs by account, division and department; journal-line drill-down; unmapped-account total                                                                                                                                                                                                                |
 | Sales orders | `/sales-orders`     | `ZF_SO_BI`                                                                                     | Open order value, open orders and lines, delivered-not-invoiced and overdue value (as of today; orders placed in the last 2 years by default, `?since=12m\|all`, with what that leaves out); orders booked vs last year; open value by order age, salesperson and top 20 customers; monthly orders booked vs last year; open order lines (top 1,000, CSV); non-AED currency note                                                                                                                                                            |
-| Snapshot     | `/snapshot`         | all of the above                                                                               | Preview of today's daily snapshot email, exactly as it would be sent (HTML and plain text); not in the sidebar. See [Daily snapshot email](#daily-snapshot-email)                                                                                                                                                                                                                                                                                                                                                                           |
+| Snapshot     | `/snapshot`         | all of the above                                                                               | Preview of today's daily snapshot email, exactly as it would be sent (HTML and plain text); not in the nav rail. See [Daily snapshot email](#daily-snapshot-email)                                                                                                                                                                                                                                                                                                                                                                          |
 | Purchasing   | `/purchasing`       | `ZF_PO_PENDING_BI`, `ZF_CPR_BI`                                                                | Pending PO value, open lines, overdue value and % (as of today; orders placed in the last 2 years by default, `?since=12m\|all`, with what that leaves out); receipts spend vs last year; pending value by aging bucket, top 20 suppliers and company; overdue PO lines (top 1,000, CSV); monthly receipts spend vs last year; top 20 suppliers by spend; zero-exchange-rate warning                                                                                                                                                        |
-| Customer     | `/customers/[code]` | `ZF_CUSTOMER`, `ZF_CSL_BI`, `ZF_SOA_DETL_CUST_INV_SM_BI`, `ZF_SO_BI`                           | One customer: net revenue and GM % vs last year, AR outstanding and over 90 days, open order value; monthly revenue vs last year; top items; AR aging and open documents; open order lines; returns. Not in the sidebar: reached from the top-bar search (Ctrl/⌘+K) and the linked customer names in the dashboards. See [Customer page and search](#customer-page-and-search)                                                                                                                                                              |
-| Item         | `/items/[code]`     | `ZF_ITEM`, `ZF_CSL_BI`, `ZF_CURR_STK_BI`, `ZF_STK_MTH_SUMM_BI`, `ZF_PO_PENDING_BI`, `ZF_SO_BI` | One item: units sold, net revenue and GM % vs last year, average monthly units and months of cover; stock on hand, available, reserved, on order (POs) and to deliver (orders), as of today; monthly units and revenue vs last year; stock by company and location; month-end stock; pending PO lines and open order lines (following the order-age choice, `?since=`); top customers; reorder badge. Not in the sidebar: reached from the search and the linked item names. See [Item page](#item-page)                                    |
+| Customer     | `/customers/[code]` | `ZF_CUSTOMER`, `ZF_CSL_BI`, `ZF_SOA_DETL_CUST_INV_SM_BI`, `ZF_SO_BI`                           | One customer: net revenue and GM % vs last year, AR outstanding and over 90 days, open order value; monthly revenue vs last year; top items; AR aging and open documents; open order lines; returns. Not in the nav rail: reached from the header search (Ctrl/⌘+K) and the linked customer names in the dashboards. See [Customer page and search](#customer-page-and-search)                                                                                                                                                              |
+| Item         | `/items/[code]`     | `ZF_ITEM`, `ZF_CSL_BI`, `ZF_CURR_STK_BI`, `ZF_STK_MTH_SUMM_BI`, `ZF_PO_PENDING_BI`, `ZF_SO_BI` | One item: units sold, net revenue and GM % vs last year, average monthly units and months of cover; stock on hand, available, reserved, on order (POs) and to deliver (orders), as of today; monthly units and revenue vs last year; stock by company and location; month-end stock; pending PO lines and open order lines (following the order-age choice, `?since=`); top customers; reorder badge. Not in the nav rail: reached from the search and the linked item names. See [Item page](#item-page)                                   |
 
 ## Setup
 
@@ -40,7 +40,7 @@ the office network, as a Windows service behind HTTPS with Microsoft sign-in, fo
 ### Sample mode (default)
 
 No network or credentials needed. Data comes from synthetic CSV fixtures in `data/sample/`, and
-every page shows a **Sample data** badge in the top bar. Every name in them is invented.
+every page shows a **Sample data** badge in the header. Every name in them is invented.
 
 The same Oracle SQL runs on an in-memory SQLite database (Node's built-in `node:sqlite`) loaded
 from the CSVs, so sample mode exercises the real queries. Sample dates are shifted by whole years
@@ -146,7 +146,7 @@ orders. The AR sections stream in on their own Suspense boundaries, though one c
 about 0.1 s on Orion. The AR documents (200), open order lines (1,000) and returns (200) tables are
 capped, largest first, and say so.
 
-**Search.** The search button in the top bar, or Ctrl+K (⌘K on a Mac), opens a dialog that finds
+**Search.** The search button in the header, or Ctrl+K (⌘K on a Mac), opens a dialog that finds
 customers by part of their name or code, and items by part of their description or code
 (`ZF_ITEM`), in separate groups, and opens the chosen page with the current filters.
 
@@ -227,7 +227,7 @@ Overview (the Overview tiles use the same helpers), so the email equals the Over
 **Not available today** (the reason goes to the server log) and the rest of the email still goes out.
 
 **Preview:** `/snapshot` shows today's email exactly as it would be sent, with a plain-text tab. It
-isn't in the sidebar; it is protected like every other page.
+isn't in the nav rail; it is protected like every other page.
 
 **Email HTML** (`lib/server/snapshot/email.ts`): a table layout, fluid up to 600px for phones and
 Outlook on the web, with an Outlook-only (`<!--[if mso]>`) 600px table for Outlook desktop; inline
@@ -352,7 +352,7 @@ push and pull request.
 
 ```
 app/
-  layout.tsx            shell: sidebar + top bar (filters, refresh, theme, sample badge)
+  layout.tsx            shell: nav rail, header (refresh, theme, sample badge), Filters panel, content panel
   page.tsx              Overview
   sales/page.tsx        Sales page: Suspense sections, one per card/chart/table
   sales/sections.tsx    async server components that load data and render the components
@@ -360,15 +360,15 @@ app/
   finance/              Finance page, sections, P&L statement table and journal-line side panel
   api/finance/journal-lines/route.ts   GET endpoint the drill-down panel reads (shared filters)
   api/sales/breakdown/route.ts   GET endpoint the Sales hover card reads (one bar, shared filters)
-  api/search/route.ts   GET endpoint the top-bar search reads (customers and items by name or code)
-  customers/[code]/     the customer page (not in the sidebar) and its sections
-  items/[code]/         the item page (not in the sidebar) and its sections
+  api/search/route.ts   GET endpoint the header search reads (customers and items by name or code)
+  customers/[code]/     the customer page (not in the nav rail) and its sections
+  items/[code]/         the item page (not in the nav rail) and its sections
   api/health/route.ts   open health check: version, commit, data source, Orion ping (5 s)
   api/cron/             scheduled-job endpoints, Bearer CRON_SECRET instead of sign-in
   api/cron/snapshot/route.ts   POST endpoint that builds and sends the daily snapshot email
   api/auth/             Auth.js (Microsoft Entra ID) sign-in and callback
   sign-in/, no-access/, not-configured/   the pages shown before the dashboards
-  snapshot/             preview of today's snapshot email (not in the sidebar)
+  snapshot/             preview of today's snapshot email (not in the nav rail)
   actions.ts            Refresh server action (clears the cache)
 proxy.ts                the gate in front of every page and API (Next 16 middleware)
 auth.ts                 Auth.js config: Entra ID, single tenant, group check, 10-hour sessions
@@ -376,10 +376,11 @@ deploy/                 Windows service scripts (install/update/uninstall, WinSW
 components/
   dashboard/            KpiCard, ChartCard, TrendChart, PnlChart, BarBreakdown, DataTable, EmptyState,
                         ErrorCard, skeletons, PageHeader: reuse these in every dashboard
-  shell/                sidebar, top bar, date-range picker, company select, search (Ctrl/⌘+K), URL filter state
+  shell/                nav rail, header, Filters panel (Year/Month, custom dates, checklists), search (Ctrl/⌘+K), URL filter state
   ui/                   shadcn/ui primitives
 lib/
-  dashboards.ts         the dashboard registry (sidebar + Overview are built from it)
+  dashboards.ts         the dashboard registry (nav rail, Overview and each page's filter groups)
+  period-picker.ts      Year + Month picks <-> one contiguous date range
   filters.ts            filters <-> URL query string, date presets, previous-year period
   format.ts             AED, number, percent and delta formatting
   notes.ts              currency notes shared by the pages and the snapshot email
@@ -416,7 +417,7 @@ Every query goes through `runQuery(sql, binds)` in `lib/server/db.ts`:
    (`CACHE_MAX_AGE_MS`) it is still served at once while one background refresh, shared by every
    request, replaces it (a failed refresh keeps it and the next request retries); older than that
    the request waits for the source. At most 500 results (`CACHE_MAX_ENTRIES`), least recently used
-   out first. Failures are never cached. **Refresh** in the top bar clears the cache; the top bar
+   out first. Failures are never cached. **Refresh** in the header clears the cache; the header
    shows when the oldest data on screen was read ("Data as of"), stale results included. The
    warm-up job ([Cache warm-up](#cache-warm-up)) keeps the default views fresh.
 3. **Source.** `oracle` (pooled node-oracledb) or `sample` (SQLite). Column names come back
@@ -433,8 +434,8 @@ Rules for query code:
 - **Aggregate in SQL.** Never pull a fact table into JavaScript.
 - Use `companyWhere(companies, companyColumn)` on views the date filter doesn't apply to (live
   stock, pending POs); it is `undefined` when every company is selected. Registry entries for
-  dashboards where nothing follows the date filter set `dateFilter: false`, which hides the date
-  picker.
+  dashboards where nothing follows the date filter leave `"year"` and `"month"` out of `filters`,
+  which hides the period groups.
 - Show blank dimension values as `'Unassigned'` with `labelOrUnassigned(column)`; fold long tails
   into `'All other'` so totals still add up.
 - Keep builders (`*Query(filters)` returning `{ sql, binds }`) separate from loaders, so tests can
@@ -489,7 +490,7 @@ them with `parseFilters(await searchParams, todayIso())`; client components use 
 validated and sorted like `company`; absent means all, and `_none` stands for Unassigned.
 Salesperson is `ZF_CSL_BI.CSL_SM_CODE`. Brand isn't a column of the sales view: it comes from a
 per-item map on `ZF_STK_SO_PO_SL_BI` (`lib/server/brand-map.ts`; why that source is in its header
-and in `docs/live-check.md`), and items without a brand are Unassigned. The top bar lists only
+and in `docs/live-check.md`), and items without a brand are Unassigned. The Filters panel lists only
 salespeople and brands with sales in the selected companies and period (`GET /api/filter-options`).
 
 They reach SQL through the shared helpers, so a new query gets them for free: `where()` in
@@ -497,26 +498,42 @@ They reach SQL through the shared helpers, so a new query gets them for free: `w
 { salesperson, item })` / `salesWhere(filters, { salesperson, item })` in `lib/server/sql.ts` for
 another view with a salesperson code or an item code. Sales, Sales orders and the sales parts of
 the Overview, customer and item pages follow them. Pages whose data has neither (Finance,
-Inventory, Purchasing, AR/AP) show the two controls disabled, and when one is set the scope line
-says it doesn't apply there. Set `salesFilters: true` on a registry entry whose figures all follow
-them (`lib/dashboards.ts`).
+Inventory, Purchasing, AR/AP) leave the two groups out of the Filters panel, and when one is set the
+panel and the scope line say it doesn't apply there.
+
+**The Filters panel** (`components/shell/filters-panel.tsx`) shows the groups listed in the page's
+registry entry, `filters: ["year", "month", "company", "salesperson", "brand"]` or a subset
+(`lib/dashboards.ts`). Adding a group there is all it takes to show it on a page.
+
+- **Year** and **Month** are dropdowns with a chip grid, All/None and Single/Multi. They always
+  resolve to one contiguous range (`lib/period-picker.ts`): months run from the first selected to
+  the last, and several years from the first year's first selected month to the last year's last
+  one. A range never ends after today, and one that equals a preset is written as the preset, so
+  the URL keeps `range`, `from` and `to` exactly as before. Every change applies at once; months
+  that haven't started can't be picked on their own.
+- **Custom dates** opens the presets and the calendar, for any other range.
+- **Company**, **Salesman** and **Brand** are checklists with a search box, All/None, Single/Multi
+  and an "x of y" count. In Single mode a pick applies at once; in Multi mode ticks are a draft
+  until **Apply**, and an empty draft can't be applied (nothing in the URL means all).
+- **Reset all** goes back to the defaults (year to date, everything selected): a bare URL.
 
 Under every page title the **scope line** says what the figures cover in one sentence, e.g. "Year to
 date (1 Jan 2026 – 21 Oct 2026) · 2 companies · salespeople: 3 of 14 · all brands · compared with
 the same period last year", so a screenshot explains itself (`components/dashboard/scope-line.tsx`).
-Under 768 px all the filters move into a **Filters** drawer.
+Under 1024 px the Filters panel moves into a sheet behind a **Filters** button that counts the
+active filters, so the figures come first.
 
 ### Company logos
 
-With exactly one company selected the sidebar shows that company's name and logo; with several or
-all it shows "MBAL BI". No logos ship with the app. To add one, drop a square file named after the
+With exactly one company selected the nav rail and the header show that company's logo, and the
+header its name; with several or all they show "MBAL BI". No logos ship with the app. To add one, drop a square file named after the
 company code into `public/logos/`: `public/logos/101.svg` or `public/logos/101.png` (an `.svg` wins
 when both exist). It shows on the next page load, no restart needed. A company without a file gets
 a monogram badge of its initials.
 
 `since` is the **order age** of the two as-of-today order books, pending POs on Purchasing and the
 open book on Sales orders: `2y` (orders placed in the last 2 years, the default, left out of the
-URL), `12m` or `all` (`lib/order-age.ts`, read with `parseOrderAge`). The sidebar carries it from
+URL), `12m` or `all` (`lib/order-age.ts`, read with `parseOrderAge`). The nav rail carries it from
 page to page like the other parameters. Orion holds years of order lines that were received,
 delivered or cancelled without being closed, so without it those books mostly measure old lines.
 The "Orders placed" toggle under the KPIs sets it, and while it isn't `all` a line under the toggle
@@ -529,8 +546,37 @@ All money is AED (`lib/format.ts`): compact on cards and chart axes (`AED 1.2M`,
 in tooltips and tables (`AED 1,234,567`). Negatives always carry a leading minus and tables colour
 them. Changes vs last year are sign-aware: `-120` vs `-100` returns is shown as a fall.
 
-Colours come from CSS variables in `app/globals.css` (`--chart-1..5`, `--positive`,
-`--negative`, and the shadcn tokens), with separate light and dark values.
+Colours come from CSS variables in `app/globals.css`; see [Design](#design).
+
+### Design
+
+The look follows the TNS dashboard reviewed in `docs/tns-review/` (issue #50). Every value lives in
+`app/globals.css`, light in `:root` and dark in `.dark`, and the shadcn variables map onto them, so
+every component follows.
+
+| Token                             | Light / dark                                 | Used for                                                 |
+| --------------------------------- | -------------------------------------------- | -------------------------------------------------------- |
+| `--foreground`                    | `#15171c` / `#eef1f6`                        | text                                                     |
+| `--card`, `--popover`             | `#fff` / `#1b1f27`                           | glass cards, nav rail, Filters panel, popovers           |
+| `--border`                        | `#eceef2` / `#2a3040`                        | 1 px dividers                                            |
+| `--input`                         | `#cfd4dd` / `#3a4254`                        | checkbox and input borders                               |
+| `--muted-foreground`              | `#6b7180` / `#99a1b3`                        | secondary text                                           |
+| `--panel` (= `--background`)      | `#f5f7fa` / `#15181f`                        | the large rounded content panel, hovers                  |
+| `--page`, `--page-gradient`       | `#dde5f1` / `#0d0f14`, three radials         | the page behind the panel                                |
+| `--brand`, `--brand-100` … `-800` | `#2f6df6` / `#5c8dff` and its steps          | focus ring, active nav item, pills, total rows           |
+| `--navy`                          | `#0b2f54`                                    | primary buttons, active toggles, the current year        |
+| `--primary`                       | navy / `#5c8dff`                             | navy in light; the dark accent in dark, where navy fades |
+| `--good`, `--bad`                 | `#16a34a` / `#22c55e`, `#dc2626` / `#f87171` | status fills and icons                                   |
+| `--positive`, `--negative`        | `#166534` / `#22c55e`, `#b91c1c` / `#f87171` | delta text, AA on its tinted chip                        |
+| `--chart-cy`, `--chart-py`        | navy (dark `#5c8dff`), `#c8c6c4`             | current and previous year; the partial month is hatched  |
+| `--chart-1` … `--chart-5`         | navy, accent, cyan, amber, pink              | other series; amber also marks warnings                  |
+| `--yoy-*`                         | diverging orange ↔ blue                      | the Product mix treemap                                  |
+
+Shapes: cards and the Filters panel are `glass` (radius 20, 1 px border, soft shadow); the content
+panel has radius 32 on a page padded 32 px (16 px on phones); controls are 42 px high with radius
+12; pills (`size="pill"` on `Button`) are fully round. The font is Geist 400–700 through
+`next/font`, with tabular figures everywhere. The nav rail is 120 px (icon + label) or 260 px and
+remembers its state in the `nav_rail` cookie; under 768 px it becomes a top bar with a drawer.
 
 ## Adding a dashboard
 
@@ -544,7 +590,8 @@ Say, Inventory on `ZF_CURR_STK_BI`:
    hand-checked CSV to `tests/fixtures/` and test the loaders against hand-computed numbers (see
    `tests/unit/sales.test.ts`).
 3. **Registry:** add one entry to `DASHBOARDS` in `lib/dashboards.ts` (slug, title, description,
-   lucide icon, source view). The sidebar and Overview pick it up.
+   lucide icon, source view, and `filters`: the Filters panel groups that apply to every figure).
+   The nav rail and Overview pick it up.
 4. **Page:** `app/inventory/page.tsx` and `app/inventory/sections.tsx`, copying the Sales pattern:
    parse filters, wrap each section in `<Suspense key=... fallback={<...Skeleton />}>`, load with
    `load(...)`, render `KpiCard`, `ChartCard` + `TrendChart`/`BarBreakdown`, `DataTable`,

@@ -11,7 +11,7 @@ import { stockByLocation } from "./inventory";
 import { salesKpis } from "./sales";
 
 /**
- * The item master, `MBALI.ZF_ITEM`, for the item page and the top-bar search. What was checked on
+ * The item master, `MBALI.ZF_ITEM`, for the item page and the header search. What was checked on
  * live Orion (2026-10-20):
  *
  * - **One code space.** `IM_ITEM_CODE` (VARCHAR2(20)) is the key every view uses for an item:

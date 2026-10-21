@@ -3,7 +3,7 @@ import { SEARCH_MIN_LENGTH, searchCustomers, searchText } from "@/lib/server/que
 import { searchItems } from "@/lib/server/queries/items";
 
 /**
- * The top-bar search: customers and items whose name (description) or code contains `q`, best
+ * The header search: customers and items whose name (description) or code contains `q`, best
  * matches first, at most 20 of each.
  *
  *   GET /api/search?q=noor

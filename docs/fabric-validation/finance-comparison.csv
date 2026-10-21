@@ -1,0 +1,1000 @@
+company,period,measure,status,pct_diff,root_cause,main_accounts
+101,2025-10,G&A,DIFF,10.0668%,mapping: Fabric's separate Provisions line,40836 General and admin expenses -> Provisions | 40840 General and admin expenses -> Provisions
+101,2025-10,Net,MATCH,0.0000%,,
+101,2025-11,G&A,DIFF,9.4320%,mapping: Fabric's separate Provisions line,40836 General and admin expenses -> Provisions | 40840 General and admin expenses -> Provisions
+101,2025-11,Net,MATCH,0.0000%,,
+101,2025-12,Revenue,MATCH,0.0000%,,
+101,2025-12,Cost of sales,DIFF,100.0000%,mapping: different level_1,40870 General and admin expenses -> Cost of sales
+101,2025-12,Gross profit,MATCH,0.0002%,,
+101,2025-12,G&A,DIFF,107.0330%,mapping: Fabric's separate Provisions line; different level_1,40863 General and admin expenses -> Provisions | 40881 General and admin expenses -> Provisions | 40836 General and admin expenses -> Provisions | 40840 General and admin expenses -> Provisions | 40870 General and admin expenses -> Cost of sales
+101,2025-12,Net,MATCH,0.0000%,,
+101,2026-01,Revenue,MATCH,0.0000%,,
+101,2026-01,Gross profit,MATCH,0.0000%,,
+101,2026-01,G&A,DIFF,10.1591%,mapping: Fabric's separate Provisions line,40836 General and admin expenses -> Provisions | 40843 General and admin expenses -> Provisions | 40840 General and admin expenses -> Provisions
+101,2026-01,Net,MATCH,0.0000%,,
+101,2026-02,Cost of sales,DIFF,100.0000%,mapping: different level_1,40870 General and admin expenses -> Cost of sales
+101,2026-02,Gross profit,DIFF,100.0000%,mapping: different level_1,40870 General and admin expenses -> Cost of sales
+101,2026-02,G&A,DIFF,20.5074%,mapping: Fabric's separate Provisions line; different level_1,40843 General and admin expenses -> Provisions | 40836 General and admin expenses -> Provisions | 40870 General and admin expenses -> Cost of sales | 40840 General and admin expenses -> Provisions
+101,2026-02,Net,MATCH,0.0000%,,
+101,2026-03,G&A,DIFF,9.0777%,mapping: Fabric's separate Provisions line,40836 General and admin expenses -> Provisions | 40840 General and admin expenses -> Provisions
+101,2026-03,Net,MATCH,0.0000%,,
+101,2026-04,G&A,DIFF,9.7547%,mapping: Fabric's separate Provisions line,40836 General and admin expenses -> Provisions | 40840 General and admin expenses -> Provisions
+101,2026-04,Net,MATCH,0.0000%,,
+101,2026-05,G&A,DIFF,7.3818%,mapping: Fabric's separate Provisions line,40836 General and admin expenses -> Provisions | 40840 General and admin expenses -> Provisions
+101,2026-05,Net,MATCH,0.0000%,,
+101,2026-06,G&A,DIFF,6.7331%,mapping: Fabric's separate Provisions line,40836 General and admin expenses -> Provisions | 40840 General and admin expenses -> Provisions
+101,2026-06,Net,MATCH,0.0000%,,
+101,2026-07,G&A,DIFF,9.1961%,mapping: Fabric's separate Provisions line,40836 General and admin expenses -> Provisions | 40840 General and admin expenses -> Provisions
+101,2026-07,Net,MATCH,0.0000%,,
+101,2026-08,G&A,DIFF,8.3003%,mapping: Fabric's separate Provisions line,40836 General and admin expenses -> Provisions | 40840 General and admin expenses -> Provisions
+101,2026-08,Net,MATCH,0.0000%,,
+101,2026-09,G&A,DIFF,10.9475%,mapping: Fabric's separate Provisions line,40836 General and admin expenses -> Provisions | 40840 General and admin expenses -> Provisions
+101,2026-09,Net,MATCH,0.0000%,,
+101,YTD 2026,Revenue,MATCH,0.0000%,,
+101,YTD 2026,Cost of sales,DIFF,100.0000%,mapping: different level_1,40870 General and admin expenses -> Cost of sales
+101,YTD 2026,Gross profit,DIFF,3.8115%,mapping: different level_1,40870 General and admin expenses -> Cost of sales
+101,YTD 2026,G&A,DIFF,10.1798%,mapping: Fabric's separate Provisions line; different level_1,40836 General and admin expenses -> Provisions | 40843 General and admin expenses -> Provisions | 40840 General and admin expenses -> Provisions | 40870 General and admin expenses -> Cost of sales
+101,YTD 2026,Net,MATCH,0.0000%,,
+103,2025-10,Revenue,MATCH,0.0000%,,
+103,2025-10,Cost of sales,DIFF,5.2951%,mapping: different level_1,40827 General and admin expenses -> Cost of sales | 40870 General and admin expenses -> Cost of sales
+103,2025-10,Gross profit,DIFF,9.0891%,mapping: different level_1,40827 General and admin expenses -> Cost of sales | 40870 General and admin expenses -> Cost of sales
+103,2025-10,G&A,DIFF,27.3514%,mapping: Fabric's separate Provisions line; different level_1,40880 General and admin expenses -> Provisions | 40840 General and admin expenses -> Provisions | 40827 General and admin expenses -> Cost of sales | 40870 General and admin expenses -> Cost of sales | 40836 General and admin expenses -> Provisions
+103,2025-10,Net,MATCH,0.0000%,,
+103,2025-11,Revenue,MATCH,0.0000%,,
+103,2025-11,Cost of sales,DIFF,48.3041%,mapping: different level_1,40829 General and admin expenses -> Cost of sales | 40870 General and admin expenses -> Cost of sales
+103,2025-11,Gross profit,DIFF,5.6643%,mapping: different level_1,40829 General and admin expenses -> Cost of sales | 40870 General and admin expenses -> Cost of sales
+103,2025-11,G&A,DIFF,24.1080%,mapping: Fabric's separate Provisions line; different level_1,40880 General and admin expenses -> Provisions | 40840 General and admin expenses -> Provisions | 40829 General and admin expenses -> Cost of sales | 40870 General and admin expenses -> Cost of sales | 40836 General and admin expenses -> Provisions
+103,2025-11,Net,MATCH,0.0000%,,
+103,2025-12,Revenue,MATCH,0.0000%,,
+103,2025-12,Cost of sales,DIFF,0.5971%,mapping: different level_1,40829 General and admin expenses -> Cost of sales | 40827 General and admin expenses -> Cost of sales | 40870 General and admin expenses -> Cost of sales
+103,2025-12,Gross profit,DIFF,1.3168%,mapping: different level_1,40829 General and admin expenses -> Cost of sales | 40827 General and admin expenses -> Cost of sales | 40870 General and admin expenses -> Cost of sales
+103,2025-12,G&A,DIFF,82.5632%,mapping: Fabric's separate Provisions line; account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40832 General and admin expenses -> Provisions | 40831 General and admin expenses -> Provisions | 40881 General and admin expenses -> Provisions | 40836 General and admin expenses -> Provisions | 40883 General and admin expenses -> Not in Fabric map
+103,2025-12,Net,DIFF,4.3767%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40883 General and admin expenses -> Not in Fabric map | 40834 General and admin expenses -> Not in Fabric map
+103,2026-01,Revenue,MATCH,0.0000%,,
+103,2026-01,Cost of sales,DIFF,5.3753%,mapping: different level_1,40829 General and admin expenses -> Cost of sales | 40870 General and admin expenses -> Cost of sales
+103,2026-01,Gross profit,DIFF,28.8089%,mapping: different level_1,40829 General and admin expenses -> Cost of sales | 40870 General and admin expenses -> Cost of sales
+103,2026-01,G&A,DIFF,55.0232%,mapping: Fabric's separate Provisions line; different level_1,40880 General and admin expenses -> Provisions | 40840 General and admin expenses -> Provisions | 40829 General and admin expenses -> Cost of sales | 40870 General and admin expenses -> Cost of sales | 40836 General and admin expenses -> Provisions
+103,2026-01,Net,MATCH,0.0000%,,
+103,2026-02,Revenue,MATCH,0.0000%,,
+103,2026-02,Cost of sales,DIFF,1.0097%,mapping: different level_1,40827 General and admin expenses -> Cost of sales | 40829 General and admin expenses -> Cost of sales | 40870 General and admin expenses -> Cost of sales
+103,2026-02,Gross profit,DIFF,20.5869%,mapping: different level_1,40827 General and admin expenses -> Cost of sales | 40829 General and admin expenses -> Cost of sales | 40870 General and admin expenses -> Cost of sales
+103,2026-02,G&A,DIFF,26.8288%,mapping: Fabric's separate Provisions line; account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40840 General and admin expenses -> Provisions | 40827 General and admin expenses -> Cost of sales | 40880 General and admin expenses -> Provisions | 40829 General and admin expenses -> Cost of sales | 40870 General and admin expenses -> Cost of sales
+103,2026-02,Net,MATCH,0.2739%,,
+103,2026-03,Revenue,MATCH,0.0000%,,
+103,2026-03,Cost of sales,DIFF,9.7867%,mapping: different level_1,40829 General and admin expenses -> Cost of sales | 40870 General and admin expenses -> Cost of sales
+103,2026-03,Gross profit,DIFF,15.3431%,mapping: different level_1,40829 General and admin expenses -> Cost of sales | 40870 General and admin expenses -> Cost of sales
+103,2026-03,G&A,DIFF,36.8854%,mapping: Fabric's separate Provisions line; different level_1,40840 General and admin expenses -> Provisions | 40880 General and admin expenses -> Provisions | 40829 General and admin expenses -> Cost of sales | 40870 General and admin expenses -> Cost of sales | 40836 General and admin expenses -> Provisions
+103,2026-03,Net,MATCH,0.0000%,,
+103,2026-04,Revenue,MATCH,0.0000%,,
+103,2026-04,Cost of sales,DIFF,9.0737%,mapping: different level_1,40829 General and admin expenses -> Cost of sales | 40870 General and admin expenses -> Cost of sales | 40827 General and admin expenses -> Cost of sales
+103,2026-04,Gross profit,DIFF,22.8589%,mapping: different level_1,40829 General and admin expenses -> Cost of sales | 40870 General and admin expenses -> Cost of sales | 40827 General and admin expenses -> Cost of sales
+103,2026-04,G&A,DIFF,40.1908%,mapping: Fabric's separate Provisions line; account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40840 General and admin expenses -> Provisions | 40880 General and admin expenses -> Provisions | 40829 General and admin expenses -> Cost of sales | 40870 General and admin expenses -> Cost of sales | 40827 General and admin expenses -> Cost of sales
+103,2026-04,Net,MATCH,0.0177%,,
+103,2026-05,Revenue,MATCH,0.0000%,,
+103,2026-05,Cost of sales,DIFF,13.8814%,mapping: different level_1,40827 General and admin expenses -> Cost of sales | 40829 General and admin expenses -> Cost of sales | 40870 General and admin expenses -> Cost of sales
+103,2026-05,Gross profit,DIFF,123.5552%,mapping: different level_1,40827 General and admin expenses -> Cost of sales | 40829 General and admin expenses -> Cost of sales | 40870 General and admin expenses -> Cost of sales
+103,2026-05,G&A,DIFF,37.5306%,mapping: Fabric's separate Provisions line; account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40840 General and admin expenses -> Provisions | 40827 General and admin expenses -> Cost of sales | 40829 General and admin expenses -> Cost of sales | 40880 General and admin expenses -> Provisions | 40870 General and admin expenses -> Cost of sales
+103,2026-05,Net,MATCH,0.0462%,,
+103,2026-06,Revenue,MATCH,0.0000%,,
+103,2026-06,Cost of sales,DIFF,4.8991%,mapping: different level_1,40827 General and admin expenses -> Cost of sales | 40829 General and admin expenses -> Cost of sales | 40870 General and admin expenses -> Cost of sales
+103,2026-06,Gross profit,DIFF,4.6286%,mapping: different level_1,40827 General and admin expenses -> Cost of sales | 40829 General and admin expenses -> Cost of sales | 40870 General and admin expenses -> Cost of sales
+103,2026-06,G&A,DIFF,52.2481%,mapping: Fabric's separate Provisions line; account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40880 General and admin expenses -> Provisions | 40840 General and admin expenses -> Provisions | 40827 General and admin expenses -> Cost of sales | 40829 General and admin expenses -> Cost of sales | 40870 General and admin expenses -> Cost of sales
+103,2026-06,Net,MATCH,0.0653%,,
+103,2026-07,Revenue,MATCH,0.0000%,,
+103,2026-07,Cost of sales,DIFF,5.7512%,mapping: different level_1,40829 General and admin expenses -> Cost of sales | 40870 General and admin expenses -> Cost of sales
+103,2026-07,Gross profit,DIFF,9.6800%,mapping: different level_1,40829 General and admin expenses -> Cost of sales | 40870 General and admin expenses -> Cost of sales
+103,2026-07,G&A,DIFF,46.6016%,mapping: Fabric's separate Provisions line; different level_1,40840 General and admin expenses -> Provisions | 40880 General and admin expenses -> Provisions | 40829 General and admin expenses -> Cost of sales | 40870 General and admin expenses -> Cost of sales | 40836 General and admin expenses -> Provisions
+103,2026-07,Net,MATCH,0.0000%,,
+103,2026-08,Revenue,MATCH,0.0000%,,
+103,2026-08,Cost of sales,DIFF,1.3701%,mapping: different level_1,40829 General and admin expenses -> Cost of sales | 40870 General and admin expenses -> Cost of sales | 40827 General and admin expenses -> Cost of sales
+103,2026-08,Gross profit,DIFF,2.8221%,mapping: different level_1,40829 General and admin expenses -> Cost of sales | 40870 General and admin expenses -> Cost of sales | 40827 General and admin expenses -> Cost of sales
+103,2026-08,G&A,DIFF,35.1305%,mapping: Fabric's separate Provisions line; account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40840 General and admin expenses -> Provisions | 40880 General and admin expenses -> Provisions | 40829 General and admin expenses -> Cost of sales | 40870 General and admin expenses -> Cost of sales | 40827 General and admin expenses -> Cost of sales
+103,2026-08,Net,DIFF,0.7864%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40834 General and admin expenses -> Not in Fabric map
+103,2026-09,Revenue,MATCH,0.0000%,,
+103,2026-09,Cost of sales,DIFF,28.5351%,mapping: different level_1,40829 General and admin expenses -> Cost of sales | 40870 General and admin expenses -> Cost of sales
+103,2026-09,Gross profit,DIFF,4.9468%,mapping: different level_1,40829 General and admin expenses -> Cost of sales | 40870 General and admin expenses -> Cost of sales
+103,2026-09,G&A,DIFF,38.7679%,mapping: Fabric's separate Provisions line; different level_1,40840 General and admin expenses -> Provisions | 40880 General and admin expenses -> Provisions | 40829 General and admin expenses -> Cost of sales | 40870 General and admin expenses -> Cost of sales | 40836 General and admin expenses -> Provisions
+103,2026-09,Net,MATCH,0.0000%,,
+103,YTD 2026,Revenue,MATCH,0.0000%,,
+103,YTD 2026,Cost of sales,DIFF,2.7993%,mapping: different level_1,40829 General and admin expenses -> Cost of sales | 40827 General and admin expenses -> Cost of sales | 40870 General and admin expenses -> Cost of sales
+103,YTD 2026,Gross profit,DIFF,9.2591%,mapping: different level_1,40829 General and admin expenses -> Cost of sales | 40827 General and admin expenses -> Cost of sales | 40870 General and admin expenses -> Cost of sales
+103,YTD 2026,G&A,DIFF,41.0048%,mapping: Fabric's separate Provisions line; account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40840 General and admin expenses -> Provisions | 40880 General and admin expenses -> Provisions | 40829 General and admin expenses -> Cost of sales | 40827 General and admin expenses -> Cost of sales | 40870 General and admin expenses -> Cost of sales
+103,YTD 2026,Net,MATCH,0.2200%,,
+104,2025-10,Revenue,MATCH,0.0000%,,
+104,2025-10,Cost of sales,DIFF,7.7304%,mapping: different level_1,40724 General and admin expenses -> Cost of sales
+104,2025-10,Gross profit,DIFF,1.8074%,mapping: different level_1,40724 General and admin expenses -> Cost of sales
+104,2025-10,G&A,DIFF,96.5744%,mapping: Fabric's separate Provisions line; different level_1,40836 General and admin expenses -> Provisions | 40724 General and admin expenses -> Cost of sales | 40840 General and admin expenses -> Provisions
+104,2025-10,Net,MATCH,0.0000%,,
+104,2025-11,Revenue,MATCH,0.0000%,,
+104,2025-11,Cost of sales,DIFF,8.0264%,mapping: different level_1,40724 General and admin expenses -> Cost of sales
+104,2025-11,Gross profit,DIFF,1.8738%,mapping: different level_1,40724 General and admin expenses -> Cost of sales
+104,2025-11,G&A,DIFF,96.7678%,mapping: Fabric's separate Provisions line; different level_1,40836 General and admin expenses -> Provisions | 40724 General and admin expenses -> Cost of sales | 40840 General and admin expenses -> Provisions
+104,2025-11,Net,MATCH,0.0000%,,
+104,2025-12,Revenue,MATCH,0.0000%,,
+104,2025-12,Cost of sales,DIFF,5.0000%,mapping: different level_1,40724 General and admin expenses -> Cost of sales
+104,2025-12,Gross profit,DIFF,1.8169%,mapping: different level_1,40724 General and admin expenses -> Cost of sales
+104,2025-12,G&A,DIFF,98.3359%,mapping: Fabric's separate Provisions line; account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40883 General and admin expenses -> Not in Fabric map | 40836 General and admin expenses -> Provisions | 40818 General and admin expenses -> Not in Fabric map | 40863 General and admin expenses -> Provisions | 40881 General and admin expenses -> Provisions
+104,2025-12,Net,DIFF,85.8803%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40883 General and admin expenses -> Not in Fabric map | 40818 General and admin expenses -> Not in Fabric map
+104,2026-01,Revenue,MATCH,0.0000%,,
+104,2026-01,Cost of sales,DIFF,7.2260%,mapping: different level_1,40724 General and admin expenses -> Cost of sales
+104,2026-01,Gross profit,DIFF,2.0410%,mapping: different level_1,40724 General and admin expenses -> Cost of sales
+104,2026-01,G&A,DIFF,93.5835%,mapping: Fabric's separate Provisions line; different level_1,40836 General and admin expenses -> Provisions | 40724 General and admin expenses -> Cost of sales | 40840 General and admin expenses -> Provisions
+104,2026-01,Net,MATCH,0.0000%,,
+104,2026-02,Revenue,MATCH,0.0000%,,
+104,2026-02,Cost of sales,DIFF,7.0257%,mapping: different level_1,40724 General and admin expenses -> Cost of sales
+104,2026-02,Gross profit,DIFF,2.2669%,mapping: different level_1,40724 General and admin expenses -> Cost of sales
+104,2026-02,G&A,DIFF,94.5694%,mapping: Fabric's separate Provisions line; account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40836 General and admin expenses -> Provisions | 40724 General and admin expenses -> Cost of sales | 40864 General and admin expenses -> Not in Fabric map | 40840 General and admin expenses -> Provisions
+104,2026-02,Net,DIFF,0.9174%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40864 General and admin expenses -> Not in Fabric map
+104,2026-03,Revenue,MATCH,0.0000%,,
+104,2026-03,Cost of sales,DIFF,7.6412%,mapping: different level_1,40724 General and admin expenses -> Cost of sales
+104,2026-03,Gross profit,DIFF,1.9512%,mapping: different level_1,40724 General and admin expenses -> Cost of sales
+104,2026-03,G&A,DIFF,83.8771%,mapping: Fabric's separate Provisions line; account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40836 General and admin expenses -> Provisions | 40724 General and admin expenses -> Cost of sales | 40864 General and admin expenses -> Not in Fabric map | 40840 General and admin expenses -> Provisions
+104,2026-03,Net,DIFF,0.6846%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40864 General and admin expenses -> Not in Fabric map
+104,2026-04,Revenue,MATCH,0.0000%,,
+104,2026-04,Cost of sales,DIFF,7.5256%,mapping: different level_1,40724 General and admin expenses -> Cost of sales
+104,2026-04,Gross profit,DIFF,2.0076%,mapping: different level_1,40724 General and admin expenses -> Cost of sales
+104,2026-04,G&A,DIFF,94.8451%,mapping: Fabric's separate Provisions line; account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40836 General and admin expenses -> Provisions | 40724 General and admin expenses -> Cost of sales | 40864 General and admin expenses -> Not in Fabric map | 40840 General and admin expenses -> Provisions
+104,2026-04,Net,DIFF,0.6086%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40864 General and admin expenses -> Not in Fabric map
+104,2026-05,Revenue,MATCH,0.0000%,,
+104,2026-05,Cost of sales,DIFF,8.1473%,mapping: different level_1,40724 General and admin expenses -> Cost of sales
+104,2026-05,Gross profit,DIFF,1.9272%,mapping: different level_1,40724 General and admin expenses -> Cost of sales
+104,2026-05,G&A,DIFF,89.1854%,mapping: Fabric's separate Provisions line; different level_1,40836 General and admin expenses -> Provisions | 40724 General and admin expenses -> Cost of sales | 40840 General and admin expenses -> Provisions
+104,2026-05,Net,MATCH,0.0000%,,
+104,2026-06,Revenue,MATCH,0.0000%,,
+104,2026-06,Cost of sales,DIFF,7.6927%,mapping: different level_1,40724 General and admin expenses -> Cost of sales
+104,2026-06,Gross profit,DIFF,1.8030%,mapping: different level_1,40724 General and admin expenses -> Cost of sales
+104,2026-06,G&A,DIFF,87.5321%,mapping: Fabric's separate Provisions line; different level_1,40836 General and admin expenses -> Provisions | 40724 General and admin expenses -> Cost of sales | 40840 General and admin expenses -> Provisions
+104,2026-06,Net,MATCH,0.0000%,,
+104,2026-07,Revenue,MATCH,0.0000%,,
+104,2026-07,Cost of sales,DIFF,6.8257%,mapping: different level_1,40724 General and admin expenses -> Cost of sales
+104,2026-07,Gross profit,DIFF,1.9736%,mapping: different level_1,40724 General and admin expenses -> Cost of sales
+104,2026-07,G&A,DIFF,93.8252%,mapping: Fabric's separate Provisions line; different level_1,40836 General and admin expenses -> Provisions | 40724 General and admin expenses -> Cost of sales | 40840 General and admin expenses -> Provisions
+104,2026-07,Net,MATCH,0.0000%,,
+104,2026-08,Revenue,MATCH,0.0000%,,
+104,2026-08,Cost of sales,DIFF,6.6346%,mapping: different level_1,40724 General and admin expenses -> Cost of sales
+104,2026-08,Gross profit,DIFF,2.0096%,mapping: different level_1,40724 General and admin expenses -> Cost of sales
+104,2026-08,G&A,DIFF,93.8276%,mapping: Fabric's separate Provisions line; different level_1,40836 General and admin expenses -> Provisions | 40724 General and admin expenses -> Cost of sales | 40840 General and admin expenses -> Provisions
+104,2026-08,Net,MATCH,0.0000%,,
+104,2026-09,Revenue,MATCH,0.0000%,,
+104,2026-09,Cost of sales,DIFF,5.0366%,mapping: account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40724 General and admin expenses -> Cost of sales | 40727 Cost of sales -> Not in Fabric map
+104,2026-09,Gross profit,DIFF,2.2261%,mapping: account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40724 General and admin expenses -> Cost of sales | 40727 Cost of sales -> Not in Fabric map
+104,2026-09,G&A,DIFF,94.1845%,mapping: Fabric's separate Provisions line; account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40836 General and admin expenses -> Provisions | 40724 General and admin expenses -> Cost of sales | 40864 General and admin expenses -> Not in Fabric map | 40840 General and admin expenses -> Provisions
+104,2026-09,Net,DIFF,1.8757%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40864 General and admin expenses -> Not in Fabric map | 40727 Cost of sales -> Not in Fabric map
+104,YTD 2026,Revenue,MATCH,0.0000%,,
+104,YTD 2026,Cost of sales,DIFF,6.9759%,mapping: account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40724 General and admin expenses -> Cost of sales | 40727 Cost of sales -> Not in Fabric map
+104,YTD 2026,Gross profit,DIFF,2.0129%,mapping: account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40724 General and admin expenses -> Cost of sales | 40727 Cost of sales -> Not in Fabric map
+104,YTD 2026,G&A,DIFF,91.4891%,mapping: Fabric's separate Provisions line; account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40836 General and admin expenses -> Provisions | 40724 General and admin expenses -> Cost of sales | 40864 General and admin expenses -> Not in Fabric map | 40840 General and admin expenses -> Provisions
+104,YTD 2026,Net,DIFF,0.4077%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40864 General and admin expenses -> Not in Fabric map | 40727 Cost of sales -> Not in Fabric map
+105,2025-10,Revenue,DIFF,100.0000%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),30801 Revenue -> Not in Fabric map
+105,2025-10,Gross profit,DIFF,100.0000%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),30801 Revenue -> Not in Fabric map
+105,2025-10,G&A,MATCH,0.0000%,,
+105,2025-10,Net,DIFF,100.1109%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),30801 Revenue -> Not in Fabric map
+105,2025-11,G&A,DIFF,3.5469%,mapping: Fabric's separate Provisions line,40840 General and admin expenses -> Provisions
+105,2025-11,Net,MATCH,0.0000%,,
+105,2025-12,Revenue,DIFF,100.0000%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),30801 Revenue -> Not in Fabric map
+105,2025-12,Gross profit,DIFF,100.0000%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),30801 Revenue -> Not in Fabric map
+105,2025-12,G&A,DIFF,93.6214%,mapping: Fabric's separate Provisions line; account missing from Fabric's map (dropped by the INNER JOIN),40863 General and admin expenses -> Provisions | 40818 General and admin expenses -> Not in Fabric map | 40840 General and admin expenses -> Provisions
+105,2025-12,Net,DIFF,136.4661%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),30801 Revenue -> Not in Fabric map | 40818 General and admin expenses -> Not in Fabric map
+105,2026-01,G&A,DIFF,25.9199%,mapping: Fabric's separate Provisions line,40840 General and admin expenses -> Provisions
+105,2026-01,Net,MATCH,0.0000%,,
+105,2026-02,G&A,DIFF,3.7503%,mapping: Fabric's separate Provisions line,40840 General and admin expenses -> Provisions
+105,2026-02,Net,MATCH,0.0000%,,
+105,2026-03,Revenue,DIFF,100.0000%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),30801 Revenue -> Not in Fabric map
+105,2026-03,Gross profit,DIFF,100.0000%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),30801 Revenue -> Not in Fabric map
+105,2026-03,G&A,DIFF,0.7067%,mapping: Fabric's separate Provisions line,40840 General and admin expenses -> Provisions
+105,2026-03,Net,DIFF,100.1156%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),30801 Revenue -> Not in Fabric map
+105,2026-04,G&A,MATCH,0.0000%,,
+105,2026-04,Net,MATCH,0.0000%,,
+105,2026-05,G&A,DIFF,3.4364%,mapping: Fabric's separate Provisions line,40840 General and admin expenses -> Provisions
+105,2026-05,Net,MATCH,0.0000%,,
+105,2026-06,G&A,DIFF,0.7301%,mapping: Fabric's separate Provisions line,40840 General and admin expenses -> Provisions
+105,2026-06,Net,MATCH,0.0000%,,
+105,2026-07,Revenue,DIFF,100.0000%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),30801 Revenue -> Not in Fabric map
+105,2026-07,Gross profit,DIFF,100.0000%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),30801 Revenue -> Not in Fabric map
+105,2026-07,G&A,DIFF,100.0000%,mapping: Fabric's separate Provisions line,40840 General and admin expenses -> Provisions
+105,2026-07,Net,DIFF,100.0000%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),30801 Revenue -> Not in Fabric map
+105,2026-08,G&A,MATCH,0.0000%,,
+105,2026-08,Net,MATCH,0.0000%,,
+105,2026-09,G&A,MATCH,0.0000%,,
+105,2026-09,Net,MATCH,0.0000%,,
+105,YTD 2026,Revenue,DIFF,100.0000%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),30801 Revenue -> Not in Fabric map
+105,YTD 2026,Gross profit,DIFF,100.0000%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),30801 Revenue -> Not in Fabric map
+105,YTD 2026,G&A,DIFF,4.2382%,mapping: Fabric's separate Provisions line,40840 General and admin expenses -> Provisions
+105,YTD 2026,Net,DIFF,100.7085%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),30801 Revenue -> Not in Fabric map
+106,2025-10,Revenue,MATCH,0.0000%,,
+106,2025-10,Cost of sales,DIFF,0.2050%,mapping: different level_1,40827 General and admin expenses -> Cost of sales
+106,2025-10,Gross profit,DIFF,0.5234%,mapping: different level_1,40827 General and admin expenses -> Cost of sales
+106,2025-10,G&A,DIFF,21.7655%,mapping: Fabric's separate Provisions line; different level_1,40880 General and admin expenses -> Provisions | 40832 General and admin expenses -> Provisions | 40831 General and admin expenses -> Provisions | 40836 General and admin expenses -> Provisions | 40827 General and admin expenses -> Cost of sales
+106,2025-10,Net,MATCH,0.0000%,,
+106,2025-11,Revenue,MATCH,0.0000%,,
+106,2025-11,Cost of sales,DIFF,0.2185%,mapping: different level_1,40827 General and admin expenses -> Cost of sales
+106,2025-11,Gross profit,DIFF,0.8179%,mapping: different level_1,40827 General and admin expenses -> Cost of sales
+106,2025-11,G&A,DIFF,9.0414%,mapping: Fabric's separate Provisions line; different level_1,40880 General and admin expenses -> Provisions | 40832 General and admin expenses -> Provisions | 40831 General and admin expenses -> Provisions | 40836 General and admin expenses -> Provisions | 40827 General and admin expenses -> Cost of sales
+106,2025-11,Net,MATCH,0.0000%,,
+106,2025-12,Revenue,MATCH,0.0000%,,
+106,2025-12,Cost of sales,DIFF,0.3391%,mapping: different level_1,40827 General and admin expenses -> Cost of sales
+106,2025-12,Gross profit,DIFF,0.9573%,mapping: different level_1,40827 General and admin expenses -> Cost of sales
+106,2025-12,G&A,DIFF,133.5122%,mapping: Fabric's separate Provisions line; account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40883 General and admin expenses -> Not in Fabric map | 40818 General and admin expenses -> Not in Fabric map | 40863 General and admin expenses -> Provisions | 40831 General and admin expenses -> Provisions | 40832 General and admin expenses -> Provisions
+106,2025-12,Net,DIFF,314.6625%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40883 General and admin expenses -> Not in Fabric map | 40818 General and admin expenses -> Not in Fabric map
+106,2026-01,Revenue,MATCH,0.0000%,,
+106,2026-01,Cost of sales,DIFF,0.1072%,mapping: different level_1,40827 General and admin expenses -> Cost of sales
+106,2026-01,Gross profit,DIFF,0.2736%,mapping: different level_1,40827 General and admin expenses -> Cost of sales
+106,2026-01,G&A,DIFF,19.7367%,mapping: Fabric's separate Provisions line; different level_1,40880 General and admin expenses -> Provisions | 40832 General and admin expenses -> Provisions | 40831 General and admin expenses -> Provisions | 40836 General and admin expenses -> Provisions | 40840 General and admin expenses -> Provisions
+106,2026-01,Net,MATCH,0.0000%,,
+106,2026-02,Revenue,MATCH,0.0000%,,
+106,2026-02,Cost of sales,DIFF,0.1668%,mapping: different level_1,40827 General and admin expenses -> Cost of sales
+106,2026-02,Gross profit,DIFF,0.4167%,mapping: different level_1,40827 General and admin expenses -> Cost of sales
+106,2026-02,G&A,DIFF,22.4220%,mapping: Fabric's separate Provisions line; different level_1,40880 General and admin expenses -> Provisions | 40832 General and admin expenses -> Provisions | 40831 General and admin expenses -> Provisions | 40836 General and admin expenses -> Provisions | 40843 General and admin expenses -> Provisions
+106,2026-02,Net,MATCH,0.0000%,,
+106,2026-03,Revenue,MATCH,0.0000%,,
+106,2026-03,Cost of sales,DIFF,0.4748%,mapping: different level_1,40827 General and admin expenses -> Cost of sales
+106,2026-03,Gross profit,DIFF,0.9987%,mapping: different level_1,40827 General and admin expenses -> Cost of sales
+106,2026-03,G&A,DIFF,21.7641%,mapping: Fabric's separate Provisions line; different level_1,40880 General and admin expenses -> Provisions | 40832 General and admin expenses -> Provisions | 40831 General and admin expenses -> Provisions | 40836 General and admin expenses -> Provisions | 40827 General and admin expenses -> Cost of sales
+106,2026-03,Net,MATCH,0.0000%,,
+106,2026-04,Revenue,MATCH,0.0000%,,
+106,2026-04,Cost of sales,DIFF,0.2702%,mapping: different level_1,40827 General and admin expenses -> Cost of sales
+106,2026-04,Gross profit,DIFF,0.5859%,mapping: different level_1,40827 General and admin expenses -> Cost of sales
+106,2026-04,G&A,DIFF,20.8254%,mapping: Fabric's separate Provisions line; different level_1,40880 General and admin expenses -> Provisions | 40832 General and admin expenses -> Provisions | 40831 General and admin expenses -> Provisions | 40836 General and admin expenses -> Provisions | 40840 General and admin expenses -> Provisions
+106,2026-04,Net,MATCH,0.0000%,,
+106,2026-05,Revenue,MATCH,0.0000%,,
+106,2026-05,Cost of sales,DIFF,0.3162%,mapping: different level_1,40827 General and admin expenses -> Cost of sales
+106,2026-05,Gross profit,DIFF,0.6163%,mapping: different level_1,40827 General and admin expenses -> Cost of sales
+106,2026-05,G&A,DIFF,22.2378%,mapping: Fabric's separate Provisions line; different level_1,40880 General and admin expenses -> Provisions | 40832 General and admin expenses -> Provisions | 40831 General and admin expenses -> Provisions | 40836 General and admin expenses -> Provisions | 40827 General and admin expenses -> Cost of sales
+106,2026-05,Net,MATCH,0.0000%,,
+106,2026-06,Revenue,MATCH,0.0000%,,
+106,2026-06,Cost of sales,DIFF,0.1817%,mapping: different level_1,40827 General and admin expenses -> Cost of sales
+106,2026-06,Gross profit,DIFF,0.4574%,mapping: different level_1,40827 General and admin expenses -> Cost of sales
+106,2026-06,G&A,DIFF,22.4262%,mapping: Fabric's separate Provisions line; different level_1,40880 General and admin expenses -> Provisions | 40832 General and admin expenses -> Provisions | 40831 General and admin expenses -> Provisions | 40836 General and admin expenses -> Provisions | 40840 General and admin expenses -> Provisions
+106,2026-06,Net,MATCH,0.0000%,,
+106,2026-07,Revenue,MATCH,0.0000%,,
+106,2026-07,Cost of sales,DIFF,0.0677%,mapping: different level_1,40827 General and admin expenses -> Cost of sales
+106,2026-07,Gross profit,DIFF,0.1552%,mapping: different level_1,40827 General and admin expenses -> Cost of sales
+106,2026-07,G&A,DIFF,21.8206%,mapping: Fabric's separate Provisions line; different level_1,40880 General and admin expenses -> Provisions | 40832 General and admin expenses -> Provisions | 40831 General and admin expenses -> Provisions | 40836 General and admin expenses -> Provisions | 40840 General and admin expenses -> Provisions
+106,2026-07,Net,MATCH,0.0000%,,
+106,2026-08,Revenue,MATCH,0.0000%,,
+106,2026-08,Cost of sales,DIFF,0.2605%,mapping: different level_1,40827 General and admin expenses -> Cost of sales
+106,2026-08,Gross profit,DIFF,0.8534%,mapping: different level_1,40827 General and admin expenses -> Cost of sales
+106,2026-08,G&A,DIFF,19.4003%,mapping: Fabric's separate Provisions line; different level_1,40880 General and admin expenses -> Provisions | 40832 General and admin expenses -> Provisions | 40831 General and admin expenses -> Provisions | 40836 General and admin expenses -> Provisions | 40827 General and admin expenses -> Cost of sales
+106,2026-08,Net,MATCH,0.0000%,,
+106,2026-09,Revenue,MATCH,0.0000%,,
+106,2026-09,Cost of sales,DIFF,0.0695%,mapping: different level_1,40827 General and admin expenses -> Cost of sales
+106,2026-09,Gross profit,DIFF,0.3247%,mapping: different level_1,40827 General and admin expenses -> Cost of sales
+106,2026-09,G&A,DIFF,20.5545%,mapping: Fabric's separate Provisions line; different level_1,40880 General and admin expenses -> Provisions | 40832 General and admin expenses -> Provisions | 40831 General and admin expenses -> Provisions | 40836 General and admin expenses -> Provisions | 40840 General and admin expenses -> Provisions
+106,2026-09,Net,MATCH,0.0000%,,
+106,YTD 2026,Revenue,MATCH,0.0000%,,
+106,YTD 2026,Cost of sales,DIFF,0.1942%,mapping: different level_1,40827 General and admin expenses -> Cost of sales
+106,YTD 2026,Gross profit,DIFF,0.4828%,mapping: different level_1,40827 General and admin expenses -> Cost of sales
+106,YTD 2026,G&A,DIFF,21.2330%,mapping: Fabric's separate Provisions line; different level_1,40880 General and admin expenses -> Provisions | 40832 General and admin expenses -> Provisions | 40831 General and admin expenses -> Provisions | 40836 General and admin expenses -> Provisions | 40840 General and admin expenses -> Provisions
+106,YTD 2026,Net,MATCH,0.0000%,,
+107,2025-10,Revenue,MATCH,0.0000%,,
+107,2025-10,Cost of sales,DIFF,5.6497%,mapping: different level_1,40827 General and admin expenses -> Cost of sales
+107,2025-10,Gross profit,DIFF,2.5761%,mapping: different level_1,40827 General and admin expenses -> Cost of sales
+107,2025-10,G&A,DIFF,9.8077%,mapping: Fabric's separate Provisions line; different level_1,40827 General and admin expenses -> Cost of sales | 40840 General and admin expenses -> Provisions | 40836 General and admin expenses -> Provisions
+107,2025-10,Net,MATCH,0.0000%,,
+107,2025-11,Revenue,MATCH,0.0000%,,
+107,2025-11,Cost of sales,DIFF,6.0871%,mapping: different level_1,40827 General and admin expenses -> Cost of sales
+107,2025-11,Gross profit,DIFF,3.0240%,mapping: different level_1,40827 General and admin expenses -> Cost of sales
+107,2025-11,G&A,DIFF,7.2628%,mapping: Fabric's separate Provisions line; different level_1,40827 General and admin expenses -> Cost of sales | 40836 General and admin expenses -> Provisions | 40840 General and admin expenses -> Provisions
+107,2025-11,Net,MATCH,0.0000%,,
+107,2025-12,Revenue,MATCH,0.0000%,,
+107,2025-12,Cost of sales,DIFF,8.0117%,mapping: different level_1,40827 General and admin expenses -> Cost of sales
+107,2025-12,Gross profit,DIFF,3.4763%,mapping: different level_1,40827 General and admin expenses -> Cost of sales
+107,2025-12,G&A,DIFF,73.5767%,mapping: Fabric's separate Provisions line; account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40836 General and admin expenses -> Provisions | 40818 General and admin expenses -> Not in Fabric map | 40863 General and admin expenses -> Provisions | 40832 General and admin expenses -> Provisions | 40831 General and admin expenses -> Provisions
+107,2025-12,Net,DIFF,37.3724%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40818 General and admin expenses -> Not in Fabric map
+107,2026-01,Revenue,MATCH,0.0000%,,
+107,2026-01,Cost of sales,DIFF,12.6481%,mapping: different level_1,40827 General and admin expenses -> Cost of sales
+107,2026-01,Gross profit,DIFF,4.7022%,mapping: different level_1,40827 General and admin expenses -> Cost of sales
+107,2026-01,G&A,DIFF,9.4754%,mapping: Fabric's separate Provisions line; different level_1,40827 General and admin expenses -> Cost of sales | 40840 General and admin expenses -> Provisions | 40836 General and admin expenses -> Provisions
+107,2026-01,Net,MATCH,0.0000%,,
+107,2026-02,Revenue,MATCH,0.0000%,,
+107,2026-02,Cost of sales,DIFF,9.2521%,mapping: different level_1,40827 General and admin expenses -> Cost of sales
+107,2026-02,Gross profit,DIFF,3.6820%,mapping: different level_1,40827 General and admin expenses -> Cost of sales
+107,2026-02,G&A,DIFF,8.8765%,mapping: Fabric's separate Provisions line; different level_1,40827 General and admin expenses -> Cost of sales | 40836 General and admin expenses -> Provisions | 40840 General and admin expenses -> Provisions
+107,2026-02,Net,MATCH,0.0000%,,
+107,2026-03,Revenue,MATCH,0.0000%,,
+107,2026-03,Cost of sales,DIFF,12.5371%,mapping: different level_1,40827 General and admin expenses -> Cost of sales
+107,2026-03,Gross profit,DIFF,5.5915%,mapping: different level_1,40827 General and admin expenses -> Cost of sales
+107,2026-03,G&A,DIFF,8.6609%,mapping: Fabric's separate Provisions line; different level_1,40827 General and admin expenses -> Cost of sales | 40836 General and admin expenses -> Provisions | 40840 General and admin expenses -> Provisions
+107,2026-03,Net,MATCH,0.0000%,,
+107,2026-04,Revenue,MATCH,0.0000%,,
+107,2026-04,Cost of sales,DIFF,7.8256%,mapping: different level_1,40827 General and admin expenses -> Cost of sales
+107,2026-04,Gross profit,DIFF,3.3199%,mapping: different level_1,40827 General and admin expenses -> Cost of sales
+107,2026-04,G&A,DIFF,10.1224%,mapping: Fabric's separate Provisions line; different level_1,40827 General and admin expenses -> Cost of sales | 40840 General and admin expenses -> Provisions | 40836 General and admin expenses -> Provisions
+107,2026-04,Net,MATCH,0.0000%,,
+107,2026-05,Revenue,MATCH,0.0000%,,
+107,2026-05,Cost of sales,DIFF,10.1055%,mapping: different level_1,40827 General and admin expenses -> Cost of sales
+107,2026-05,Gross profit,DIFF,4.3070%,mapping: different level_1,40827 General and admin expenses -> Cost of sales
+107,2026-05,G&A,DIFF,7.0187%,mapping: Fabric's separate Provisions line; different level_1,40827 General and admin expenses -> Cost of sales | 40836 General and admin expenses -> Provisions | 40840 General and admin expenses -> Provisions
+107,2026-05,Net,MATCH,0.0000%,,
+107,2026-06,Revenue,MATCH,0.0000%,,
+107,2026-06,Cost of sales,DIFF,4.4810%,mapping: different level_1,40827 General and admin expenses -> Cost of sales
+107,2026-06,Gross profit,DIFF,1.8941%,mapping: different level_1,40827 General and admin expenses -> Cost of sales
+107,2026-06,G&A,DIFF,6.6889%,mapping: Fabric's separate Provisions line; different level_1,40827 General and admin expenses -> Cost of sales | 40836 General and admin expenses -> Provisions | 40840 General and admin expenses -> Provisions
+107,2026-06,Net,MATCH,0.0000%,,
+107,2026-07,Revenue,MATCH,0.0000%,,
+107,2026-07,Cost of sales,DIFF,3.9764%,mapping: different level_1,40827 General and admin expenses -> Cost of sales
+107,2026-07,Gross profit,DIFF,1.7758%,mapping: different level_1,40827 General and admin expenses -> Cost of sales
+107,2026-07,G&A,DIFF,8.9858%,mapping: Fabric's separate Provisions line; different level_1,40827 General and admin expenses -> Cost of sales | 40836 General and admin expenses -> Provisions | 40840 General and admin expenses -> Provisions
+107,2026-07,Net,MATCH,0.0000%,,
+107,2026-08,Revenue,MATCH,0.0000%,,
+107,2026-08,Cost of sales,DIFF,4.1052%,mapping: different level_1,40827 General and admin expenses -> Cost of sales
+107,2026-08,Gross profit,DIFF,2.7698%,mapping: different level_1,40827 General and admin expenses -> Cost of sales
+107,2026-08,G&A,DIFF,8.2004%,mapping: Fabric's separate Provisions line; different level_1,40827 General and admin expenses -> Cost of sales | 40836 General and admin expenses -> Provisions | 40840 General and admin expenses -> Provisions
+107,2026-08,Net,MATCH,0.0000%,,
+107,2026-09,Revenue,MATCH,0.0000%,,
+107,2026-09,Cost of sales,DIFF,5.0911%,mapping: different level_1,40827 General and admin expenses -> Cost of sales
+107,2026-09,Gross profit,DIFF,2.0101%,mapping: different level_1,40827 General and admin expenses -> Cost of sales
+107,2026-09,G&A,DIFF,11.8582%,mapping: Fabric's separate Provisions line; different level_1,40827 General and admin expenses -> Cost of sales | 40840 General and admin expenses -> Provisions | 40836 General and admin expenses -> Provisions
+107,2026-09,Net,MATCH,0.0000%,,
+107,YTD 2026,Revenue,MATCH,0.0000%,,
+107,YTD 2026,Cost of sales,DIFF,7.1060%,mapping: different level_1,40827 General and admin expenses -> Cost of sales
+107,YTD 2026,Gross profit,DIFF,2.7639%,mapping: different level_1,40827 General and admin expenses -> Cost of sales
+107,YTD 2026,G&A,DIFF,8.8277%,mapping: Fabric's separate Provisions line; different level_1,40827 General and admin expenses -> Cost of sales | 40836 General and admin expenses -> Provisions | 40840 General and admin expenses -> Provisions
+107,YTD 2026,Net,MATCH,0.0000%,,
+121,2025-10,Revenue,MATCH,0.0000%,,
+121,2025-10,Cost of sales,MATCH,0.0000%,,
+121,2025-10,Gross profit,MATCH,0.0000%,,
+121,2025-10,G&A,DIFF,100.0000%,mapping: Fabric's separate Provisions line,40836 General and admin expenses -> Provisions
+121,2025-10,Net,MATCH,0.0000%,,
+121,2025-11,Revenue,MATCH,0.0000%,,
+121,2025-11,Cost of sales,MATCH,0.0000%,,
+121,2025-11,Gross profit,MATCH,0.0000%,,
+121,2025-11,G&A,DIFF,100.0000%,mapping: Fabric's separate Provisions line,40836 General and admin expenses -> Provisions | 40840 General and admin expenses -> Provisions
+121,2025-11,Net,MATCH,0.0000%,,
+121,2025-12,Revenue,MATCH,0.0000%,,
+121,2025-12,Cost of sales,DIFF,10.1539%,mapping: different level_1,40724 General and admin expenses -> Cost of sales
+121,2025-12,Gross profit,DIFF,4.9600%,mapping: different level_1,40724 General and admin expenses -> Cost of sales
+121,2025-12,G&A,DIFF,53.0348%,mapping: Fabric's separate Provisions line; different level_1,40724 General and admin expenses -> Cost of sales | 40836 General and admin expenses -> Provisions
+121,2025-12,Net,MATCH,0.0000%,,
+121,2026-01,Revenue,MATCH,0.0000%,,
+121,2026-01,Cost of sales,MATCH,0.0000%,,
+121,2026-01,Gross profit,MATCH,0.0000%,,
+121,2026-01,Net,MATCH,0.0000%,,
+121,2026-02,Revenue,MATCH,0.0000%,,
+121,2026-02,Cost of sales,DIFF,12.3026%,mapping: different level_1,40724 General and admin expenses -> Cost of sales
+121,2026-02,Gross profit,DIFF,2.1172%,mapping: different level_1,40724 General and admin expenses -> Cost of sales
+121,2026-02,G&A,DIFF,100.0000%,mapping: different level_1,40724 General and admin expenses -> Cost of sales
+121,2026-02,Net,MATCH,0.0000%,,
+121,2026-03,Revenue,MATCH,0.0000%,,
+121,2026-03,Cost of sales,DIFF,14.7832%,mapping: different level_1,40724 General and admin expenses -> Cost of sales
+121,2026-03,Gross profit,DIFF,6.5230%,mapping: different level_1,40724 General and admin expenses -> Cost of sales
+121,2026-03,G&A,DIFF,72.3888%,mapping: different level_1,40724 General and admin expenses -> Cost of sales
+121,2026-03,Net,MATCH,0.0000%,,
+121,2026-04,Revenue,MATCH,0.0000%,,
+121,2026-04,Cost of sales,MATCH,0.0000%,,
+121,2026-04,Gross profit,MATCH,0.0000%,,
+121,2026-04,Net,MATCH,0.0000%,,
+121,2026-05,Revenue,MATCH,0.0000%,,
+121,2026-05,Cost of sales,DIFF,14.7692%,mapping: different level_1,40724 General and admin expenses -> Cost of sales
+121,2026-05,Gross profit,DIFF,6.5408%,mapping: different level_1,40724 General and admin expenses -> Cost of sales
+121,2026-05,G&A,DIFF,100.0000%,mapping: different level_1,40724 General and admin expenses -> Cost of sales
+121,2026-05,Net,MATCH,0.0000%,,
+121,2026-06,Revenue,MATCH,0.0000%,,
+121,2026-06,Cost of sales,DIFF,13.6583%,mapping: different level_1,40724 General and admin expenses -> Cost of sales
+121,2026-06,Gross profit,DIFF,2.8209%,mapping: different level_1,40724 General and admin expenses -> Cost of sales
+121,2026-06,G&A,DIFF,100.0000%,mapping: different level_1,40724 General and admin expenses -> Cost of sales
+121,2026-06,Net,MATCH,0.0000%,,
+121,2026-07,Revenue,MATCH,0.0000%,,
+121,2026-07,Cost of sales,MATCH,0.0000%,,
+121,2026-07,Gross profit,MATCH,0.0000%,,
+121,2026-07,Net,MATCH,0.0000%,,
+121,2026-08,Revenue,MATCH,0.0000%,,
+121,2026-08,Cost of sales,MATCH,0.0000%,,
+121,2026-08,Gross profit,MATCH,0.0000%,,
+121,2026-08,Net,MATCH,0.0000%,,
+121,2026-09,Revenue,MATCH,0.0000%,,
+121,2026-09,Cost of sales,DIFF,14.4646%,mapping: different level_1,40724 General and admin expenses -> Cost of sales
+121,2026-09,Gross profit,DIFF,7.8840%,mapping: different level_1,40724 General and admin expenses -> Cost of sales
+121,2026-09,G&A,DIFF,100.0000%,mapping: different level_1,40724 General and admin expenses -> Cost of sales
+121,2026-09,Net,MATCH,0.0000%,,
+121,YTD 2026,Revenue,MATCH,0.0000%,,
+121,YTD 2026,Cost of sales,DIFF,11.5226%,mapping: different level_1,40724 General and admin expenses -> Cost of sales
+121,YTD 2026,Gross profit,DIFF,2.4580%,mapping: different level_1,40724 General and admin expenses -> Cost of sales
+121,YTD 2026,G&A,DIFF,91.0010%,mapping: different level_1,40724 General and admin expenses -> Cost of sales
+121,YTD 2026,Net,MATCH,0.0000%,,
+123,2025-10,Revenue,MATCH,0.0000%,,
+123,2025-10,Cost of sales,DIFF,10.0564%,mapping: different level_1,40724 General and admin expenses -> Cost of sales
+123,2025-10,Gross profit,DIFF,3.4075%,mapping: different level_1,40724 General and admin expenses -> Cost of sales
+123,2025-10,G&A,DIFF,100.0000%,mapping: Fabric's separate Provisions line; different level_1,40724 General and admin expenses -> Cost of sales | 40836 General and admin expenses -> Provisions
+123,2025-10,Net,MATCH,0.0000%,,
+123,2025-11,Revenue,MATCH,0.0000%,,
+123,2025-11,Cost of sales,DIFF,7.5571%,mapping: different level_1,40724 General and admin expenses -> Cost of sales
+123,2025-11,Gross profit,DIFF,1.9565%,mapping: different level_1,40724 General and admin expenses -> Cost of sales
+123,2025-11,G&A,DIFF,100.0000%,mapping: Fabric's separate Provisions line; different level_1,40836 General and admin expenses -> Provisions | 40724 General and admin expenses -> Cost of sales
+123,2025-11,Net,MATCH,0.0000%,,
+123,2025-12,Revenue,MATCH,0.0000%,,
+123,2025-12,Cost of sales,DIFF,47.1109%,mapping: account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40727 Cost of sales -> Not in Fabric map | 40724 General and admin expenses -> Cost of sales
+123,2025-12,Gross profit,DIFF,31.7627%,mapping: account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40727 Cost of sales -> Not in Fabric map | 40724 General and admin expenses -> Cost of sales
+123,2025-12,G&A,DIFF,100.0000%,mapping: Fabric's separate Provisions line; different level_1,40724 General and admin expenses -> Cost of sales | 40836 General and admin expenses -> Provisions
+123,2025-12,Net,DIFF,38.9392%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40727 Cost of sales -> Not in Fabric map
+123,2026-01,Revenue,MATCH,0.0000%,,
+123,2026-01,Cost of sales,DIFF,7.6786%,mapping: different level_1,40724 General and admin expenses -> Cost of sales
+123,2026-01,Gross profit,DIFF,1.8690%,mapping: different level_1,40724 General and admin expenses -> Cost of sales
+123,2026-01,G&A,DIFF,100.0000%,mapping: Fabric's separate Provisions line; different level_1,40836 General and admin expenses -> Provisions | 40724 General and admin expenses -> Cost of sales
+123,2026-01,Net,MATCH,0.0000%,,
+123,2026-02,Revenue,MATCH,0.0000%,,
+123,2026-02,Cost of sales,DIFF,6.9445%,mapping: different level_1,40724 General and admin expenses -> Cost of sales
+123,2026-02,Gross profit,DIFF,2.1869%,mapping: different level_1,40724 General and admin expenses -> Cost of sales
+123,2026-02,G&A,DIFF,100.0000%,mapping: Fabric's separate Provisions line; different level_1,40836 General and admin expenses -> Provisions | 40724 General and admin expenses -> Cost of sales | 40840 General and admin expenses -> Provisions
+123,2026-02,Net,MATCH,0.0000%,,
+123,2026-03,Revenue,MATCH,0.0000%,,
+123,2026-03,Cost of sales,DIFF,44.0380%,mapping: account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40727 Cost of sales -> Not in Fabric map | 40724 General and admin expenses -> Cost of sales
+123,2026-03,Gross profit,DIFF,40.5474%,mapping: account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40727 Cost of sales -> Not in Fabric map | 40724 General and admin expenses -> Cost of sales
+123,2026-03,G&A,DIFF,89.7475%,mapping: Fabric's separate Provisions line; different level_1,40836 General and admin expenses -> Provisions | 40724 General and admin expenses -> Cost of sales
+123,2026-03,Net,DIFF,47.0019%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40727 Cost of sales -> Not in Fabric map
+123,2026-04,Revenue,MATCH,0.0000%,,
+123,2026-04,Cost of sales,DIFF,2.4304%,mapping: account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40727 Cost of sales -> Not in Fabric map | 40724 General and admin expenses -> Cost of sales
+123,2026-04,Gross profit,DIFF,1.3727%,mapping: account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40727 Cost of sales -> Not in Fabric map | 40724 General and admin expenses -> Cost of sales
+123,2026-04,G&A,DIFF,100.0000%,mapping: Fabric's separate Provisions line; different level_1,40836 General and admin expenses -> Provisions | 40724 General and admin expenses -> Cost of sales
+123,2026-04,Net,DIFF,4.0065%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40727 Cost of sales -> Not in Fabric map
+123,2026-05,Revenue,MATCH,0.0000%,,
+123,2026-05,Cost of sales,DIFF,6.1055%,mapping: account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40727 Cost of sales -> Not in Fabric map | 40724 General and admin expenses -> Cost of sales
+123,2026-05,Gross profit,DIFF,1.0840%,mapping: account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40727 Cost of sales -> Not in Fabric map | 40724 General and admin expenses -> Cost of sales
+123,2026-05,G&A,DIFF,100.0000%,mapping: Fabric's separate Provisions line; different level_1,40836 General and admin expenses -> Provisions | 40724 General and admin expenses -> Cost of sales
+123,2026-05,Net,DIFF,2.9482%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40727 Cost of sales -> Not in Fabric map
+123,2026-06,Revenue,MATCH,0.0000%,,
+123,2026-06,Cost of sales,DIFF,4.0881%,mapping: account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40727 Cost of sales -> Not in Fabric map | 40724 General and admin expenses -> Cost of sales
+123,2026-06,Gross profit,DIFF,1.1042%,mapping: account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40727 Cost of sales -> Not in Fabric map | 40724 General and admin expenses -> Cost of sales
+123,2026-06,G&A,DIFF,100.0000%,mapping: Fabric's separate Provisions line; different level_1,40836 General and admin expenses -> Provisions | 40724 General and admin expenses -> Cost of sales
+123,2026-06,Net,DIFF,3.1856%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40727 Cost of sales -> Not in Fabric map
+123,2026-07,Revenue,MATCH,0.0000%,,
+123,2026-07,Cost of sales,DIFF,2.5656%,mapping: account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40727 Cost of sales -> Not in Fabric map | 40724 General and admin expenses -> Cost of sales
+123,2026-07,Gross profit,DIFF,1.5640%,mapping: account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40727 Cost of sales -> Not in Fabric map | 40724 General and admin expenses -> Cost of sales
+123,2026-07,G&A,DIFF,100.0000%,mapping: Fabric's separate Provisions line; different level_1,40836 General and admin expenses -> Provisions | 40724 General and admin expenses -> Cost of sales
+123,2026-07,Net,DIFF,4.4206%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40727 Cost of sales -> Not in Fabric map
+123,2026-08,Revenue,MATCH,0.0000%,,
+123,2026-08,Cost of sales,DIFF,3.1604%,mapping: account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40727 Cost of sales -> Not in Fabric map | 40724 General and admin expenses -> Cost of sales
+123,2026-08,Gross profit,DIFF,1.4164%,mapping: account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40727 Cost of sales -> Not in Fabric map | 40724 General and admin expenses -> Cost of sales
+123,2026-08,G&A,DIFF,100.0000%,mapping: Fabric's separate Provisions line; different level_1,40836 General and admin expenses -> Provisions | 40724 General and admin expenses -> Cost of sales
+123,2026-08,Net,DIFF,3.9544%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40727 Cost of sales -> Not in Fabric map
+123,2026-09,Revenue,MATCH,0.0000%,,
+123,2026-09,Cost of sales,DIFF,2.1032%,mapping: account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40727 Cost of sales -> Not in Fabric map | 40724 General and admin expenses -> Cost of sales
+123,2026-09,Gross profit,DIFF,1.4701%,mapping: account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40727 Cost of sales -> Not in Fabric map | 40724 General and admin expenses -> Cost of sales
+123,2026-09,G&A,DIFF,100.0000%,mapping: Fabric's separate Provisions line; different level_1,40836 General and admin expenses -> Provisions | 40724 General and admin expenses -> Cost of sales
+123,2026-09,Net,DIFF,4.3704%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40727 Cost of sales -> Not in Fabric map
+123,YTD 2026,Revenue,MATCH,0.0000%,,
+123,YTD 2026,Cost of sales,DIFF,8.8758%,mapping: account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40727 Cost of sales -> Not in Fabric map | 40724 General and admin expenses -> Cost of sales
+123,YTD 2026,Gross profit,DIFF,3.8716%,mapping: account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40727 Cost of sales -> Not in Fabric map | 40724 General and admin expenses -> Cost of sales
+123,YTD 2026,G&A,DIFF,98.6978%,mapping: Fabric's separate Provisions line; different level_1,40836 General and admin expenses -> Provisions | 40724 General and admin expenses -> Cost of sales | 40840 General and admin expenses -> Provisions
+123,YTD 2026,Net,DIFF,6.4346%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40727 Cost of sales -> Not in Fabric map
+126,2025-10,Revenue,MATCH,0.0000%,,
+126,2025-10,Cost of sales,MATCH,0.0000%,,
+126,2025-10,Gross profit,MATCH,0.0000%,,
+126,2025-10,G&A,DIFF,100.0000%,mapping: Fabric's separate Provisions line,40881 General and admin expenses -> Provisions | 40840 General and admin expenses -> Provisions
+126,2025-10,Net,MATCH,0.0000%,,
+126,2025-11,Revenue,MATCH,0.0000%,,
+126,2025-11,Cost of sales,MATCH,0.0000%,,
+126,2025-11,Gross profit,MATCH,0.0000%,,
+126,2025-11,G&A,DIFF,100.0000%,mapping: Fabric's separate Provisions line,40881 General and admin expenses -> Provisions | 40840 General and admin expenses -> Provisions
+126,2025-11,Net,MATCH,0.0000%,,
+126,2025-12,Revenue,MATCH,0.0000%,,
+126,2025-12,Cost of sales,MATCH,0.0000%,,
+126,2025-12,Gross profit,MATCH,0.0000%,,
+126,2025-12,G&A,DIFF,100.0000%,mapping: Fabric's separate Provisions line,40881 General and admin expenses -> Provisions | 40840 General and admin expenses -> Provisions
+126,2025-12,Net,MATCH,0.0000%,,
+129,2025-10,Revenue,MATCH,0.0000%,,
+129,2025-10,Cost of sales,DIFF,44.5674%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40727 Cost of sales -> Not in Fabric map
+129,2025-10,Gross profit,DIFF,19.0001%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40727 Cost of sales -> Not in Fabric map
+129,2025-10,G&A,DIFF,100.0000%,mapping: Fabric's separate Provisions line,40836 General and admin expenses -> Provisions
+129,2025-10,Net,DIFF,55.0667%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40727 Cost of sales -> Not in Fabric map
+129,2025-11,Revenue,MATCH,0.0000%,,
+129,2025-11,Cost of sales,DIFF,41.0084%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40727 Cost of sales -> Not in Fabric map
+129,2025-11,Gross profit,DIFF,20.8660%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40727 Cost of sales -> Not in Fabric map
+129,2025-11,G&A,DIFF,100.0000%,mapping: Fabric's separate Provisions line,40836 General and admin expenses -> Provisions
+129,2025-11,Net,DIFF,68.6554%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40727 Cost of sales -> Not in Fabric map
+129,2025-12,Revenue,MATCH,0.0000%,,
+129,2025-12,Cost of sales,DIFF,50.3521%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40727 Cost of sales -> Not in Fabric map
+129,2025-12,Gross profit,DIFF,14.3851%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40727 Cost of sales -> Not in Fabric map
+129,2025-12,Net,DIFF,14.3851%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40727 Cost of sales -> Not in Fabric map
+129,2026-01,Revenue,MATCH,0.0000%,,
+129,2026-01,Cost of sales,DIFF,47.9424%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40727 Cost of sales -> Not in Fabric map
+129,2026-01,Gross profit,DIFF,18.1548%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40727 Cost of sales -> Not in Fabric map
+129,2026-01,G&A,DIFF,100.0000%,mapping: Fabric's separate Provisions line,40836 General and admin expenses -> Provisions
+129,2026-01,Net,DIFF,48.5191%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40727 Cost of sales -> Not in Fabric map
+129,2026-02,Revenue,MATCH,0.0000%,,
+129,2026-02,Cost of sales,DIFF,51.8123%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40727 Cost of sales -> Not in Fabric map
+129,2026-02,Gross profit,DIFF,19.8649%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40727 Cost of sales -> Not in Fabric map
+129,2026-02,G&A,DIFF,100.0000%,mapping: Fabric's separate Provisions line,40836 General and admin expenses -> Provisions
+129,2026-02,Net,DIFF,52.0711%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40727 Cost of sales -> Not in Fabric map
+129,2026-03,Revenue,MATCH,0.0000%,,
+129,2026-03,Cost of sales,DIFF,48.2885%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40727 Cost of sales -> Not in Fabric map
+129,2026-03,Gross profit,DIFF,12.7829%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40727 Cost of sales -> Not in Fabric map
+129,2026-03,G&A,DIFF,98.8612%,mapping: Fabric's separate Provisions line,40836 General and admin expenses -> Provisions
+129,2026-03,Net,DIFF,29.8023%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40727 Cost of sales -> Not in Fabric map
+129,2026-04,Revenue,MATCH,0.0000%,,
+129,2026-04,Cost of sales,DIFF,41.9058%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40727 Cost of sales -> Not in Fabric map
+129,2026-04,Gross profit,DIFF,14.1541%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40727 Cost of sales -> Not in Fabric map
+129,2026-04,G&A,DIFF,100.0000%,mapping: Fabric's separate Provisions line,40836 General and admin expenses -> Provisions
+129,2026-04,Net,DIFF,35.8305%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40727 Cost of sales -> Not in Fabric map
+129,2026-05,Revenue,MATCH,0.0000%,,
+129,2026-05,Cost of sales,DIFF,32.4492%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40727 Cost of sales -> Not in Fabric map
+129,2026-05,Gross profit,DIFF,14.9877%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40727 Cost of sales -> Not in Fabric map
+129,2026-05,G&A,DIFF,100.0000%,mapping: Fabric's separate Provisions line,40836 General and admin expenses -> Provisions
+129,2026-05,Net,DIFF,44.3363%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40727 Cost of sales -> Not in Fabric map
+129,2026-06,Revenue,MATCH,0.0000%,,
+129,2026-06,Cost of sales,DIFF,22.6053%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40727 Cost of sales -> Not in Fabric map
+129,2026-06,Gross profit,DIFF,19.8996%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40727 Cost of sales -> Not in Fabric map
+129,2026-06,G&A,DIFF,100.0000%,mapping: Fabric's separate Provisions line,40836 General and admin expenses -> Provisions | 40840 General and admin expenses -> Provisions
+129,2026-06,Net,DIFF,133.2287%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40727 Cost of sales -> Not in Fabric map
+129,2026-07,Revenue,MATCH,0.0000%,,
+129,2026-07,Cost of sales,DIFF,36.7897%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40727 Cost of sales -> Not in Fabric map
+129,2026-07,Gross profit,DIFF,13.8465%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40727 Cost of sales -> Not in Fabric map
+129,2026-07,G&A,DIFF,100.0000%,mapping: Fabric's separate Provisions line,40836 General and admin expenses -> Provisions
+129,2026-07,Net,DIFF,35.6376%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40727 Cost of sales -> Not in Fabric map
+129,2026-08,Revenue,MATCH,0.0000%,,
+129,2026-08,Cost of sales,DIFF,37.0632%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40727 Cost of sales -> Not in Fabric map
+129,2026-08,Gross profit,DIFF,13.8033%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40727 Cost of sales -> Not in Fabric map
+129,2026-08,G&A,DIFF,100.0000%,mapping: Fabric's separate Provisions line,40836 General and admin expenses -> Provisions
+129,2026-08,Net,DIFF,35.2392%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40727 Cost of sales -> Not in Fabric map
+129,2026-09,Revenue,MATCH,0.0000%,,
+129,2026-09,Cost of sales,DIFF,30.7144%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40727 Cost of sales -> Not in Fabric map
+129,2026-09,Gross profit,DIFF,16.5847%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40727 Cost of sales -> Not in Fabric map
+129,2026-09,G&A,DIFF,100.0000%,mapping: Fabric's separate Provisions line,40836 General and admin expenses -> Provisions
+129,2026-09,Net,DIFF,56.6591%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40727 Cost of sales -> Not in Fabric map
+129,YTD 2026,Revenue,MATCH,0.0000%,,
+129,YTD 2026,Cost of sales,DIFF,37.0926%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40727 Cost of sales -> Not in Fabric map
+129,YTD 2026,Gross profit,DIFF,15.7811%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40727 Cost of sales -> Not in Fabric map
+129,YTD 2026,G&A,DIFF,99.8693%,mapping: Fabric's separate Provisions line,40836 General and admin expenses -> Provisions | 40840 General and admin expenses -> Provisions
+129,YTD 2026,Net,DIFF,44.1319%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40727 Cost of sales -> Not in Fabric map
+130,2025-10,Revenue,MATCH,0.0000%,,
+130,2025-10,Cost of sales,DIFF,26.7784%,mapping: different level_1,40870 General and admin expenses -> Cost of sales
+130,2025-10,Gross profit,DIFF,40.6723%,mapping: different level_1,40870 General and admin expenses -> Cost of sales
+130,2025-10,G&A,DIFF,95.3498%,mapping: account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40870 General and admin expenses -> Cost of sales | 40872 General and admin expenses -> Not in Fabric map
+130,2025-10,Net,DIFF,46.1442%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40872 General and admin expenses -> Not in Fabric map
+130,2025-11,Revenue,MATCH,0.0000%,,
+130,2025-11,Cost of sales,DIFF,48.3607%,mapping: different level_1,40870 General and admin expenses -> Cost of sales
+130,2025-11,Gross profit,DIFF,139.8454%,mapping: different level_1,40870 General and admin expenses -> Cost of sales
+130,2025-11,G&A,DIFF,99.4000%,mapping: account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40870 General and admin expenses -> Cost of sales | 40872 General and admin expenses -> Not in Fabric map
+130,2025-11,Net,DIFF,50.0831%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40872 General and admin expenses -> Not in Fabric map
+130,2025-12,Revenue,MATCH,0.0000%,,
+130,2025-12,Cost of sales,DIFF,51.1294%,mapping: different level_1,40870 General and admin expenses -> Cost of sales
+130,2025-12,Gross profit,DIFF,85.4858%,mapping: different level_1,40870 General and admin expenses -> Cost of sales
+130,2025-12,G&A,DIFF,98.0733%,mapping: account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40870 General and admin expenses -> Cost of sales | 40872 General and admin expenses -> Not in Fabric map
+130,2025-12,Net,DIFF,134.1445%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40872 General and admin expenses -> Not in Fabric map
+130,2026-01,Revenue,MATCH,0.0000%,,
+130,2026-01,Cost of sales,DIFF,49.6985%,mapping: different level_1,40870 General and admin expenses -> Cost of sales
+130,2026-01,Gross profit,DIFF,177.3019%,mapping: different level_1,40870 General and admin expenses -> Cost of sales
+130,2026-01,G&A,DIFF,99.2146%,mapping: account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40870 General and admin expenses -> Cost of sales | 40872 General and admin expenses -> Not in Fabric map
+130,2026-01,Net,DIFF,51.2925%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40872 General and admin expenses -> Not in Fabric map
+130,2026-02,Revenue,MATCH,0.0000%,,
+130,2026-02,Cost of sales,DIFF,57.2068%,mapping: different level_1,40870 General and admin expenses -> Cost of sales
+130,2026-02,Gross profit,DIFF,68.4246%,mapping: different level_1,40870 General and admin expenses -> Cost of sales
+130,2026-02,G&A,DIFF,99.0913%,mapping: account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40870 General and admin expenses -> Cost of sales | 40872 General and admin expenses -> Not in Fabric map
+130,2026-02,Net,DIFF,188.5219%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40872 General and admin expenses -> Not in Fabric map
+130,2026-03,Revenue,MATCH,0.0000%,,
+130,2026-03,Cost of sales,DIFF,33.1125%,mapping: different level_1,40870 General and admin expenses -> Cost of sales
+130,2026-03,Gross profit,DIFF,73.3993%,mapping: different level_1,40870 General and admin expenses -> Cost of sales
+130,2026-03,G&A,DIFF,99.1171%,mapping: account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40870 General and admin expenses -> Cost of sales | 40872 General and admin expenses -> Not in Fabric map
+130,2026-03,Net,DIFF,11.8902%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40872 General and admin expenses -> Not in Fabric map
+130,2026-04,Revenue,MATCH,0.0000%,,
+130,2026-04,Cost of sales,DIFF,40.4175%,mapping: different level_1,40870 General and admin expenses -> Cost of sales
+130,2026-04,Gross profit,DIFF,521.0255%,mapping: different level_1,40870 General and admin expenses -> Cost of sales
+130,2026-04,G&A,DIFF,100.0000%,mapping: account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40870 General and admin expenses -> Cost of sales | 40872 General and admin expenses -> Not in Fabric map
+130,2026-04,Net,DIFF,7.0067%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40872 General and admin expenses -> Not in Fabric map
+130,2026-05,Revenue,MATCH,0.0000%,,
+130,2026-05,Cost of sales,DIFF,57.5090%,mapping: different level_1,40870 General and admin expenses -> Cost of sales
+130,2026-05,Gross profit,DIFF,51.0986%,mapping: different level_1,40870 General and admin expenses -> Cost of sales
+130,2026-05,G&A,DIFF,99.0922%,mapping: account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40870 General and admin expenses -> Cost of sales | 40872 General and admin expenses -> Not in Fabric map
+130,2026-05,Net,DIFF,80.9788%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40872 General and admin expenses -> Not in Fabric map
+130,2026-06,Revenue,MATCH,0.0000%,,
+130,2026-06,Cost of sales,DIFF,41.1728%,mapping: different level_1,40870 General and admin expenses -> Cost of sales
+130,2026-06,Gross profit,DIFF,85.9589%,mapping: different level_1,40870 General and admin expenses -> Cost of sales
+130,2026-06,G&A,DIFF,99.1287%,mapping: account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40870 General and admin expenses -> Cost of sales | 40872 General and admin expenses -> Not in Fabric map
+130,2026-06,Net,DIFF,129.7111%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40872 General and admin expenses -> Not in Fabric map
+130,2026-07,Revenue,MATCH,0.0000%,,
+130,2026-07,Cost of sales,DIFF,38.6518%,mapping: different level_1,40870 General and admin expenses -> Cost of sales
+130,2026-07,Gross profit,DIFF,88.3820%,mapping: different level_1,40870 General and admin expenses -> Cost of sales
+130,2026-07,G&A,DIFF,99.3414%,mapping: account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40870 General and admin expenses -> Cost of sales | 40872 General and admin expenses -> Not in Fabric map
+130,2026-07,Net,DIFF,126.6141%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40872 General and admin expenses -> Not in Fabric map
+130,2026-08,Revenue,MATCH,0.0000%,,
+130,2026-08,Cost of sales,DIFF,47.6293%,mapping: different level_1,40870 General and admin expenses -> Cost of sales
+130,2026-08,Gross profit,DIFF,61.9661%,mapping: different level_1,40870 General and admin expenses -> Cost of sales
+130,2026-08,G&A,DIFF,100.0000%,mapping: account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40870 General and admin expenses -> Cost of sales | 40872 General and admin expenses -> Not in Fabric map
+130,2026-08,Net,DIFF,104.0080%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40872 General and admin expenses -> Not in Fabric map
+130,2026-09,Revenue,MATCH,0.0000%,,
+130,2026-09,Cost of sales,DIFF,39.7285%,mapping: different level_1,40870 General and admin expenses -> Cost of sales
+130,2026-09,Gross profit,DIFF,83.0078%,mapping: different level_1,40870 General and admin expenses -> Cost of sales
+130,2026-09,G&A,DIFF,100.0000%,mapping: account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40870 General and admin expenses -> Cost of sales | 40872 General and admin expenses -> Not in Fabric map
+130,2026-09,Net,DIFF,254.2905%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40872 General and admin expenses -> Not in Fabric map
+130,YTD 2026,Revenue,MATCH,0.0000%,,
+130,YTD 2026,Cost of sales,DIFF,43.6181%,mapping: different level_1,40870 General and admin expenses -> Cost of sales
+130,YTD 2026,Gross profit,DIFF,119.1009%,mapping: different level_1,40870 General and admin expenses -> Cost of sales
+130,YTD 2026,G&A,DIFF,99.4219%,mapping: account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40870 General and admin expenses -> Cost of sales | 40872 General and admin expenses -> Not in Fabric map
+130,YTD 2026,Net,DIFF,69.8226%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40872 General and admin expenses -> Not in Fabric map
+133,2025-10,Revenue,MATCH,0.0000%,,
+133,2025-10,Cost of sales,DIFF,39.3157%,mapping: different level_1,40877 Cost of sales -> General and admin expenses | 40870 General and admin expenses -> Cost of sales
+133,2025-10,Gross profit,DIFF,3.8063%,mapping: different level_1,40877 Cost of sales -> General and admin expenses | 40870 General and admin expenses -> Cost of sales
+133,2025-10,G&A,DIFF,4.7018%,mapping: Fabric's separate Provisions line; different level_1,40877 Cost of sales -> General and admin expenses | 40870 General and admin expenses -> Cost of sales | 40836 General and admin expenses -> Provisions
+133,2025-10,Net,MATCH,0.0000%,,
+133,2025-11,Revenue,MATCH,0.0000%,,
+133,2025-11,Cost of sales,DIFF,10.8176%,mapping: different level_1,40870 General and admin expenses -> Cost of sales | 40877 Cost of sales -> General and admin expenses
+133,2025-11,Gross profit,DIFF,0.5289%,mapping: different level_1,40870 General and admin expenses -> Cost of sales | 40877 Cost of sales -> General and admin expenses
+133,2025-11,G&A,DIFF,1.4808%,mapping: Fabric's separate Provisions line; different level_1,40870 General and admin expenses -> Cost of sales | 40877 Cost of sales -> General and admin expenses | 40840 General and admin expenses -> Provisions | 40836 General and admin expenses -> Provisions
+133,2025-11,Net,MATCH,0.0000%,,
+133,2025-12,Revenue,MATCH,0.0000%,,
+133,2025-12,Cost of sales,DIFF,11.9830%,mapping: different level_1,40877 Cost of sales -> General and admin expenses | 40870 General and admin expenses -> Cost of sales
+133,2025-12,Gross profit,DIFF,7.2020%,mapping: different level_1,40877 Cost of sales -> General and admin expenses | 40870 General and admin expenses -> Cost of sales
+133,2025-12,G&A,DIFF,2.7267%,mapping: Fabric's separate Provisions line; different level_1,40877 Cost of sales -> General and admin expenses | 40870 General and admin expenses -> Cost of sales | 40840 General and admin expenses -> Provisions | 40836 General and admin expenses -> Provisions
+133,2025-12,Net,MATCH,0.0000%,,
+133,2026-01,Revenue,MATCH,0.0000%,,
+133,2026-01,Cost of sales,DIFF,9.5051%,mapping: different level_1,40870 General and admin expenses -> Cost of sales | 40877 Cost of sales -> General and admin expenses
+133,2026-01,Gross profit,DIFF,0.4358%,mapping: different level_1,40870 General and admin expenses -> Cost of sales | 40877 Cost of sales -> General and admin expenses
+133,2026-01,G&A,DIFF,0.8242%,mapping: Fabric's separate Provisions line; different level_1,40870 General and admin expenses -> Cost of sales | 40877 Cost of sales -> General and admin expenses | 40836 General and admin expenses -> Provisions
+133,2026-01,Net,MATCH,0.0000%,,
+133,2026-02,Revenue,MATCH,0.0000%,,
+133,2026-02,Cost of sales,DIFF,47.8344%,mapping: different level_1,40877 Cost of sales -> General and admin expenses | 40870 General and admin expenses -> Cost of sales
+133,2026-02,Gross profit,DIFF,3.0023%,mapping: different level_1,40877 Cost of sales -> General and admin expenses | 40870 General and admin expenses -> Cost of sales
+133,2026-02,G&A,DIFF,3.2449%,mapping: Fabric's separate Provisions line; different level_1,40877 Cost of sales -> General and admin expenses | 40870 General and admin expenses -> Cost of sales | 40840 General and admin expenses -> Provisions | 40836 General and admin expenses -> Provisions
+133,2026-02,Net,MATCH,0.0000%,,
+133,2026-03,Revenue,MATCH,0.0000%,,
+133,2026-03,Cost of sales,DIFF,40.7403%,mapping: different level_1,40877 Cost of sales -> General and admin expenses | 40870 General and admin expenses -> Cost of sales
+133,2026-03,Gross profit,DIFF,4.6835%,mapping: different level_1,40877 Cost of sales -> General and admin expenses | 40870 General and admin expenses -> Cost of sales
+133,2026-03,G&A,DIFF,4.6853%,mapping: Fabric's separate Provisions line; different level_1,40877 Cost of sales -> General and admin expenses | 40870 General and admin expenses -> Cost of sales | 40840 General and admin expenses -> Provisions | 40836 General and admin expenses -> Provisions
+133,2026-03,Net,MATCH,0.0000%,,
+133,2026-04,Revenue,MATCH,0.0000%,,
+133,2026-04,Cost of sales,DIFF,47.3009%,mapping: different level_1,40877 Cost of sales -> General and admin expenses | 40870 General and admin expenses -> Cost of sales
+133,2026-04,Gross profit,DIFF,10.2187%,mapping: different level_1,40877 Cost of sales -> General and admin expenses | 40870 General and admin expenses -> Cost of sales
+133,2026-04,G&A,DIFF,12.4478%,mapping: Fabric's separate Provisions line; different level_1,40877 Cost of sales -> General and admin expenses | 40870 General and admin expenses -> Cost of sales | 40836 General and admin expenses -> Provisions
+133,2026-04,Net,MATCH,0.0000%,,
+133,2026-05,Revenue,MATCH,0.0000%,,
+133,2026-05,Cost of sales,DIFF,9.1944%,mapping: different level_1,40870 General and admin expenses -> Cost of sales | 40877 Cost of sales -> General and admin expenses
+133,2026-05,Gross profit,DIFF,0.3841%,mapping: different level_1,40870 General and admin expenses -> Cost of sales | 40877 Cost of sales -> General and admin expenses
+133,2026-05,G&A,DIFF,0.9549%,mapping: Fabric's separate Provisions line; different level_1,40870 General and admin expenses -> Cost of sales | 40877 Cost of sales -> General and admin expenses | 40836 General and admin expenses -> Provisions | 40840 General and admin expenses -> Provisions
+133,2026-05,Net,MATCH,0.0000%,,
+133,2026-06,Revenue,MATCH,0.0000%,,
+133,2026-06,Cost of sales,DIFF,33.7772%,mapping: different level_1,40877 Cost of sales -> General and admin expenses | 40870 General and admin expenses -> Cost of sales
+133,2026-06,Gross profit,DIFF,3.3364%,mapping: different level_1,40877 Cost of sales -> General and admin expenses | 40870 General and admin expenses -> Cost of sales
+133,2026-06,G&A,DIFF,4.1329%,mapping: Fabric's separate Provisions line; different level_1,40877 Cost of sales -> General and admin expenses | 40870 General and admin expenses -> Cost of sales | 40836 General and admin expenses -> Provisions
+133,2026-06,Net,MATCH,0.0000%,,
+133,2026-07,Revenue,MATCH,0.0000%,,
+133,2026-07,Cost of sales,DIFF,41.7853%,mapping: different level_1,40877 Cost of sales -> General and admin expenses | 40870 General and admin expenses -> Cost of sales
+133,2026-07,Gross profit,DIFF,5.2178%,mapping: different level_1,40877 Cost of sales -> General and admin expenses | 40870 General and admin expenses -> Cost of sales
+133,2026-07,G&A,DIFF,5.1957%,mapping: Fabric's separate Provisions line; different level_1,40877 Cost of sales -> General and admin expenses | 40870 General and admin expenses -> Cost of sales | 40840 General and admin expenses -> Provisions | 40836 General and admin expenses -> Provisions
+133,2026-07,Net,MATCH,0.0000%,,
+133,2026-08,Revenue,MATCH,0.0000%,,
+133,2026-08,Cost of sales,DIFF,28.5766%,mapping: different level_1,40877 Cost of sales -> General and admin expenses | 40870 General and admin expenses -> Cost of sales
+133,2026-08,Gross profit,DIFF,0.6854%,mapping: different level_1,40877 Cost of sales -> General and admin expenses | 40870 General and admin expenses -> Cost of sales
+133,2026-08,G&A,DIFF,0.7775%,mapping: Fabric's separate Provisions line; different level_1,40877 Cost of sales -> General and admin expenses | 40870 General and admin expenses -> Cost of sales | 40836 General and admin expenses -> Provisions | 40840 General and admin expenses -> Provisions
+133,2026-08,Net,MATCH,0.0000%,,
+133,2026-09,Revenue,MATCH,0.0000%,,
+133,2026-09,Cost of sales,DIFF,45.9636%,mapping: different level_1,40877 Cost of sales -> General and admin expenses | 40870 General and admin expenses -> Cost of sales
+133,2026-09,Gross profit,DIFF,5.9286%,mapping: different level_1,40877 Cost of sales -> General and admin expenses | 40870 General and admin expenses -> Cost of sales
+133,2026-09,G&A,DIFF,8.0166%,mapping: Fabric's separate Provisions line; different level_1,40877 Cost of sales -> General and admin expenses | 40870 General and admin expenses -> Cost of sales | 40840 General and admin expenses -> Provisions | 40836 General and admin expenses -> Provisions
+133,2026-09,Net,MATCH,0.0000%,,
+133,YTD 2026,Revenue,MATCH,0.0000%,,
+133,YTD 2026,Cost of sales,DIFF,37.3957%,mapping: different level_1,40877 Cost of sales -> General and admin expenses | 40870 General and admin expenses -> Cost of sales
+133,YTD 2026,Gross profit,DIFF,3.5369%,mapping: different level_1,40877 Cost of sales -> General and admin expenses | 40870 General and admin expenses -> Cost of sales
+133,YTD 2026,G&A,DIFF,4.1096%,mapping: Fabric's separate Provisions line; different level_1,40877 Cost of sales -> General and admin expenses | 40870 General and admin expenses -> Cost of sales | 40836 General and admin expenses -> Provisions | 40840 General and admin expenses -> Provisions
+133,YTD 2026,Net,MATCH,0.0000%,,
+135,2025-10,Revenue,MATCH,0.0000%,,
+135,2025-10,Cost of sales,DIFF,100.0000%,mapping: different level_1,40854 General and admin expenses -> Cost of sales
+135,2025-10,Gross profit,DIFF,1.5718%,mapping: different level_1,40854 General and admin expenses -> Cost of sales
+135,2025-10,G&A,DIFF,35.2294%,mapping: Fabric's separate Provisions line; different level_1,40840 General and admin expenses -> Provisions | 40854 General and admin expenses -> Cost of sales
+135,2025-10,Net,MATCH,0.0000%,,
+135,2025-11,Revenue,MATCH,0.0000%,,
+135,2025-11,Gross profit,MATCH,0.0000%,,
+135,2025-11,G&A,DIFF,75.8292%,mapping: Fabric's separate Provisions line,40843 General and admin expenses -> Provisions | 40840 General and admin expenses -> Provisions
+135,2025-11,Net,MATCH,0.0000%,,
+135,2025-12,Revenue,DIFF,74.3134%,mapping: Fabric's separate Provisions line; different level_1,30686 Revenue -> Provisions | 40837 General and admin expenses -> Revenue
+135,2025-12,Cost of sales,DIFF,100.0000%,mapping: different level_1,40854 General and admin expenses -> Cost of sales
+135,2025-12,Gross profit,DIFF,95.1092%,mapping: Fabric's separate Provisions line; different level_1,30686 Revenue -> Provisions | 40854 General and admin expenses -> Cost of sales | 40837 General and admin expenses -> Revenue
+135,2025-12,G&A,DIFF,95.4459%,mapping: Fabric's separate Provisions line; account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40842 General and admin expenses -> Provisions | 40854 General and admin expenses -> Cost of sales | 40864 General and admin expenses -> Not in Fabric map | 40840 General and admin expenses -> Provisions | 40837 General and admin expenses -> Revenue
+135,2025-12,Net,DIFF,11.8022%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40864 General and admin expenses -> Not in Fabric map
+135,2026-01,Revenue,DIFF,75.2059%,mapping: different level_1,40837 General and admin expenses -> Revenue
+135,2026-01,Gross profit,DIFF,75.2059%,mapping: different level_1,40837 General and admin expenses -> Revenue
+135,2026-01,G&A,DIFF,106.7892%,mapping: Fabric's separate Provisions line; different level_1,40837 General and admin expenses -> Revenue | 40840 General and admin expenses -> Provisions
+135,2026-01,Net,MATCH,0.0000%,,
+135,2026-02,Revenue,MATCH,0.0000%,,
+135,2026-02,Cost of sales,DIFF,100.0000%,mapping: different level_1,40854 General and admin expenses -> Cost of sales
+135,2026-02,Gross profit,DIFF,3.0429%,mapping: different level_1,40854 General and admin expenses -> Cost of sales
+135,2026-02,G&A,DIFF,98.8984%,mapping: Fabric's separate Provisions line; account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40864 General and admin expenses -> Not in Fabric map | 40840 General and admin expenses -> Provisions | 40854 General and admin expenses -> Cost of sales
+135,2026-02,Net,DIFF,164.4725%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40864 General and admin expenses -> Not in Fabric map
+135,2026-03,Revenue,MATCH,0.0000%,,
+135,2026-03,Cost of sales,DIFF,100.0000%,mapping: different level_1,40854 General and admin expenses -> Cost of sales
+135,2026-03,Gross profit,DIFF,23.1987%,mapping: different level_1,40854 General and admin expenses -> Cost of sales
+135,2026-03,G&A,DIFF,99.0838%,mapping: Fabric's separate Provisions line; account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40854 General and admin expenses -> Cost of sales | 40840 General and admin expenses -> Provisions | 40864 General and admin expenses -> Not in Fabric map
+135,2026-03,Net,DIFF,0.9220%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40864 General and admin expenses -> Not in Fabric map
+135,2026-04,Revenue,MATCH,0.0000%,,
+135,2026-04,Cost of sales,DIFF,100.0000%,mapping: different level_1,40854 General and admin expenses -> Cost of sales
+135,2026-04,Gross profit,DIFF,0.7673%,mapping: different level_1,40854 General and admin expenses -> Cost of sales
+135,2026-04,G&A,DIFF,314.2084%,mapping: Fabric's separate Provisions line; different level_1,40840 General and admin expenses -> Provisions | 40854 General and admin expenses -> Cost of sales
+135,2026-04,Net,MATCH,0.0000%,,
+135,2026-05,Revenue,MATCH,0.0000%,,
+135,2026-05,Gross profit,MATCH,0.0000%,,
+135,2026-05,G&A,DIFF,54.2366%,mapping: Fabric's separate Provisions line,40840 General and admin expenses -> Provisions
+135,2026-05,Net,MATCH,0.0000%,,
+135,2026-06,Revenue,MATCH,0.2565%,,
+135,2026-06,Cost of sales,DIFF,100.0000%,mapping: different level_1,40854 General and admin expenses -> Cost of sales
+135,2026-06,Gross profit,DIFF,20.7704%,mapping: different level_1,40854 General and admin expenses -> Cost of sales | 40837 General and admin expenses -> Revenue
+135,2026-06,G&A,DIFF,75.9343%,mapping: Fabric's separate Provisions line; account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40854 General and admin expenses -> Cost of sales | 40840 General and admin expenses -> Provisions | 40864 General and admin expenses -> Not in Fabric map | 40837 General and admin expenses -> Revenue
+135,2026-06,Net,DIFF,11.6343%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40864 General and admin expenses -> Not in Fabric map
+135,2026-07,Revenue,MATCH,0.0000%,,
+135,2026-07,Gross profit,MATCH,0.0000%,,
+135,2026-07,G&A,DIFF,37.1079%,mapping: Fabric's separate Provisions line; account missing from Fabric's map (dropped by the INNER JOIN),40840 General and admin expenses -> Provisions | 40864 General and admin expenses -> Not in Fabric map
+135,2026-07,Net,DIFF,6.0079%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40864 General and admin expenses -> Not in Fabric map
+135,2026-08,Revenue,MATCH,0.0000%,,
+135,2026-08,Gross profit,MATCH,0.0000%,,
+135,2026-08,G&A,DIFF,66.2090%,mapping: Fabric's separate Provisions line; account missing from Fabric's map (dropped by the INNER JOIN),40843 General and admin expenses -> Provisions | 40840 General and admin expenses -> Provisions | 40864 General and admin expenses -> Not in Fabric map
+135,2026-08,Net,DIFF,13.3650%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40864 General and admin expenses -> Not in Fabric map
+135,2026-09,Revenue,MATCH,0.0000%,,
+135,2026-09,Cost of sales,DIFF,100.0000%,mapping: different level_1,40854 General and admin expenses -> Cost of sales
+135,2026-09,Gross profit,DIFF,9.6653%,mapping: different level_1,40854 General and admin expenses -> Cost of sales
+135,2026-09,G&A,DIFF,34.5802%,mapping: Fabric's separate Provisions line; account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40864 General and admin expenses -> Not in Fabric map | 40840 General and admin expenses -> Provisions | 40854 General and admin expenses -> Cost of sales
+135,2026-09,Net,DIFF,302.1947%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40864 General and admin expenses -> Not in Fabric map
+135,YTD 2026,Revenue,DIFF,7.9814%,mapping: different level_1,40837 General and admin expenses -> Revenue
+135,YTD 2026,Cost of sales,DIFF,100.0000%,mapping: different level_1,40854 General and admin expenses -> Cost of sales
+135,YTD 2026,Gross profit,DIFF,3.6884%,mapping: different level_1,40837 General and admin expenses -> Revenue | 40854 General and admin expenses -> Cost of sales
+135,YTD 2026,G&A,DIFF,60.0448%,mapping: Fabric's separate Provisions line; account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40837 General and admin expenses -> Revenue | 40864 General and admin expenses -> Not in Fabric map | 40840 General and admin expenses -> Provisions | 40843 General and admin expenses -> Provisions | 40854 General and admin expenses -> Cost of sales
+135,YTD 2026,Net,DIFF,11.0583%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40864 General and admin expenses -> Not in Fabric map
+136,2025-10,Revenue,DIFF,100.0000%,mapping: different level_1,40837 General and admin expenses -> Revenue
+136,2025-10,Gross profit,DIFF,100.0000%,mapping: different level_1,40837 General and admin expenses -> Revenue
+136,2025-10,G&A,DIFF,100.0073%,mapping: different level_1,40837 General and admin expenses -> Revenue
+136,2025-10,Net,MATCH,0.0000%,,
+136,2025-11,G&A,MATCH,0.2371%,,
+136,2025-11,Net,MATCH,0.0000%,,
+136,2025-12,Revenue,DIFF,100.0000%,mapping: different level_1,40837 General and admin expenses -> Revenue
+136,2025-12,Gross profit,DIFF,100.0000%,mapping: different level_1,40837 General and admin expenses -> Revenue
+136,2025-12,G&A,DIFF,99.7179%,mapping: Fabric's separate Provisions line; different level_1,40837 General and admin expenses -> Revenue | 40863 General and admin expenses -> Provisions
+136,2025-12,Net,MATCH,0.0000%,,
+136,2026-01,G&A,DIFF,100.0000%,mapping: Fabric's separate Provisions line,40840 General and admin expenses -> Provisions
+136,2026-01,Net,MATCH,0.0000%,,
+136,2026-02,G&A,MATCH,0.0000%,,
+136,2026-02,Net,MATCH,0.0000%,,
+136,2026-03,G&A,MATCH,0.0000%,,
+136,2026-03,Net,MATCH,0.0000%,,
+136,2026-05,G&A,MATCH,0.0000%,,
+136,2026-05,Net,MATCH,0.0000%,,
+136,2026-06,G&A,MATCH,0.0000%,,
+136,2026-06,Net,MATCH,0.0000%,,
+136,2026-07,G&A,MATCH,0.0000%,,
+136,2026-07,Net,MATCH,0.0000%,,
+136,2026-08,G&A,MATCH,0.0000%,,
+136,2026-08,Net,MATCH,0.0000%,,
+136,YTD 2026,G&A,DIFF,1.4443%,mapping: Fabric's separate Provisions line,40840 General and admin expenses -> Provisions
+136,YTD 2026,Net,MATCH,0.0000%,,
+137,2025-10,Revenue,MATCH,0.0000%,,
+137,2025-10,Cost of sales,DIFF,5.4714%,mapping: different level_1,40829 General and admin expenses -> Cost of sales
+137,2025-10,Gross profit,DIFF,4.6359%,mapping: different level_1,40829 General and admin expenses -> Cost of sales
+137,2025-10,G&A,DIFF,20.1891%,mapping: Fabric's separate Provisions line; different level_1,40829 General and admin expenses -> Cost of sales | 40880 General and admin expenses -> Provisions | 40840 General and admin expenses -> Provisions
+137,2025-10,Net,MATCH,0.0000%,,
+137,2025-11,Revenue,MATCH,0.0000%,,
+137,2025-11,Cost of sales,DIFF,3.5578%,mapping: different level_1,40829 General and admin expenses -> Cost of sales
+137,2025-11,Gross profit,DIFF,13.4428%,mapping: different level_1,40829 General and admin expenses -> Cost of sales
+137,2025-11,G&A,DIFF,11.1281%,mapping: Fabric's separate Provisions line; different level_1,40829 General and admin expenses -> Cost of sales | 40880 General and admin expenses -> Provisions | 40840 General and admin expenses -> Provisions
+137,2025-11,Net,MATCH,0.0000%,,
+137,2025-12,Revenue,MATCH,0.0000%,,
+137,2025-12,Cost of sales,DIFF,1.6983%,mapping: different level_1,40829 General and admin expenses -> Cost of sales
+137,2025-12,Gross profit,DIFF,1.8554%,mapping: different level_1,40829 General and admin expenses -> Cost of sales
+137,2025-12,G&A,DIFF,80.1098%,mapping: Fabric's separate Provisions line; account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40831 General and admin expenses -> Provisions | 40863 General and admin expenses -> Provisions | 40880 General and admin expenses -> Provisions | 40818 General and admin expenses -> Not in Fabric map | 40829 General and admin expenses -> Cost of sales
+137,2025-12,Net,DIFF,2.5366%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40818 General and admin expenses -> Not in Fabric map
+137,2026-01,Revenue,MATCH,0.0000%,,
+137,2026-01,Cost of sales,MATCH,0.0000%,,
+137,2026-01,Gross profit,MATCH,0.0000%,,
+137,2026-01,G&A,DIFF,6.9561%,mapping: Fabric's separate Provisions line,40880 General and admin expenses -> Provisions | 40840 General and admin expenses -> Provisions
+137,2026-01,Net,MATCH,0.0000%,,
+137,2026-02,Revenue,MATCH,0.0000%,,
+137,2026-02,Cost of sales,DIFF,3.8446%,mapping: different level_1,40829 General and admin expenses -> Cost of sales
+137,2026-02,Gross profit,DIFF,3.1359%,mapping: different level_1,40829 General and admin expenses -> Cost of sales
+137,2026-02,G&A,DIFF,6.7160%,mapping: Fabric's separate Provisions line; different level_1,40829 General and admin expenses -> Cost of sales | 40880 General and admin expenses -> Provisions | 40840 General and admin expenses -> Provisions
+137,2026-02,Net,MATCH,0.0000%,,
+137,2026-03,Revenue,MATCH,0.0000%,,
+137,2026-03,Cost of sales,MATCH,0.0000%,,
+137,2026-03,Gross profit,MATCH,0.0000%,,
+137,2026-03,G&A,DIFF,28.9055%,mapping: Fabric's separate Provisions line,40880 General and admin expenses -> Provisions | 40840 General and admin expenses -> Provisions
+137,2026-03,Net,MATCH,0.0000%,,
+137,2026-04,Revenue,MATCH,0.0000%,,
+137,2026-04,Cost of sales,MATCH,0.0192%,,
+137,2026-04,Gross profit,MATCH,0.0348%,,
+137,2026-04,G&A,DIFF,5.5408%,mapping: Fabric's separate Provisions line; different level_1,40880 General and admin expenses -> Provisions | 40836 General and admin expenses -> Provisions | 40829 General and admin expenses -> Cost of sales | 40840 General and admin expenses -> Provisions
+137,2026-04,Net,MATCH,0.0000%,,
+137,2026-05,Revenue,MATCH,0.0000%,,
+137,2026-05,Cost of sales,DIFF,544.2222%,mapping: different level_1,40829 General and admin expenses -> Cost of sales
+137,2026-05,Gross profit,DIFF,544.1618%,mapping: different level_1,40829 General and admin expenses -> Cost of sales
+137,2026-05,G&A,DIFF,6.7099%,mapping: Fabric's separate Provisions line; different level_1,40829 General and admin expenses -> Cost of sales | 40880 General and admin expenses -> Provisions | 40836 General and admin expenses -> Provisions | 40840 General and admin expenses -> Provisions
+137,2026-05,Net,MATCH,0.0000%,,
+137,2026-06,Revenue,MATCH,0.0000%,,
+137,2026-06,Cost of sales,DIFF,9.0541%,mapping: different level_1,40829 General and admin expenses -> Cost of sales
+137,2026-06,Gross profit,DIFF,36.0792%,mapping: different level_1,40829 General and admin expenses -> Cost of sales
+137,2026-06,G&A,DIFF,29.7737%,mapping: Fabric's separate Provisions line; different level_1,40880 General and admin expenses -> Provisions | 40829 General and admin expenses -> Cost of sales | 40836 General and admin expenses -> Provisions | 40840 General and admin expenses -> Provisions
+137,2026-06,Net,MATCH,0.0000%,,
+137,2026-07,Cost of sales,DIFF,100.0000%,mapping: different level_1,40829 General and admin expenses -> Cost of sales
+137,2026-07,Gross profit,DIFF,100.0000%,mapping: different level_1,40829 General and admin expenses -> Cost of sales
+137,2026-07,G&A,DIFF,0.7403%,mapping: Fabric's separate Provisions line; different level_1,40829 General and admin expenses -> Cost of sales | 40836 General and admin expenses -> Provisions | 40840 General and admin expenses -> Provisions
+137,2026-07,Net,MATCH,0.0000%,,
+137,2026-08,Revenue,MATCH,0.0000%,,
+137,2026-08,Cost of sales,DIFF,5.0379%,mapping: different level_1,40829 General and admin expenses -> Cost of sales
+137,2026-08,Gross profit,DIFF,11.0809%,mapping: different level_1,40829 General and admin expenses -> Cost of sales
+137,2026-08,G&A,DIFF,36.2249%,mapping: Fabric's separate Provisions line; different level_1,40880 General and admin expenses -> Provisions | 40829 General and admin expenses -> Cost of sales | 40836 General and admin expenses -> Provisions
+137,2026-08,Net,MATCH,0.0000%,,
+137,2026-09,Revenue,MATCH,0.0000%,,
+137,2026-09,Cost of sales,MATCH,0.0000%,,
+137,2026-09,Gross profit,MATCH,0.0000%,,
+137,2026-09,G&A,DIFF,1.2838%,mapping: Fabric's separate Provisions line,40840 General and admin expenses -> Provisions | 40836 General and admin expenses -> Provisions | 40880 General and admin expenses -> Provisions
+137,2026-09,Net,MATCH,0.0000%,,
+137,YTD 2026,Revenue,MATCH,0.0000%,,
+137,YTD 2026,Cost of sales,DIFF,2.6748%,mapping: different level_1,40829 General and admin expenses -> Cost of sales
+137,YTD 2026,Gross profit,DIFF,3.3482%,mapping: different level_1,40829 General and admin expenses -> Cost of sales
+137,YTD 2026,G&A,DIFF,16.0759%,mapping: Fabric's separate Provisions line; different level_1,40880 General and admin expenses -> Provisions | 40829 General and admin expenses -> Cost of sales | 40836 General and admin expenses -> Provisions | 40840 General and admin expenses -> Provisions
+137,YTD 2026,Net,MATCH,0.0000%,,
+138,2025-10,Revenue,MATCH,0.0000%,,
+138,2025-10,Cost of sales,MATCH,0.0000%,,
+138,2025-10,Gross profit,MATCH,0.0000%,,
+138,2025-10,G&A,MATCH,0.0000%,,
+138,2025-10,Net,MATCH,0.0000%,,
+138,2025-11,Revenue,MATCH,0.0000%,,
+138,2025-11,Cost of sales,MATCH,0.0000%,,
+138,2025-11,Gross profit,MATCH,0.0000%,,
+138,2025-11,G&A,MATCH,0.0000%,,
+138,2025-11,Net,MATCH,0.0000%,,
+138,2025-12,Revenue,MATCH,0.0000%,,
+138,2025-12,Cost of sales,MATCH,0.0000%,,
+138,2025-12,Gross profit,MATCH,0.0000%,,
+138,2025-12,G&A,DIFF,96.0855%,mapping: Fabric's separate Provisions line; account missing from Fabric's map (dropped by the INNER JOIN),40818 General and admin expenses -> Not in Fabric map | 40863 General and admin expenses -> Provisions
+138,2025-12,Net,DIFF,46.2482%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40818 General and admin expenses -> Not in Fabric map
+138,2026-01,Revenue,MATCH,0.0000%,,
+138,2026-01,Cost of sales,MATCH,0.0000%,,
+138,2026-01,Gross profit,MATCH,0.0000%,,
+138,2026-01,G&A,DIFF,10.3767%,mapping: Fabric's separate Provisions line,40840 General and admin expenses -> Provisions
+138,2026-01,Net,MATCH,0.0000%,,
+138,2026-02,Revenue,MATCH,0.0000%,,
+138,2026-02,Cost of sales,MATCH,0.0000%,,
+138,2026-02,Gross profit,MATCH,0.0000%,,
+138,2026-02,G&A,MATCH,0.0000%,,
+138,2026-02,Net,MATCH,0.0000%,,
+138,2026-03,Revenue,MATCH,0.0000%,,
+138,2026-03,Cost of sales,MATCH,0.0000%,,
+138,2026-03,Gross profit,MATCH,0.0000%,,
+138,2026-03,G&A,MATCH,0.0000%,,
+138,2026-03,Net,MATCH,0.0000%,,
+138,2026-04,Revenue,MATCH,0.0000%,,
+138,2026-04,Cost of sales,DIFF,12.5322%,mapping: different level_1,40827 General and admin expenses -> Cost of sales
+138,2026-04,Gross profit,DIFF,8.1698%,mapping: different level_1,40827 General and admin expenses -> Cost of sales
+138,2026-04,G&A,DIFF,7.0380%,mapping: Fabric's separate Provisions line; different level_1,40827 General and admin expenses -> Cost of sales | 40840 General and admin expenses -> Provisions
+138,2026-04,Net,MATCH,0.0000%,,
+138,2026-05,Revenue,MATCH,0.0000%,,
+138,2026-05,Cost of sales,DIFF,20.2809%,mapping: different level_1,40827 General and admin expenses -> Cost of sales
+138,2026-05,Gross profit,DIFF,12.9174%,mapping: different level_1,40827 General and admin expenses -> Cost of sales
+138,2026-05,G&A,DIFF,19.4479%,mapping: Fabric's separate Provisions line; account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40818 General and admin expenses -> Not in Fabric map | 40827 General and admin expenses -> Cost of sales | 40840 General and admin expenses -> Provisions
+138,2026-05,Net,DIFF,25.5787%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40818 General and admin expenses -> Not in Fabric map
+138,2026-06,Revenue,MATCH,0.0000%,,
+138,2026-06,Cost of sales,DIFF,30.9775%,mapping: different level_1,40827 General and admin expenses -> Cost of sales
+138,2026-06,Gross profit,DIFF,20.6516%,mapping: different level_1,40827 General and admin expenses -> Cost of sales
+138,2026-06,G&A,DIFF,6.4174%,mapping: different level_1,40827 General and admin expenses -> Cost of sales
+138,2026-06,Net,MATCH,0.0000%,,
+138,2026-07,Revenue,MATCH,0.0000%,,
+138,2026-07,Cost of sales,DIFF,36.6842%,mapping: different level_1,40827 General and admin expenses -> Cost of sales
+138,2026-07,Gross profit,DIFF,24.4562%,mapping: different level_1,40827 General and admin expenses -> Cost of sales
+138,2026-07,G&A,DIFF,8.6453%,mapping: Fabric's separate Provisions line; different level_1,40827 General and admin expenses -> Cost of sales | 40840 General and admin expenses -> Provisions
+138,2026-07,Net,MATCH,0.0000%,,
+138,2026-08,Revenue,MATCH,0.0000%,,
+138,2026-08,Cost of sales,DIFF,74.4538%,mapping: different level_1,40827 General and admin expenses -> Cost of sales
+138,2026-08,Gross profit,DIFF,49.6359%,mapping: different level_1,40827 General and admin expenses -> Cost of sales
+138,2026-08,G&A,DIFF,6.2349%,mapping: Fabric's separate Provisions line; different level_1,40827 General and admin expenses -> Cost of sales | 40836 General and admin expenses -> Provisions | 40840 General and admin expenses -> Provisions
+138,2026-08,Net,MATCH,0.0000%,,
+138,2026-09,Revenue,MATCH,0.0000%,,
+138,2026-09,Cost of sales,DIFF,27.8577%,mapping: different level_1,40827 General and admin expenses -> Cost of sales
+138,2026-09,Gross profit,DIFF,18.5718%,mapping: different level_1,40827 General and admin expenses -> Cost of sales
+138,2026-09,G&A,DIFF,6.9694%,mapping: Fabric's separate Provisions line; different level_1,40827 General and admin expenses -> Cost of sales | 40836 General and admin expenses -> Provisions | 40840 General and admin expenses -> Provisions
+138,2026-09,Net,MATCH,0.0000%,,
+138,YTD 2026,Revenue,MATCH,0.0000%,,
+138,YTD 2026,Cost of sales,DIFF,14.7352%,mapping: different level_1,40827 General and admin expenses -> Cost of sales
+138,YTD 2026,Gross profit,DIFF,10.0350%,mapping: different level_1,40827 General and admin expenses -> Cost of sales
+138,YTD 2026,G&A,DIFF,9.2604%,mapping: Fabric's separate Provisions line; account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40827 General and admin expenses -> Cost of sales | 40818 General and admin expenses -> Not in Fabric map | 40840 General and admin expenses -> Provisions | 40836 General and admin expenses -> Provisions
+138,YTD 2026,Net,DIFF,7.4421%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40818 General and admin expenses -> Not in Fabric map
+141,2025-10,Revenue,MATCH,0.0000%,,
+141,2025-10,Gross profit,MATCH,0.0000%,,
+141,2025-10,G&A,MATCH,0.0000%,,
+141,2025-10,Net,MATCH,0.0000%,,
+141,2025-11,Revenue,MATCH,0.0000%,,
+141,2025-11,Gross profit,MATCH,0.0000%,,
+141,2025-11,G&A,MATCH,0.0000%,,
+141,2025-11,Net,MATCH,0.0000%,,
+141,2025-12,Revenue,MATCH,0.0000%,,
+141,2025-12,Gross profit,MATCH,0.0000%,,
+141,2025-12,G&A,MATCH,0.0776%,,
+141,2025-12,Net,MATCH,0.0000%,,
+141,2026-01,Revenue,MATCH,0.0000%,,
+141,2026-01,Gross profit,MATCH,0.0000%,,
+141,2026-01,G&A,MATCH,0.0000%,,
+141,2026-01,Net,MATCH,0.0000%,,
+141,2026-02,Revenue,MATCH,0.0000%,,
+141,2026-02,Gross profit,MATCH,0.0000%,,
+141,2026-02,G&A,MATCH,0.0000%,,
+141,2026-02,Net,MATCH,0.0000%,,
+141,2026-03,Revenue,MATCH,0.0000%,,
+141,2026-03,Gross profit,MATCH,0.0000%,,
+141,2026-03,G&A,MATCH,0.0297%,,
+141,2026-03,Net,MATCH,0.0000%,,
+141,2026-04,Revenue,MATCH,0.0000%,,
+141,2026-04,Gross profit,MATCH,0.0000%,,
+141,2026-04,G&A,MATCH,0.0000%,,
+141,2026-04,Net,MATCH,0.0000%,,
+141,2026-05,Revenue,MATCH,0.0000%,,
+141,2026-05,Gross profit,MATCH,0.0000%,,
+141,2026-05,G&A,MATCH,0.0000%,,
+141,2026-05,Net,MATCH,0.0000%,,
+141,2026-06,Revenue,MATCH,0.0000%,,
+141,2026-06,Gross profit,MATCH,0.0000%,,
+141,2026-06,G&A,MATCH,0.0466%,,
+141,2026-06,Net,MATCH,0.0000%,,
+141,2026-07,Revenue,MATCH,0.0000%,,
+141,2026-07,Gross profit,MATCH,0.0000%,,
+141,2026-07,G&A,MATCH,0.0000%,,
+141,2026-07,Net,MATCH,0.0000%,,
+141,2026-08,Revenue,MATCH,0.0000%,,
+141,2026-08,Gross profit,MATCH,0.0000%,,
+141,2026-08,G&A,MATCH,0.0000%,,
+141,2026-08,Net,MATCH,0.0000%,,
+141,2026-09,Revenue,MATCH,0.0000%,,
+141,2026-09,Gross profit,MATCH,0.0000%,,
+141,2026-09,G&A,MATCH,0.0509%,,
+141,2026-09,Net,MATCH,0.0000%,,
+141,YTD 2026,Revenue,MATCH,0.0000%,,
+141,YTD 2026,Gross profit,MATCH,0.0000%,,
+141,YTD 2026,G&A,MATCH,0.0147%,,
+141,YTD 2026,Net,MATCH,0.0000%,,
+ALL,2025-10,Revenue,DIFF,120.7158%,mapping: account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40837 General and admin expenses -> Revenue | 30801 Revenue -> Not in Fabric map
+ALL,2025-10,Cost of sales,DIFF,0.6767%,mapping: account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40827 General and admin expenses -> Cost of sales | 40727 Cost of sales -> Not in Fabric map | 40724 General and admin expenses -> Cost of sales | 40870 General and admin expenses -> Cost of sales | 40877 Cost of sales -> General and admin expenses
+ALL,2025-10,Gross profit,DIFF,281.8072%,mapping: account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40837 General and admin expenses -> Revenue | 30801 Revenue -> Not in Fabric map | 40827 General and admin expenses -> Cost of sales | 40727 Cost of sales -> Not in Fabric map | 40724 General and admin expenses -> Cost of sales
+ALL,2025-10,G&A,DIFF,112.0855%,mapping: Fabric's separate Provisions line; account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40837 General and admin expenses -> Revenue | 40836 General and admin expenses -> Provisions | 40880 General and admin expenses -> Provisions | 40831 General and admin expenses -> Provisions | 40832 General and admin expenses -> Provisions
+ALL,2025-10,Net,DIFF,1.3179%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),30801 Revenue -> Not in Fabric map | 40727 Cost of sales -> Not in Fabric map | 40872 General and admin expenses -> Not in Fabric map
+ALL,2025-11,Revenue,MATCH,0.0000%,,
+ALL,2025-11,Cost of sales,DIFF,0.8712%,mapping: account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40827 General and admin expenses -> Cost of sales | 40870 General and admin expenses -> Cost of sales | 40727 Cost of sales -> Not in Fabric map | 40724 General and admin expenses -> Cost of sales | 40829 General and admin expenses -> Cost of sales
+ALL,2025-11,Gross profit,DIFF,1.5491%,mapping: account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40827 General and admin expenses -> Cost of sales | 40870 General and admin expenses -> Cost of sales | 40727 Cost of sales -> Not in Fabric map | 40724 General and admin expenses -> Cost of sales | 40829 General and admin expenses -> Cost of sales
+ALL,2025-11,G&A,DIFF,17.4417%,mapping: Fabric's separate Provisions line; account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40836 General and admin expenses -> Provisions | 40843 General and admin expenses -> Provisions | 40880 General and admin expenses -> Provisions | 40831 General and admin expenses -> Provisions | 40832 General and admin expenses -> Provisions
+ALL,2025-11,Net,DIFF,55.3399%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40727 Cost of sales -> Not in Fabric map | 40872 General and admin expenses -> Not in Fabric map
+ALL,2025-12,Revenue,DIFF,10.9674%,mapping: Fabric's separate Provisions line; account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40837 General and admin expenses -> Revenue | 30801 Revenue -> Not in Fabric map | 30686 Revenue -> Provisions
+ALL,2025-12,Cost of sales,DIFF,2.2434%,mapping: account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40854 General and admin expenses -> Cost of sales | 40727 Cost of sales -> Not in Fabric map | 40827 General and admin expenses -> Cost of sales | 40870 General and admin expenses -> Cost of sales | 40724 General and admin expenses -> Cost of sales
+ALL,2025-12,Gross profit,DIFF,15.8027%,mapping: Fabric's separate Provisions line; account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40837 General and admin expenses -> Revenue | 30801 Revenue -> Not in Fabric map | 30686 Revenue -> Provisions | 40854 General and admin expenses -> Cost of sales | 40727 Cost of sales -> Not in Fabric map
+ALL,2025-12,G&A,DIFF,98.6951%,mapping: Fabric's separate Provisions line; account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40883 General and admin expenses -> Not in Fabric map | 40818 General and admin expenses -> Not in Fabric map | 40837 General and admin expenses -> Revenue | 40836 General and admin expenses -> Provisions | 40863 General and admin expenses -> Provisions
+ALL,2025-12,Net,DIFF,148.3659%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40883 General and admin expenses -> Not in Fabric map | 40818 General and admin expenses -> Not in Fabric map | 30801 Revenue -> Not in Fabric map | 40864 General and admin expenses -> Not in Fabric map | 40727 Cost of sales -> Not in Fabric map
+ALL,2026-01,Revenue,DIFF,1.2250%,mapping: different level_1,40837 General and admin expenses -> Revenue
+ALL,2026-01,Cost of sales,DIFF,0.7582%,mapping: account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40827 General and admin expenses -> Cost of sales | 40727 Cost of sales -> Not in Fabric map | 40870 General and admin expenses -> Cost of sales | 40724 General and admin expenses -> Cost of sales | 40877 Cost of sales -> General and admin expenses
+ALL,2026-01,Gross profit,DIFF,1.9005%,mapping: account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40837 General and admin expenses -> Revenue | 40827 General and admin expenses -> Cost of sales | 40727 Cost of sales -> Not in Fabric map | 40870 General and admin expenses -> Cost of sales | 40724 General and admin expenses -> Cost of sales
+ALL,2026-01,G&A,DIFF,22.1083%,mapping: Fabric's separate Provisions line; account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40836 General and admin expenses -> Provisions | 40837 General and admin expenses -> Revenue | 40880 General and admin expenses -> Provisions | 40831 General and admin expenses -> Provisions | 40832 General and admin expenses -> Provisions
+ALL,2026-01,Net,DIFF,1.6210%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40727 Cost of sales -> Not in Fabric map | 40872 General and admin expenses -> Not in Fabric map
+ALL,2026-02,Revenue,MATCH,0.0000%,,
+ALL,2026-02,Cost of sales,DIFF,0.9840%,mapping: account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40827 General and admin expenses -> Cost of sales | 40727 Cost of sales -> Not in Fabric map | 40724 General and admin expenses -> Cost of sales | 40870 General and admin expenses -> Cost of sales | 40877 Cost of sales -> General and admin expenses
+ALL,2026-02,Gross profit,DIFF,1.3505%,mapping: account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40827 General and admin expenses -> Cost of sales | 40727 Cost of sales -> Not in Fabric map | 40724 General and admin expenses -> Cost of sales | 40870 General and admin expenses -> Cost of sales | 40877 Cost of sales -> General and admin expenses
+ALL,2026-02,G&A,DIFF,30.4446%,mapping: Fabric's separate Provisions line; account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40836 General and admin expenses -> Provisions | 40864 General and admin expenses -> Not in Fabric map | 40880 General and admin expenses -> Provisions | 40843 General and admin expenses -> Provisions | 40831 General and admin expenses -> Provisions
+ALL,2026-02,Net,DIFF,8.2068%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40864 General and admin expenses -> Not in Fabric map | 40727 Cost of sales -> Not in Fabric map | 40872 General and admin expenses -> Not in Fabric map | 40834 General and admin expenses -> Not in Fabric map
+ALL,2026-03,Revenue,DIFF,4.2092%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),30801 Revenue -> Not in Fabric map
+ALL,2026-03,Cost of sales,DIFF,0.8851%,mapping: account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40727 Cost of sales -> Not in Fabric map | 40827 General and admin expenses -> Cost of sales | 40724 General and admin expenses -> Cost of sales | 40854 General and admin expenses -> Cost of sales | 40870 General and admin expenses -> Cost of sales
+ALL,2026-03,Gross profit,DIFF,9.0647%,mapping: account missing from Fabric's map (dropped by the INNER JOIN); different level_1,30801 Revenue -> Not in Fabric map | 40727 Cost of sales -> Not in Fabric map | 40827 General and admin expenses -> Cost of sales | 40724 General and admin expenses -> Cost of sales | 40854 General and admin expenses -> Cost of sales
+ALL,2026-03,G&A,DIFF,26.6422%,mapping: Fabric's separate Provisions line; account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40836 General and admin expenses -> Provisions | 40880 General and admin expenses -> Provisions | 40831 General and admin expenses -> Provisions | 40832 General and admin expenses -> Provisions | 40840 General and admin expenses -> Provisions
+ALL,2026-03,Net,DIFF,20.8780%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),30801 Revenue -> Not in Fabric map | 40727 Cost of sales -> Not in Fabric map | 40872 General and admin expenses -> Not in Fabric map | 40864 General and admin expenses -> Not in Fabric map
+ALL,2026-04,Revenue,MATCH,0.0000%,,
+ALL,2026-04,Cost of sales,DIFF,0.8681%,mapping: account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40827 General and admin expenses -> Cost of sales | 40727 Cost of sales -> Not in Fabric map | 40724 General and admin expenses -> Cost of sales | 40870 General and admin expenses -> Cost of sales | 40877 Cost of sales -> General and admin expenses
+ALL,2026-04,Gross profit,DIFF,0.8450%,mapping: account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40827 General and admin expenses -> Cost of sales | 40727 Cost of sales -> Not in Fabric map | 40724 General and admin expenses -> Cost of sales | 40870 General and admin expenses -> Cost of sales | 40877 Cost of sales -> General and admin expenses
+ALL,2026-04,G&A,DIFF,25.2204%,mapping: Fabric's separate Provisions line; account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40836 General and admin expenses -> Provisions | 40880 General and admin expenses -> Provisions | 40840 General and admin expenses -> Provisions | 40831 General and admin expenses -> Provisions | 40832 General and admin expenses -> Provisions
+ALL,2026-04,Net,DIFF,2.0073%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40727 Cost of sales -> Not in Fabric map | 40864 General and admin expenses -> Not in Fabric map | 40872 General and admin expenses -> Not in Fabric map | 40834 General and admin expenses -> Not in Fabric map
+ALL,2026-05,Revenue,MATCH,0.0000%,,
+ALL,2026-05,Cost of sales,DIFF,1.2872%,mapping: account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40827 General and admin expenses -> Cost of sales | 40724 General and admin expenses -> Cost of sales | 40727 Cost of sales -> Not in Fabric map | 40870 General and admin expenses -> Cost of sales | 40829 General and admin expenses -> Cost of sales
+ALL,2026-05,Gross profit,DIFF,1.4410%,mapping: account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40827 General and admin expenses -> Cost of sales | 40724 General and admin expenses -> Cost of sales | 40727 Cost of sales -> Not in Fabric map | 40870 General and admin expenses -> Cost of sales | 40829 General and admin expenses -> Cost of sales
+ALL,2026-05,G&A,DIFF,25.5657%,mapping: Fabric's separate Provisions line; account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40836 General and admin expenses -> Provisions | 40880 General and admin expenses -> Provisions | 40831 General and admin expenses -> Provisions | 40832 General and admin expenses -> Provisions | 40827 General and admin expenses -> Cost of sales
+ALL,2026-05,Net,DIFF,3.4386%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40727 Cost of sales -> Not in Fabric map | 40818 General and admin expenses -> Not in Fabric map | 40872 General and admin expenses -> Not in Fabric map | 40834 General and admin expenses -> Not in Fabric map
+ALL,2026-06,Revenue,MATCH,0.0039%,,
+ALL,2026-06,Cost of sales,DIFF,1.6171%,mapping: account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40827 General and admin expenses -> Cost of sales | 40854 General and admin expenses -> Cost of sales | 40727 Cost of sales -> Not in Fabric map | 40724 General and admin expenses -> Cost of sales | 40870 General and admin expenses -> Cost of sales
+ALL,2026-06,Gross profit,DIFF,1.8171%,mapping: account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40827 General and admin expenses -> Cost of sales | 40854 General and admin expenses -> Cost of sales | 40727 Cost of sales -> Not in Fabric map | 40724 General and admin expenses -> Cost of sales | 40870 General and admin expenses -> Cost of sales
+ALL,2026-06,G&A,DIFF,24.5885%,mapping: Fabric's separate Provisions line; account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40836 General and admin expenses -> Provisions | 40880 General and admin expenses -> Provisions | 40831 General and admin expenses -> Provisions | 40832 General and admin expenses -> Provisions | 40840 General and admin expenses -> Provisions
+ALL,2026-06,Net,DIFF,3.7298%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40727 Cost of sales -> Not in Fabric map | 40872 General and admin expenses -> Not in Fabric map | 40864 General and admin expenses -> Not in Fabric map | 40834 General and admin expenses -> Not in Fabric map
+ALL,2026-07,Revenue,DIFF,2.3423%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),30801 Revenue -> Not in Fabric map
+ALL,2026-07,Cost of sales,DIFF,0.8648%,mapping: account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40827 General and admin expenses -> Cost of sales | 40727 Cost of sales -> Not in Fabric map | 40870 General and admin expenses -> Cost of sales | 40724 General and admin expenses -> Cost of sales | 40877 Cost of sales -> General and admin expenses
+ALL,2026-07,Gross profit,DIFF,5.6454%,mapping: account missing from Fabric's map (dropped by the INNER JOIN); different level_1,30801 Revenue -> Not in Fabric map | 40827 General and admin expenses -> Cost of sales | 40727 Cost of sales -> Not in Fabric map | 40870 General and admin expenses -> Cost of sales | 40724 General and admin expenses -> Cost of sales
+ALL,2026-07,G&A,DIFF,25.3468%,mapping: Fabric's separate Provisions line; account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40836 General and admin expenses -> Provisions | 40880 General and admin expenses -> Provisions | 40831 General and admin expenses -> Provisions | 40832 General and admin expenses -> Provisions | 40840 General and admin expenses -> Provisions
+ALL,2026-07,Net,DIFF,8.8356%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),30801 Revenue -> Not in Fabric map | 40727 Cost of sales -> Not in Fabric map | 40872 General and admin expenses -> Not in Fabric map | 40864 General and admin expenses -> Not in Fabric map
+ALL,2026-08,Revenue,MATCH,0.0000%,,
+ALL,2026-08,Cost of sales,DIFF,1.0290%,mapping: account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40827 General and admin expenses -> Cost of sales | 40727 Cost of sales -> Not in Fabric map | 40870 General and admin expenses -> Cost of sales | 40724 General and admin expenses -> Cost of sales | 40829 General and admin expenses -> Cost of sales
+ALL,2026-08,Gross profit,DIFF,1.5265%,mapping: account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40827 General and admin expenses -> Cost of sales | 40727 Cost of sales -> Not in Fabric map | 40870 General and admin expenses -> Cost of sales | 40724 General and admin expenses -> Cost of sales | 40829 General and admin expenses -> Cost of sales
+ALL,2026-08,G&A,DIFF,26.9342%,mapping: Fabric's separate Provisions line; account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40836 General and admin expenses -> Provisions | 40843 General and admin expenses -> Provisions | 40880 General and admin expenses -> Provisions | 40831 General and admin expenses -> Provisions | 40832 General and admin expenses -> Provisions
+ALL,2026-08,Net,DIFF,8.2653%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40727 Cost of sales -> Not in Fabric map | 40864 General and admin expenses -> Not in Fabric map | 40872 General and admin expenses -> Not in Fabric map | 40834 General and admin expenses -> Not in Fabric map
+ALL,2026-09,Revenue,MATCH,0.0000%,,
+ALL,2026-09,Cost of sales,DIFF,0.7844%,mapping: account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40827 General and admin expenses -> Cost of sales | 40724 General and admin expenses -> Cost of sales | 40727 Cost of sales -> Not in Fabric map | 40870 General and admin expenses -> Cost of sales | 40854 General and admin expenses -> Cost of sales
+ALL,2026-09,Gross profit,DIFF,1.5454%,mapping: account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40827 General and admin expenses -> Cost of sales | 40724 General and admin expenses -> Cost of sales | 40727 Cost of sales -> Not in Fabric map | 40870 General and admin expenses -> Cost of sales | 40854 General and admin expenses -> Cost of sales
+ALL,2026-09,G&A,DIFF,24.5568%,mapping: Fabric's separate Provisions line; account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40836 General and admin expenses -> Provisions | 40880 General and admin expenses -> Provisions | 40840 General and admin expenses -> Provisions | 40831 General and admin expenses -> Provisions | 40832 General and admin expenses -> Provisions
+ALL,2026-09,Net,DIFF,6.9682%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),40727 Cost of sales -> Not in Fabric map | 40864 General and admin expenses -> Not in Fabric map | 40872 General and admin expenses -> Not in Fabric map
+ALL,YTD 2026,Revenue,DIFF,0.4258%,mapping: account missing from Fabric's map (dropped by the INNER JOIN); different level_1,30801 Revenue -> Not in Fabric map | 40837 General and admin expenses -> Revenue
+ALL,YTD 2026,Cost of sales,DIFF,0.9499%,mapping: account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40827 General and admin expenses -> Cost of sales | 40727 Cost of sales -> Not in Fabric map | 40724 General and admin expenses -> Cost of sales | 40870 General and admin expenses -> Cost of sales | 40854 General and admin expenses -> Cost of sales
+ALL,YTD 2026,Gross profit,DIFF,2.1528%,mapping: account missing from Fabric's map (dropped by the INNER JOIN); different level_1,30801 Revenue -> Not in Fabric map | 40827 General and admin expenses -> Cost of sales | 40727 Cost of sales -> Not in Fabric map | 40724 General and admin expenses -> Cost of sales | 40870 General and admin expenses -> Cost of sales
+ALL,YTD 2026,G&A,DIFF,25.7457%,mapping: Fabric's separate Provisions line; account missing from Fabric's map (dropped by the INNER JOIN); different level_1,40836 General and admin expenses -> Provisions | 40880 General and admin expenses -> Provisions | 40831 General and admin expenses -> Provisions | 40832 General and admin expenses -> Provisions | 40840 General and admin expenses -> Provisions
+ALL,YTD 2026,Net,DIFF,0.1442%,mapping: account missing from Fabric's map (dropped by the INNER JOIN),30801 Revenue -> Not in Fabric map | 40727 Cost of sales -> Not in Fabric map | 40864 General and admin expenses -> Not in Fabric map | 40872 General and admin expenses -> Not in Fabric map | 40818 General and admin expenses -> Not in Fabric map

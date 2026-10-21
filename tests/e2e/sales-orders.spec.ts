@@ -52,7 +52,7 @@ test("the open value adds up across the aging and salesperson charts", async ({ 
     const total = aedNumber((await card.locator('[data-slot="card-action"]').textContent()) ?? "");
     expect(Math.abs(total - open)).toBeLessThanOrEqual(1);
   }
-  await expect(page.getByRole("img", { name: /^Open value by order age/ })).toHaveAttribute(
+  await expect(page.getByRole("group", { name: /^Open value by order age/ })).toHaveAttribute(
     "aria-label",
     /: <30 D AED .*, 1-2 M AED .*, 2-3 M AED .*, 3-6 M AED .*, 6-12 M AED .*, 1-2 Y AED .*, 2\+ Y AED /,
   );

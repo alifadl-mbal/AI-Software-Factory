@@ -879,7 +879,7 @@ export function openAgeByDimensionQuery(
             FROM (${lines.sql}
             ) book
             GROUP BY label
-            HAVING SUM(${IN_BUCKET_LINE}) > 0`;
+            HAVING SUM(${IN_BUCKET_VALUE}) <> 0`;
   return foldTopN(grouped, { ...lines.binds, age_bucket: bucket }, topN);
 }
 

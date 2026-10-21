@@ -6,7 +6,8 @@ import { ChartCardSkeleton, KpiRowSkeleton } from "@/components/dashboard/skelet
 import { DASHBOARDS } from "@/lib/dashboards";
 import { filtersToSearch, parseFilters, todayIso } from "@/lib/filters";
 
-import { SalesBreakdownChart, SalesKpis, SalesTopTable, SalesTrend } from "./sections";
+import { SalesDrillDialog } from "./sales-drill";
+import { SalesBreakdownChart, SalesCalendar, SalesKpis, SalesTopTable, SalesTrend } from "./sections";
 
 const dashboard = DASHBOARDS.find((entry) => entry.slug === "sales")!;
 
@@ -27,6 +28,10 @@ export default async function SalesPage({ searchParams }: PageProps<"/sales">) {
 
         <Suspense key={`trend${key}`} fallback={<ChartCardSkeleton height={300} />}>
           <SalesTrend filters={filters} />
+        </Suspense>
+
+        <Suspense key={`calendar${key}`} fallback={<ChartCardSkeleton height={320} />}>
+          <SalesCalendar filters={filters} />
         </Suspense>
 
         <div className="grid gap-6 lg:grid-cols-2">
@@ -84,6 +89,7 @@ export default async function SalesPage({ searchParams }: PageProps<"/sales">) {
           </Suspense>
         </div>
       </div>
+      <SalesDrillDialog />
     </>
   );
 }

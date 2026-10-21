@@ -1,6 +1,8 @@
 import "server-only";
 
 import { monthsInRange, previousYear, shiftMonth, type Filters } from "@/lib/filters";
+import type { DayFigures } from "@/lib/sales-calendar";
+import type { DocumentKey } from "@/lib/sales-drill";
 
 import { BRAND_MAP } from "../brand-map";
 import { run } from "../db";
@@ -310,4 +312,188 @@ export async function salesReturns(
     quantity: num(row.quantity),
     value: num(row.net_value),
   }));
+}
+
+/** Figures per day of the period, for the month → week → day table. Days without sales are absent. */
+export function dailyQuery(filters: Filters, scope?: SalesScope): Query {
+  const { sql, binds } = where(filters, scope);
+  return {
+    sql: `
+SELECT TO_CHAR(${DATE_COLUMN}, 'YYYY-MM-DD') AS sales_day,${MEASURES}
+FROM ${VIEW}
+WHERE ${sql}
+GROUP BY TO_CHAR(${DATE_COLUMN}, 'YYYY-MM-DD')
+ORDER BY sales_day`,
+    binds,
+  };
+}
+
+/**
+ * Every day of the period that had sales lines, with its figures. A document is dated once, so the
+ * days' invoice counts add up to the period's.
+ */
+export async function salesDaily(filters: Filters, scope?: SalesScope): Promise<DayFigures[]> {
+  const rows = await run(dailyQuery(filters, scope));
+  return rows.map((row) => {
+    const kpis = toKpis(row);
+    return {
+      date: String(row.sales_day),
+      netRevenue: kpis.netRevenue,
+      cost: kpis.cost,
+      returnsValue: kpis.returnsValue,
+      invoiceCount: kpis.invoiceCount,
+    };
+  });
+}
+
+/** The drill-down lists at most this many documents (the largest first). */
+export const DOCUMENT_LIMIT = 300;
+
+export interface SalesDocument extends DocumentKey {
+  /** YYYY-MM-DD. */
+  date: string;
+  /** `CSL_TXN_TYPE`: `INV` or `SARTN`. */
+  txnType: string;
+  /** `CSL_CUST_CODE`; empty when blank. */
+  customerCode: string;
+  customer: string;
+  salesperson: string;
+  netValue: number;
+  cost: number;
+  marginPct: number | null;
+}
+
+export interface SalesDocuments {
+  documents: SalesDocument[];
+  /** Every document in the period; `documents` stops at `limit`. */
+  total: number;
+  /** The period's exact figures, whatever the limit (the KPI query on the same filters). */
+  totals: SalesKpis;
+  limit: number;
+}
+
+/**
+ * The period's documents (`CSL_COMP_CODE` + `CSL_TXN_CODE` + `CSL_NO`), largest net value first
+ * whatever its sign, so big returns show too. Zero-value delivery notes are listed with their cost,
+ * as they count in the KPIs. Ranked in a subquery: Oracle rejects a GROUP BY on an expression with a
+ * bind (ORA-00979), and SQLite has no FETCH FIRST.
+ */
+export function documentsQuery(filters: Filters, limit = DOCUMENT_LIMIT, scope?: SalesScope): Query {
+  const { sql, binds } = where(filters, scope);
+  return {
+    sql: `
+SELECT doc_date, company_code, txn_code, txn_no, txn_type, cust_code, customer, salesperson,
+    net_value, cost, total_documents
+FROM (
+    SELECT doc_date, company_code, txn_code, txn_no, txn_type, cust_code, customer, salesperson,
+        net_value, cost, COUNT(*) OVER () AS total_documents,
+        ROW_NUMBER() OVER (
+            ORDER BY ABS(net_value) DESC, ABS(cost) DESC, doc_date, company_code, txn_code, txn_no
+        ) AS rn
+    FROM (
+        SELECT TO_CHAR(MIN(${DATE_COLUMN}), 'YYYY-MM-DD') AS doc_date, CSL_COMP_CODE AS company_code,
+            CSL_TXN_CODE AS txn_code, CSL_NO AS txn_no, MAX(CSL_TXN_TYPE) AS txn_type,
+            MAX(TRIM(${CUSTOMER_COLUMN})) AS cust_code,
+            MAX(${labelOrUnassigned(DIMENSIONS.customer)}) AS customer,
+            MAX(${labelOrUnassigned(DIMENSIONS.salesperson)}) AS salesperson,
+            SUM(${NET_VALUE}) AS net_value, SUM(${COST_VALUE}) AS cost
+        FROM ${VIEW}
+        WHERE ${sql}
+        GROUP BY CSL_COMP_CODE, CSL_TXN_CODE, CSL_NO
+    ) grouped
+) ranked
+WHERE rn <= :row_limit
+ORDER BY rn`,
+    binds: { ...binds, row_limit: limit },
+  };
+}
+
+function text(value: unknown): string {
+  return value === null || value === undefined ? "" : String(value).trim();
+}
+
+function margin(netValue: number, cost: number): number | null {
+  return netValue ? (netValue - cost) / netValue : null;
+}
+
+/**
+ * The documents behind a period, at most `limit` of them, with the period's exact totals from a
+ * separate query (the same one as the KPI cards), so the totals never depend on the limit.
+ */
+export async function salesDocuments(
+  filters: Filters,
+  limit = DOCUMENT_LIMIT,
+  scope?: SalesScope,
+): Promise<SalesDocuments> {
+  const [rows, totals] = await Promise.all([
+    run(documentsQuery(filters, limit, scope)),
+    salesKpis(filters, scope),
+  ]);
+  return {
+    documents: rows.map((row) => {
+      const netValue = num(row.net_value);
+      const cost = num(row.cost);
+      return {
+        date: text(row.doc_date),
+        company: text(row.company_code),
+        txnCode: text(row.txn_code),
+        no: text(row.txn_no),
+        txnType: text(row.txn_type),
+        customerCode: text(row.cust_code),
+        customer: text(row.customer),
+        salesperson: text(row.salesperson),
+        netValue,
+        cost,
+        marginPct: margin(netValue, cost),
+      };
+    }),
+    total: num(rows[0]?.total_documents),
+    totals,
+    limit,
+  };
+}
+
+export interface SalesDocumentLine {
+  /** `CSL_ITEM_CODE`; empty when blank. */
+  itemCode: string;
+  item: string;
+  /** Signed: negative on returns. */
+  quantity: number;
+  netValue: number;
+  cost: number;
+  marginPct: number | null;
+}
+
+/** One document's lines within the period, largest first. One query per opened document. */
+export function documentLinesQuery(filters: Filters, doc: DocumentKey, scope?: SalesScope): Query {
+  const { sql, binds } = where(filters, scope);
+  return {
+    sql: `
+SELECT TRIM(${ITEM_COLUMN}) AS item_code, ${labelOrUnassigned(DIMENSIONS.item)} AS item,
+    NVL(CSL_QTY, 0) AS quantity, ${NET_VALUE} AS net_value, ${COST_VALUE} AS cost
+FROM ${VIEW}
+WHERE ${sql} AND CSL_COMP_CODE = :doc_company AND CSL_TXN_CODE = :doc_txn_code AND CSL_NO = :doc_no
+ORDER BY ABS(${NET_VALUE}) DESC, ABS(${COST_VALUE}) DESC, item_code`,
+    binds: { ...binds, doc_company: doc.company, doc_txn_code: doc.txnCode, doc_no: doc.no },
+  };
+}
+
+export async function salesDocumentLines(
+  filters: Filters,
+  doc: DocumentKey,
+  scope?: SalesScope,
+): Promise<SalesDocumentLine[]> {
+  const rows = await run(documentLinesQuery(filters, doc, scope));
+  return rows.map((row) => {
+    const netValue = num(row.net_value);
+    const cost = num(row.cost);
+    return {
+      itemCode: text(row.item_code),
+      item: text(row.item),
+      quantity: num(row.quantity),
+      netValue,
+      cost,
+      marginPct: margin(netValue, cost),
+    };
+  });
 }

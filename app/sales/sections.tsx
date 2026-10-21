@@ -7,24 +7,28 @@ import { EmptyState } from "@/components/dashboard/empty-state";
 import { ErrorCard } from "@/components/dashboard/error-card";
 import { KpiCard } from "@/components/dashboard/kpi-card";
 import { KPI_GRID } from "@/components/dashboard/skeletons";
-import { TrendChart } from "@/components/dashboard/trend-chart";
 import { ReportAsOf } from "@/components/shell/shell-context";
 import { customerHref } from "@/lib/customers";
 import { previousYear, type Filters } from "@/lib/filters";
 import { itemHref } from "@/lib/items";
 import { formatAed } from "@/lib/format";
+import { buildCalendar } from "@/lib/sales-calendar";
 import { dataAsOf } from "@/lib/server/db";
 import { load } from "@/lib/server/errors";
 import { customerCodesByName } from "@/lib/server/queries/customers";
 import { itemCodesByName } from "@/lib/server/queries/items";
 import {
   salesBreakdown,
+  salesDaily,
   salesKpis,
   salesMonthly,
   TOP_N,
   type BreakdownRow,
   type Dimension,
 } from "@/lib/server/queries/sales";
+
+import { CalendarTable } from "./calendar-table";
+import { DrillableTrendChart } from "./sales-drill";
 
 /** The five headline cards, each with last year's figure and a monthly sparkline. */
 export async function SalesKpis({ filters }: { filters: Filters }) {
@@ -81,7 +85,7 @@ export async function SalesTrend({ filters }: { filters: Filters }) {
   return (
     <ChartCard
       title="Monthly net revenue"
-      description="This year against the same months last year"
+      description="This year against the same months last year; select a bar to list its documents"
       action={result.ok ? <span className="tabular text-sm font-medium">{formatAed(total)}</span> : undefined}
     >
       {!result.ok ? (
@@ -89,7 +93,7 @@ export async function SalesTrend({ filters }: { filters: Filters }) {
       ) : result.data.every((month) => month.netRevenue === 0 && month.lastYearNetRevenue === 0) ? (
         <EmptyState />
       ) : (
-        <TrendChart
+        <DrillableTrendChart
           data={result.data.map((month) => ({
             month: month.month,
             thisYear: month.netRevenue,
@@ -196,6 +200,23 @@ export async function SalesTopTable({
           }))}
           showTotals
         />
+      )}
+    </ChartCard>
+  );
+}
+
+/** Months that expand to ISO weeks and days, with zero rows for days without sales. */
+export async function SalesCalendar({ filters }: { filters: Filters }) {
+  const result = await load(() => salesDaily(filters));
+  return (
+    <ChartCard
+      title="Sales by month, week and day"
+      description="Expand a month for its weeks and a week for its days; select a period to list its documents. Selling days have at least one invoice."
+    >
+      {!result.ok ? (
+        <ErrorCard message={result.message} />
+      ) : (
+        <CalendarTable months={buildCalendar(filters.start, filters.end, result.data)} />
       )}
     </ChartCard>
   );

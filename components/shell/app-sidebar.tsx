@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/sidebar";
 import { monogram } from "@/lib/company-identity";
 import { DASHBOARDS, OVERVIEW, dashboardHref } from "@/lib/dashboards";
+import { DOC_PARAM, DRILL_PARAM } from "@/lib/sales-drill";
 import type { Company } from "@/lib/server/queries/common";
 
 import { useShell } from "./shell-context";
@@ -100,8 +101,11 @@ export function AppSidebar({
   const { setOpenMobile } = useSidebar();
   const { filters } = useShell();
   const single = filters.companies.length === 1 ? filters.companies[0] : null;
-  // Keep the filters when moving between dashboards.
-  const search = searchParams.size > 0 ? `?${searchParams.toString()}` : "";
+  // Keep the filters when moving between dashboards, but not a page's open drill-down.
+  const kept = new URLSearchParams(searchParams);
+  kept.delete(DRILL_PARAM);
+  kept.delete(DOC_PARAM);
+  const search = kept.size > 0 ? `?${kept.toString()}` : "";
   const items = [
     { href: OVERVIEW.href, title: OVERVIEW.title, icon: OVERVIEW.icon },
     ...DASHBOARDS.map((dashboard) => ({

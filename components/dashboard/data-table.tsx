@@ -43,6 +43,8 @@ export interface ColumnSpec {
    * (an "All other" row, a name without a code) show plain text. Links are left out of the CSV.
    */
   linkKey?: string;
+  /** Show the cell as a button that calls the table's `onAction` with the row (client tables only). */
+  action?: boolean;
 }
 
 export type TableRowData = Record<string, string | number | null>;
@@ -58,6 +60,13 @@ export interface DataTableProps {
   initialSort?: SortingState;
   /** Height of the scroll area; the header stays put while the body scrolls. */
   maxHeight?: number;
+  /**
+   * Exact totals row values, used instead of adding up `rows` while no search is typed: for a table
+   * that holds only the largest rows of a longer list. May also fill a ratio column like margin %.
+   */
+  totals?: Record<string, number>;
+  /** Called when an `action` cell is pressed. A row's `id` field marks its button (`data-row-id`). */
+  onAction?: (row: TableRowData, columnKey: string) => void;
 }
 
 function csvCell(value: unknown): string {
@@ -96,6 +105,8 @@ export function DataTable({
   showTotals = false,
   initialSort = [],
   maxHeight = 520,
+  totals,
+  onAction,
 }: DataTableProps) {
   const [sorting, setSorting] = useState<SortingState>(initialSort);
   const [globalFilter, setGlobalFilter] = useState("");
@@ -111,6 +122,18 @@ export function DataTable({
         cell: (context) => {
           const text = formatValue(column.format ?? "text", context.getValue());
           const href = column.linkKey ? context.row.original[column.linkKey] : null;
+          if (column.action && onAction) {
+            return (
+              <button
+                type="button"
+                className="rounded-sm font-medium text-primary underline-offset-4 hover:underline focus-visible:underline"
+                data-row-id={context.row.original.id ?? undefined}
+                onClick={() => onAction(context.row.original, column.key)}
+              >
+                {text}
+              </button>
+            );
+          }
           return typeof href === "string" && href ? (
             <Link
               href={href}
@@ -123,7 +146,7 @@ export function DataTable({
           );
         },
       })),
-    [columns],
+    [columns, onAction],
   );
 
   // The React Compiler isn't enabled, so TanStack's unmemoizable table object is fine here.
@@ -257,7 +280,7 @@ export function DataTable({
           </TableBody>
           {showTotals && (
             <TableFooter className="sticky bottom-0 bg-muted/80">
-              <TableRow className="hover:bg-transparent">
+              <TableRow className="hover:bg-transparent" data-testid="data-table-totals">
                 {columns.map((column, index) => (
                   <TableCell
                     key={column.key}
@@ -267,15 +290,17 @@ export function DataTable({
                       ? globalFilter
                         ? `Total (${filteredRows.length} shown)`
                         : "Total"
-                      : column.sum
-                        ? formatValue(
-                            column.format ?? "text",
-                            filteredRows.reduce(
-                              (total, row) => total + (Number(row.original[column.key]) || 0),
-                              0,
-                            ),
-                          )
-                        : ""}
+                      : totals && !globalFilter && column.key in totals
+                        ? formatValue(column.format ?? "text", totals[column.key])
+                        : column.sum
+                          ? formatValue(
+                              column.format ?? "text",
+                              filteredRows.reduce(
+                                (total, row) => total + (Number(row.original[column.key]) || 0),
+                                0,
+                              ),
+                            )
+                          : ""}
                   </TableCell>
                 ))}
               </TableRow>

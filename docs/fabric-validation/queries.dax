@@ -1,0 +1,39 @@
+// Fabric validation: DAX run against the "Finance" semantic model (workspace "Dashboards") through the
+// Power BI REST API, POST /v1.0/myorg/datasets/<finance-model-id>/executeQueries. Read-only.
+
+// D1. Model inventory: tables and storage mode (all Direct Lake on the lakehouse).
+EVALUATE SELECTCOLUMNS(INFO.VIEW.TABLES(), "name", [Name], "mode", [StorageMode])
+
+// D2. Relationships (finance -> date_dim on date, finance -> COMPANY on COMP_CODE, ...).
+EVALUATE SELECTCOLUMNS(INFO.VIEW.RELATIONSHIPS(), "from", [FromTable], "fromCol", [FromColumn],
+    "to", [ToTable], "toCol", [ToColumn], "active", [IsActive])
+
+// D3. Freshness: the model serves the refreshed lake. Compare with
+//     SELECT COUNT_BIG(*), MAX([date]), MAX(UPDATED_DATE), SUM(CASE WHEN [date] >= '2026-01-01' THEN NET_AMOUNT END)
+//     FROM dbo.finance  (identical on 2026-10-21 after the 13:00 Dubai refresh).
+EVALUATE ROW(
+    "rows", COUNTROWS(finance),
+    "maxdate", MAX(finance[date]),
+    "maxupd", MAX(finance[UPDATED_DATE]),
+    "ytd_net", CALCULATE(SUM(finance[NET_AMOUNT]), finance[date] >= DATE(2026, 1, 1))
+)
+
+// D4. The model has no model-level measures (the count is 0); the P&L measures live in the
+//     "PNL - All" report definition (Revenue = ABS(SUM(net_amount)) for level_1 = "Revenue", etc.).
+EVALUATE ROW("measures", COUNTROWS(INFO.VIEW.MEASURES()), "columns", COUNTROWS(INFO.VIEW.COLUMNS()))
+
+// D5. The PNL report's lines, current YTD, all companies, exactly as its measures define them
+//     (no status filter, ABS per line).
+DEFINE
+    MEASURE finance[Revenue] = ABS(CALCULATE(SUM(finance[net_amount]), finance[level_1] = "Revenue"))
+    MEASURE finance[Cost of Sales] = ABS(CALCULATE(SUM(finance[net_amount]), finance[level_1] = "Cost of sales"))
+    MEASURE finance[G&A] = ABS(CALCULATE(SUM(finance[net_amount]), finance[level_1] = "General and admin expenses"))
+    MEASURE finance[Provisions] = ABS(CALCULATE(SUM(finance[net_amount]), finance[level_1] = "Provisions"))
+EVALUATE
+CALCULATETABLE(
+    ROW(
+        "Revenue", [Revenue], "Cost of Sales", [Cost of Sales], "G&A", [G&A], "Provisions", [Provisions],
+        "Net Profit", [Revenue] - [Cost of Sales] - [G&A] - [Provisions]
+    ),
+    finance[date] >= DATE(2026, 1, 1), finance[date] <= DATE(2026, 10, 21)
+)
